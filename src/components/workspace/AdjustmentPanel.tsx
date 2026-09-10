@@ -2,6 +2,7 @@ import { ChevronDown, ChevronUp, Download } from "lucide-react";
 import { type ReactNode, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useMobile } from "@/hooks/useMobile";
+import panelStyles from "@/styles/adjustment-panel.module.css";
 import { ExportControls, type ExportControlsProps } from "./ExportControls";
 
 export function AdjustmentPanel({
@@ -14,16 +15,20 @@ export function AdjustmentPanel({
 		id = useId();
 	return (
 		<aside
-			className="adjust-panel dark"
+			className={`${panelStyles.adjustPanel} fixed top-[var(--workspace-inset)] right-[var(--workspace-inset)] bottom-[var(--workspace-inset)] z-[1] flex min-h-0 w-[var(--panel-width)] flex-col rounded-[36px] bg-[#292929] p-[30px] text-[#fafafa] shadow-[0_12px_40px_#0000001a] max-[1100px]:p-[26px]`}
 			data-expanded={!mobile || expanded}
 			aria-label={label}
 		>
-			<div className="panel-heading">
-				<h1>调整</h1>
+			<div
+				className={`${panelStyles.panelHeading} flex shrink-0 items-center justify-between gap-4 mb-8 min-h-11 max-[700px]:mb-2`}
+			>
+				<h1 className="m-0 text-[34px] font-[650] leading-[1.2] underline decoration-[7px] text-[#009fff] underline-offset-[-2px] [text-decoration-skip-ink:none] max-[700px]:text-[26px]">
+					调整
+				</h1>
 				{mobile ? (
-					<div className="panel-actions">
+					<div className="flex gap-2">
 						<Button
-							className="mobile-download"
+							className="!size-12 !rounded-full"
 							variant="ghost"
 							size="icon"
 							aria-label={exportProps.busy ? "正在导出" : "下载 PNG"}
@@ -33,7 +38,7 @@ export function AdjustmentPanel({
 							<Download />
 						</Button>
 						<Button
-							className="panel-toggle"
+							className="!size-12 !rounded-full"
 							variant="ghost"
 							size="icon"
 							aria-label={expanded ? "收起调整面板" : "展开调整面板"}
@@ -45,7 +50,7 @@ export function AdjustmentPanel({
 						</Button>
 					</div>
 				) : (
-					<svg className="adjust-mark" viewBox="0 0 48 48" aria-hidden="true">
+					<svg className="size-[42px]" viewBox="0 0 48 48" aria-hidden="true">
 						<circle
 							cx="28"
 							cy="24"
@@ -59,7 +64,12 @@ export function AdjustmentPanel({
 					</svg>
 				)}
 			</div>
-			<div id={id} className="panel-scroll" hidden={mobile && !expanded}>
+			<div
+				id={id}
+				className={`${panelStyles.panelScroll} min-w-0 flex-1 overflow-x-hidden overflow-y-auto p-1 px-2.5 max-[700px]:min-h-0 max-[700px]:px-1.5 max-[700px]:py-0 max-[700px]:overscroll-contain max-[700px]:touch-pan-y`}
+				aria-hidden={mobile && !expanded}
+				inert={mobile && !expanded}
+			>
 				{children}
 				{mobile && <ExportControls {...exportProps} showDownload={false} />}
 			</div>

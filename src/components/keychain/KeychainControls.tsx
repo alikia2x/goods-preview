@@ -1,4 +1,4 @@
-import { ChevronUp, Plus } from "lucide-react";
+import { ChevronDown, ChevronUp, Plus } from "lucide-react";
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -6,32 +6,44 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import { AdjustmentPanel } from "@/components/workspace/AdjustmentPanel";
+import {
+	ART_THUMBNAIL_CLASS_NAME,
+	CONTROL_SECTION_CLASS_NAME,
+	FILE_STATUS_CLASS_NAME,
+	IMAGE_ROW_CLASS_NAME,
+	PILL_CLASS_NAME,
+	UPLOAD_BUTTON_CLASS_NAME,
+} from "@/components/workspace/classNames";
 import { LightDirectionControls } from "@/components/workspace/LightDirectionControls";
 import { LightingControls } from "@/components/workspace/LightingControls";
 import { RangeControl } from "@/components/workspace/RangeControl";
 import { SceneControls } from "@/components/workspace/SceneControls";
 import type { useKeychainWorkspace } from "@/hooks/useKeychainWorkspace";
+import controlStyles from "@/styles/studio-controls.module.css";
 
 type Workspace = ReturnType<typeof useKeychainWorkspace>;
 
-export function KeychainSize({ workspace }: { workspace: Workspace }) {
+export function KeychainSize({
+	workspace,
+	arrow = "up",
+}: {
+	workspace: Workspace;
+	arrow?: "up" | "down";
+}) {
+	const Arrow = arrow === "down" ? ChevronDown : ChevronUp;
 	return (
 		<Popover>
 			<PopoverTrigger asChild>
-				<Button className="pill">
-					<ChevronUp />
+				<Button variant="ghost" className={`${PILL_CLASS_NAME} tabular-nums`}>
+					<Arrow />
 					{workspace.settings.size} mm
 				</Button>
 			</PopoverTrigger>
-			<PopoverContent align="end">
+			<PopoverContent
+				align="end"
+				className={`${controlStyles.popoverContent} max-[700px]:select-none`}
+			>
 				<RangeControl
 					label="图案长边"
 					value={workspace.settings.size}
@@ -57,12 +69,12 @@ export function KeychainControls({ workspace: w }: { workspace: Workspace }) {
 			onResolutionChange={w.setResolution}
 			onExport={w.exportArtwork}
 		>
-			<section className="control-section">
+			<section className={CONTROL_SECTION_CLASS_NAME}>
 				<h2>图像</h2>
-				<div className="image-row">
+				<div className={IMAGE_ROW_CLASS_NAME}>
 					<Button
 						variant="ghost"
-						className="art-thumbnail"
+						className={ART_THUMBNAIL_CLASS_NAME}
 						aria-label="更换图案"
 						onClick={() => input.current?.click()}
 					>
@@ -70,7 +82,7 @@ export function KeychainControls({ workspace: w }: { workspace: Workspace }) {
 					</Button>
 					<Button
 						variant="ghost"
-						className="upload-button"
+						className={UPLOAD_BUTTON_CLASS_NAME}
 						aria-label="上传图案"
 						onClick={() => input.current?.click()}
 					>
@@ -87,13 +99,13 @@ export function KeychainControls({ workspace: w }: { workspace: Workspace }) {
 						event.target.value = "";
 					}}
 				/>
-				<p className="file-status" role="status">
+				<p className={FILE_STATUS_CLASS_NAME} role="status">
 					<span title={w.model?.artwork.name}>
 						{w.loading ? "正在生成切边…" : w.model?.artwork.name}
 					</span>
 				</p>
 			</section>
-			<section className="control-section">
+			<section className={CONTROL_SECTION_CLASS_NAME}>
 				<h2>亚克力</h2>
 				<RangeControl
 					label="厚度"
@@ -113,23 +125,6 @@ export function KeychainControls({ workspace: w }: { workspace: Workspace }) {
 					display={`${w.settings.border} mm`}
 					onChange={(value) => w.change("border", value)}
 				/>
-			</section>
-			<section className="control-section">
-				<h2>连接件</h2>
-				<Select
-					value={w.settings.hardware}
-					onValueChange={(value) =>
-						w.change("hardware", value as "ring" | "clasp")
-					}
-				>
-					<SelectTrigger className="scene-select" aria-label="连接件">
-						<SelectValue />
-					</SelectTrigger>
-					<SelectContent>
-						<SelectItem value="ring">圆环 · 短链</SelectItem>
-						<SelectItem value="clasp">龙虾扣 · 短链</SelectItem>
-					</SelectContent>
-				</Select>
 			</section>
 			<SceneControls
 				value={w.settings.scene}

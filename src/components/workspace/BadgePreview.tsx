@@ -1,6 +1,7 @@
 import type { RefObject } from "react";
 import { useMobile } from "@/hooks/useMobile";
 import type { BadgeView, SettingChange, Settings } from "@/lib/badge/types";
+import layoutStyles from "@/styles/workspace.module.css";
 import { PreviewToolbar, SizeControl } from "./PreviewToolbar";
 import { WorkspaceHeader } from "./WorkspaceHeader";
 
@@ -30,14 +31,23 @@ export function BadgePreview({
 	const mobile = useMobile();
 	return (
 		<>
-			<div className="canvas-host" ref={hostRef} />
-			<section className="preview" aria-label="预览工作区" ref={framingRef}>
+			<div
+				className={`${layoutStyles.canvasHost} fixed inset-0`}
+				ref={hostRef}
+			/>
+			<section
+				className={`${layoutStyles.preview} pointer-events-none`}
+				aria-label="预览工作区"
+				ref={framingRef}
+			>
 				<WorkspaceHeader
 					settings={settings}
 					onSettingChange={onSettingChange}
 				/>
 				{!ready && !error && (
-					<div className="canvas-status">正在准备 3D 预览…</div>
+					<div className="absolute top-1/2 w-full text-center text-[#777]">
+						正在准备 3D 预览…
+					</div>
 				)}
 				{!mobile && (
 					<PreviewToolbar onViewChange={onViewChange}>

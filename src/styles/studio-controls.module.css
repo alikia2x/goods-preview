@@ -1,0 +1,37 @@
+.popoverContent {
+	box-shadow: 0 12px 36px #0003;
+}
+
+.popoverContent [data-slot="button"] {
+	min-height: 42px;
+	padding-inline: 16px;
+	border-radius: 24px;
+}
+
+.sliderControl [data-slot="slider"] {
+	width: calc(100% - 12px);
+	margin-inline: 6px;
+	min-height: 44px;
+}
+
+.sliderControl [data-slot="slider-track"] {
+	height: 4px;
+	background: #555;
+}
+
+.sliderControl [data-slot="slider-range"] {
+	background: #fafafa;
+}
+
+.sliderControl [data-slot="slider-thumb"] {
+	width: 7px;
+	height: 19px;
+	border: 0;
+	background: #fafafa;
+	border-radius: 4px;
+	box-shadow: none;
+}
+
+.cropPopover .sliderControl {
+	margin-bottom: 14px;
+}

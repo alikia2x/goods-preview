@@ -5,6 +5,7 @@ import {
 	debugSnapshot,
 	tickDebug,
 } from "@/lib/studio/debug-stats";
+import styles from "@/styles/debug.module.css";
 
 // Feeds the shared collector from inside the R3F loop; mounted only in dev.
 export function DebugCollector() {
@@ -24,34 +25,38 @@ export function DebugPanel() {
 		return () => clearInterval(interval);
 	}, []);
 	return (
-		<aside className="debug-panel" aria-label="调试参数">
-			<p className={`debug-row ${snapshot.contextLost ? "debug-alert" : ""}`}>
+		<aside className={styles.debugPanel} aria-label="调试参数">
+			<p
+				className={`${styles.debugRow} ${snapshot.contextLost ? styles.debugAlert : ""}`}
+			>
 				<span>FPS</span>
 				<strong>{format(snapshot.fps)}</strong>
 			</p>
-			<p className="debug-row">
+			<p className={styles.debugRow}>
 				<span>帧时</span>
 				<strong>{format(snapshot.frameMs, 2)} ms</strong>
 			</p>
-			<p className="debug-row">
+			<p className={styles.debugRow}>
 				<span>Draw calls</span>
 				<strong>{snapshot.drawCalls}</strong>
 			</p>
-			<p className="debug-row">
+			<p className={styles.debugRow}>
 				<span>Triangles</span>
 				<strong>{snapshot.triangles.toLocaleString()}</strong>
 			</p>
-			<p className="debug-row">
+			<p className={styles.debugRow}>
 				<span>几何 / 纹理</span>
 				<strong>
 					{snapshot.geometries} / {snapshot.textures}
 				</strong>
 			</p>
-			<p className="debug-row">
+			<p className={styles.debugRow}>
 				<span>着色器</span>
 				<strong>{snapshot.programs}</strong>
 			</p>
-			<p className={`debug-row ${snapshot.contextLost ? "debug-alert" : ""}`}>
+			<p
+				className={`${styles.debugRow} ${snapshot.contextLost ? styles.debugAlert : ""}`}
+			>
 				<span>上下文</span>
 				<strong>{snapshot.contextLost ? "已丢失" : "正常"}</strong>
 			</p>

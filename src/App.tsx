@@ -13,7 +13,11 @@ export default function App() {
 					path="/workspace/keychain"
 					element={
 						<Suspense
-							fallback={<div className="canvas-status">正在准备工作区…</div>}
+							fallback={
+								<div className="absolute top-1/2 w-full text-center text-[#777]">
+									正在准备工作区…
+								</div>
+							}
 						>
 							<KeychainWorkspace />
 						</Suspense>

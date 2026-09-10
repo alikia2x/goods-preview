@@ -1,6 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { FINISHES } from "@/lib/badge/finishes";
 import type { SettingChange, Settings } from "@/lib/badge/types";
+import {
+	CONTROL_SECTION_CLASS_NAME,
+	OPTION_ROW_CLASS_NAME,
+} from "./classNames";
 
 export function FinishControls({
 	settings,
@@ -10,9 +14,9 @@ export function FinishControls({
 	onChange: SettingChange;
 }) {
 	return (
-		<section className="control-section">
+		<section className={CONTROL_SECTION_CLASS_NAME}>
 			<h2>覆膜</h2>
-			<div className="option-row">
+			<div className={OPTION_ROW_CLASS_NAME}>
 				{(["glossy", "matte"] as const).map((finish) => (
 					<Button
 						key={finish}

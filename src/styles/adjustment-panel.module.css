@@ -1,0 +1,59 @@
+.adjustPanel {
+	transition: height 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.panelHeading {
+	transition: margin-bottom 220ms ease;
+}
+
+.panelScroll {
+	transition:
+		max-height 280ms ease,
+		opacity 180ms ease,
+		transform 280ms ease,
+		padding 280ms ease;
+}
+
+@media (max-width: 700px) {
+	.adjustPanel {
+		top: auto;
+		bottom: max(8px, env(safe-area-inset-bottom));
+		left: 8px;
+		right: 8px;
+		width: auto;
+		height: calc(54dvh - max(8px, env(safe-area-inset-bottom)));
+		overflow: hidden;
+	}
+
+	.adjustPanel[data-expanded="false"] {
+		height: 72px;
+	}
+
+	.adjustPanel[data-expanded="false"] .panelHeading {
+		margin-bottom: 0;
+	}
+
+	.panelScroll {
+		max-height: calc(100% - 52px);
+		opacity: 1;
+		transform: translateY(0);
+	}
+
+	.adjustPanel[data-expanded="false"] .panelScroll {
+		max-height: 0;
+		padding-top: 0;
+		padding-bottom: 0;
+		opacity: 0;
+		transform: translateY(-8px);
+		pointer-events: none;
+		overflow: hidden;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.adjustPanel,
+	.panelHeading,
+	.panelScroll {
+		transition: none;
+	}
+}

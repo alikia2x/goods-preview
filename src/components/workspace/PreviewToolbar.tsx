@@ -1,4 +1,4 @@
-import { ChevronUp, RotateCcw } from "lucide-react";
+import { ChevronDown, ChevronUp, RotateCcw } from "lucide-react";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,6 +8,13 @@ import {
 } from "@/components/ui/popover";
 import { BADGE_SIZES, VIEW_OPTIONS } from "@/lib/badge/constants";
 import type { BadgeView } from "@/lib/badge/types";
+import controlStyles from "@/styles/studio-controls.module.css";
+import layoutStyles from "@/styles/workspace.module.css";
+import {
+	OPTION_ROW_CLASS_NAME,
+	PILL_CLASS_NAME,
+	POPOVER_LABEL_CLASS_NAME,
+} from "./classNames";
 
 type PreviewToolbarProps = {
 	children: ReactNode;
@@ -19,17 +26,22 @@ export function PreviewToolbar({
 	onViewChange,
 }: PreviewToolbarProps) {
 	return (
-		<footer className="preview-footer">
+		<footer
+			className={`${layoutStyles.previewFooter} flex items-center justify-between gap-4`}
+		>
 			{children}
 			<Popover>
 				<PopoverTrigger asChild>
-					<Button className="pill">
+					<Button variant="ghost" className={PILL_CLASS_NAME}>
 						<ChevronUp /> 调整视角
 					</Button>
 				</PopoverTrigger>
-				<PopoverContent align="end">
-					<p className="popover-label">视角</p>
-					<div className="option-row">
+				<PopoverContent
+					align="end"
+					className={`${controlStyles.popoverContent} max-[700px]:select-none`}
+				>
+					<p className={POPOVER_LABEL_CLASS_NAME}>视角</p>
+					<div className={OPTION_ROW_CLASS_NAME}>
 						{VIEW_OPTIONS.map((option) => (
 							<Button
 								key={option.value}
@@ -56,20 +68,26 @@ export function PreviewToolbar({
 export function SizeControl({
 	size,
 	onSizeChange,
+	arrow = "up",
 }: {
 	size: number;
 	onSizeChange: (size: number) => void;
+	arrow?: "up" | "down";
 }) {
+	const Arrow = arrow === "down" ? ChevronDown : ChevronUp;
 	return (
 		<Popover>
 			<PopoverTrigger asChild>
-				<Button className="pill">
-					<ChevronUp /> {size} × {size} mm
+				<Button variant="ghost" className={`${PILL_CLASS_NAME} tabular-nums`}>
+					<Arrow /> {size} × {size} mm
 				</Button>
 			</PopoverTrigger>
-			<PopoverContent align="start">
-				<p className="popover-label">徽章直径</p>
-				<div className="option-row">
+			<PopoverContent
+				align="start"
+				className={`${controlStyles.popoverContent} max-[700px]:select-none`}
+			>
+				<p className={POPOVER_LABEL_CLASS_NAME}>徽章直径</p>
+				<div className={OPTION_ROW_CLASS_NAME}>
 					{BADGE_SIZES.map((option) => (
 						<Button
 							key={option}

@@ -6,15 +6,19 @@ import {
 	ovalLinkGeometry,
 	splitRingGeometry,
 } from "@/lib/keychain/hardware";
+import { KEYCHAIN_HARDWARE_COLORS } from "@/lib/keychain/materials";
+import type { KeychainHardwareColor } from "@/lib/keychain/types";
 
 export function KeychainHardware({
 	hole,
 	kind,
 	thickness,
+	color,
 }: {
 	hole: Vector2;
 	kind: "ring" | "clasp";
 	thickness: number;
+	color: KeychainHardwareColor;
 }) {
 	const geometries = useMemo(
 		() => ({
@@ -32,7 +36,12 @@ export function KeychainHardware({
 		},
 		[geometries],
 	);
-	const polished = { color: "#ededed", metalness: 1, roughness: 0.095 };
+	const material = KEYCHAIN_HARDWARE_COLORS[color];
+	const polished = {
+		color: material.color,
+		metalness: 1,
+		roughness: material.roughness,
+	};
 	return (
 		<group position={[hole.x, hole.y, 0]}>
 			{[0, 1, 2, 3].map((index) => (

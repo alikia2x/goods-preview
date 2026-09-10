@@ -74,6 +74,7 @@ export function KeychainModel({
 				hole={outline.hole}
 				kind={settings.hardware}
 				thickness={thickness}
+				color={settings.hardwareColor}
 			/>
 		</group>
 	);

@@ -1,0 +1,38 @@
+.debugPanel {
+	position: fixed;
+	top: 84px;
+	left: 12px;
+	background: rgb(20 20 22 / 82%);
+	color: #e6e6e6;
+	font-size: 10px;
+	padding: 8px 12px;
+	border-radius: 8px;
+	font-family: ui-monospace, SFMono-Regular, monospace;
+	pointer-events: none;
+	z-index: 20;
+}
+
+.debugRow {
+	display: flex;
+	justify-content: space-between;
+	gap: 12px;
+	margin: 0;
+	font-variant-numeric: tabular-nums;
+}
+
+.debugRow + .debugRow {
+	margin-top: 2px;
+}
+
+.debugRow span {
+	color: #98989c;
+}
+
+.debugRow strong {
+	font-weight: 500;
+}
+
+.debugAlert span,
+.debugAlert strong {
+	color: #ff7d68;
+}

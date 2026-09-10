@@ -7,6 +7,15 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import type { Settings } from "@/lib/badge/types";
+import controlStyles from "@/styles/studio-controls.module.css";
+import {
+	ART_THUMBNAIL_CLASS_NAME,
+	CONTROL_SECTION_CLASS_NAME,
+	FILE_STATUS_CLASS_NAME,
+	IMAGE_ROW_CLASS_NAME,
+	POPOVER_LABEL_CLASS_NAME,
+	UPLOAD_BUTTON_CLASS_NAME,
+} from "./classNames";
 import { RangeControl } from "./RangeControl";
 
 type ArtworkControlsProps = {
@@ -32,20 +41,26 @@ export function ArtworkControls({
 	onUpload,
 }: ArtworkControlsProps) {
 	return (
-		<section className="control-section">
+		<section className={CONTROL_SECTION_CLASS_NAME}>
 			<h2>图像</h2>
-			<div className="image-row">
+			<div className={IMAGE_ROW_CLASS_NAME}>
 				<Popover>
 					<PopoverTrigger asChild>
-						<Button className="art-thumbnail" aria-label="调整图像裁切">
+						<Button
+							variant="ghost"
+							className={ART_THUMBNAIL_CLASS_NAME}
+							aria-label="调整图像裁切"
+						>
 							{thumbnail && <img src={thumbnail} alt={artworkName} />}
-							<span className="thumbnail-edit">
+							<span className="absolute right-[5px] bottom-[5px] rounded-[5px] bg-[#292929] p-[5px] text-white [&_svg]:size-4">
 								<SlidersHorizontal />
 							</span>
 						</Button>
 					</PopoverTrigger>
-					<PopoverContent className="crop-popover">
-						<p className="popover-label">图像裁切</p>
+					<PopoverContent
+						className={`${controlStyles.popoverContent} ${controlStyles.cropPopover} max-[700px]:select-none`}
+					>
+						<p className={POPOVER_LABEL_CLASS_NAME}>图像裁切</p>
 						<RangeControl
 							label="缩放"
 							value={settings.zoom}
@@ -77,7 +92,8 @@ export function ArtworkControls({
 					</PopoverContent>
 				</Popover>
 				<Button
-					className="upload-button"
+					variant="ghost"
+					className={UPLOAD_BUTTON_CLASS_NAME}
 					aria-label="上传图像"
 					onClick={() => inputRef.current?.click()}
 				>
@@ -95,7 +111,7 @@ export function ArtworkControls({
 					}}
 				/>
 			</div>
-			<div className="file-status">
+			<div className={FILE_STATUS_CLASS_NAME}>
 				<ImagePlus />
 				<span title={artworkName}>{artworkName}</span>
 			</div>

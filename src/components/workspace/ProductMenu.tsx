@@ -6,17 +6,26 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
+import controlStyles from "@/styles/studio-controls.module.css";
+import { PILL_CLASS_NAME, SMALL_LABEL_CLASS_NAME } from "./classNames";
 
 export function ProductMenu({ product }: { product: "badge" | "keychain" }) {
 	return (
 		<Popover>
 			<PopoverTrigger asChild>
-				<Button className="pill menu-button" aria-label="切换制品">
-					<Menu />
+				<Button
+					variant="ghost"
+					className={`${PILL_CLASS_NAME} w-[46px] p-0 max-[700px]:!size-11 max-[700px]:min-w-11`}
+					aria-label="切换制品"
+				>
+					<Menu className="size-5" />
 				</Button>
 			</PopoverTrigger>
-			<PopoverContent align="start" className="menu-content">
-				<span className="small-label">制品</span>
+			<PopoverContent
+				align="start"
+				className={`${controlStyles.popoverContent} max-[700px]:select-none`}
+			>
+				<span className={SMALL_LABEL_CLASS_NAME}>制品</span>
 				{(
 					[
 						{ id: "badge", label: "覆膜吧唧" },

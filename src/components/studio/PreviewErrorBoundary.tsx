@@ -10,7 +10,10 @@ export class PreviewErrorBoundary extends Component<
 	}
 	render() {
 		return this.state.failed ? (
-			<div className="canvas-status" role="alert">
+			<div
+				className="absolute top-1/2 w-full text-center text-[#777]"
+				role="alert"
+			>
 				3D 预览初始化失败，请检查浏览器的 WebGL 支持并刷新页面。
 			</div>
 		) : (

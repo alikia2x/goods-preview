@@ -1,4 +1,9 @@
 import { Slider } from "@/components/ui/slider";
+import controlStyles from "@/styles/studio-controls.module.css";
+import {
+	CONTROL_LABEL_CLASS_NAME,
+	SLIDER_CONTROL_CLASS_NAME,
+} from "./classNames";
 
 type RangeControlProps = {
 	label: string;
@@ -8,6 +13,7 @@ type RangeControlProps = {
 	max?: number;
 	step?: number;
 	display?: string;
+	className?: string;
 };
 
 export function RangeControl({
@@ -18,12 +24,15 @@ export function RangeControl({
 	max = 100,
 	step = 1,
 	display,
+	className,
 }: RangeControlProps) {
 	return (
-		<div className="slider-control">
-			<div className="control-label">
+		<div
+			className={`${controlStyles.sliderControl} ${SLIDER_CONTROL_CLASS_NAME} ${className ?? ""}`}
+		>
+			<div className={CONTROL_LABEL_CLASS_NAME}>
 				<span>{label}</span>
-				<span>{display ?? `${value}%`}</span>
+				<span className="tabular-nums">{display ?? `${value}%`}</span>
 			</div>
 			<Slider
 				aria-label={label}

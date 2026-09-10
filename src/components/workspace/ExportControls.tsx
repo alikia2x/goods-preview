@@ -9,6 +9,13 @@ import {
 } from "@/components/ui/select";
 import { EXPORT_RESOLUTIONS } from "@/lib/badge/constants";
 import { exportDimensions } from "@/lib/badge/studio";
+import {
+	ERROR_MESSAGE_CLASS_NAME,
+	EXPORT_AREA_CLASS_NAME,
+	EXPORT_BUTTON_CLASS_NAME,
+	EXPORT_RESOLUTION_CLASS_NAME,
+	SELECT_CONTENT_CLASS_NAME,
+} from "./classNames";
 
 export type ExportControlsProps = {
 	ready: boolean;
@@ -30,19 +37,22 @@ export function ExportControls({
 	showDownload = true,
 }: ExportControlsProps) {
 	return (
-		<div className="export-area">
+		<div className={EXPORT_AREA_CLASS_NAME}>
 			{error && (
-				<p role="alert" className="error-message">
+				<p role="alert" className={ERROR_MESSAGE_CLASS_NAME}>
 					{error}
 				</p>
 			)}
-			<div className="export-resolution">
+			<div className={EXPORT_RESOLUTION_CLASS_NAME}>
 				<label htmlFor="resolution">导出尺寸</label>
 				<Select value={resolution} onValueChange={onResolutionChange}>
-					<SelectTrigger id="resolution" className="resolution-select">
+					<SelectTrigger
+						id="resolution"
+						className="w-auto border-0 bg-transparent text-[#eee] shadow-none tabular-nums"
+					>
 						<SelectValue />
 					</SelectTrigger>
-					<SelectContent>
+					<SelectContent className={SELECT_CONTENT_CLASS_NAME}>
 						{EXPORT_RESOLUTIONS.map((value) => {
 							const dimensions = exportDimensions(Number(value));
 							return (
@@ -56,7 +66,7 @@ export function ExportControls({
 			</div>
 			{showDownload && (
 				<Button
-					className="export-button"
+					className={EXPORT_BUTTON_CLASS_NAME}
 					disabled={!ready || busy}
 					onClick={() => void onExport()}
 				>

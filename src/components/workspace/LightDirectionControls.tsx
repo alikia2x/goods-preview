@@ -2,6 +2,7 @@ import type { PointerEvent } from "react";
 import { Button } from "@/components/ui/button";
 import type { Settings } from "@/lib/badge/types";
 import { lightAnglesFromPoint, lightDirection } from "@/lib/studio/lighting";
+import { CONTROL_SECTION_CLASS_NAME } from "./classNames";
 import { RangeControl } from "./RangeControl";
 
 export function LightDirectionControls({
@@ -26,16 +27,17 @@ export function LightDirectionControls({
 		onChange("lightElevation", angles.elevation);
 	};
 	return (
-		<section className="control-section light-direction">
+		<section className={CONTROL_SECTION_CLASS_NAME}>
 			<h2>光照方向</h2>
-			<div className="light-direction-layout">
-				<div className="light-direction-sliders">
+			<div className="grid grid-cols-[minmax(0,1fr)_88px] items-center gap-3.5">
+				<div className="min-w-0">
 					<RangeControl
 						label="方向角"
 						value={settings.lightAzimuth}
 						min={-180}
 						max={180}
 						display={`${Math.round(settings.lightAzimuth)}°`}
+						className="mb-1.5"
 						onChange={(value) => onChange("lightAzimuth", value)}
 					/>
 					<RangeControl
@@ -44,12 +46,13 @@ export function LightDirectionControls({
 						min={15}
 						max={90}
 						display={`${Math.round(settings.lightElevation)}°`}
+						className="mb-1.5"
 						onChange={(value) => onChange("lightElevation", value)}
 					/>
 				</div>
 				<Button
 					variant="ghost"
-					className="light-direction-pad"
+					className="aspect-square !w-full cursor-crosshair !rounded-full p-0 touch-none"
 					aria-label={`拖动调整光照，方向 ${Math.round(settings.lightAzimuth)} 度，高度 ${Math.round(settings.lightElevation)} 度；方向键调整`}
 					onPointerDown={(event) => {
 						event.preventDefault();
@@ -97,7 +100,7 @@ export function LightDirectionControls({
 					}}
 				>
 					<svg
-						className="light-direction-diagram"
+						className="size-full"
 						viewBox="0 0 100 100"
 						aria-hidden="true"
 						aria-label={`光照方向 ${Math.round(settings.lightAzimuth)} 度，高度 ${Math.round(settings.lightElevation)} 度`}

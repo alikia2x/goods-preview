@@ -2,12 +2,15 @@ import { DebugPanel } from "@/components/studio/DebugPanel";
 import { BadgeAdjustmentPanel } from "@/components/workspace/BadgeAdjustmentPanel";
 import { BadgePreview } from "@/components/workspace/BadgePreview";
 import { useBadgeWorkspace } from "@/hooks/useBadgeWorkspace";
+import layoutStyles from "@/styles/workspace.module.css";
 
 export default function BadgeWorkspace() {
 	const workspace = useBadgeWorkspace();
 
 	return (
-		<main className="workspace">
+		<main
+			className={`${layoutStyles.workspace} h-dvh bg-transparent text-[#292929]`}
+		>
 			<BadgePreview
 				hostRef={workspace.canvasHostRef}
 				framingRef={workspace.framingRef}
