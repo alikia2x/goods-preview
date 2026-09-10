@@ -1,7 +1,7 @@
 import type { RefObject } from "react";
 import { useMobile } from "@/hooks/useMobile";
 import type { BadgeView, SettingChange, Settings } from "@/lib/badge/types";
-import { PreviewToolbar } from "./PreviewToolbar";
+import { PreviewToolbar, SizeControl } from "./PreviewToolbar";
 import { WorkspaceHeader } from "./WorkspaceHeader";
 
 type BadgePreviewProps = {
@@ -40,11 +40,9 @@ export function BadgePreview({
 					<div className="canvas-status">正在准备 3D 预览…</div>
 				)}
 				{!mobile && (
-					<PreviewToolbar
-						size={size}
-						onSizeChange={onSizeChange}
-						onViewChange={onViewChange}
-					/>
+					<PreviewToolbar onViewChange={onViewChange}>
+						<SizeControl size={size} onSizeChange={onSizeChange} />
+					</PreviewToolbar>
 				)}
 			</section>
 		</>

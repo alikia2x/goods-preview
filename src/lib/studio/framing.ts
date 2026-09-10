@@ -1,3 +1,4 @@
+// Crop the unobstructed workspace region, independently of the rendering framework.
 export function squareCrop(bounds: {
 	left: number;
 	top: number;

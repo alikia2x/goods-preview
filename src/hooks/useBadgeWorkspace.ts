@@ -6,8 +6,8 @@ import {
 	SUPPORTED_IMAGE_TYPES,
 } from "@/lib/badge/constants";
 import { BadgeRenderer, defaultArtwork } from "@/lib/badge/renderer";
-import { SCENES } from "@/lib/badge/scenes";
 import type { BadgeView, SettingChange, Settings } from "@/lib/badge/types";
+import { SCENES } from "@/lib/studio/scenes";
 
 const RENDERER_ERROR =
 	"3D 预览初始化失败，请使用支持 WebGL 2 的浏览器并启用硬件加速。";

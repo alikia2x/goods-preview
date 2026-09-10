@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { shadowFrustum } from "../studio/lighting";
 import { KEY_DIRECTION } from "./finishes";
 
 // A depth-only pass of the actual badge. No background surface or lighting is
@@ -113,19 +114,39 @@ export class ContactShadow {
 	update(
 		scale: number,
 		direction = new THREE.Vector3(...KEY_DIRECTION).normalize(),
+		wallZ: number | null = null,
 	) {
-		const position = direction.clone().multiplyScalar(Math.sqrt(61));
-		if (this.camera.position.distanceToSquared(position) > 1e-10) {
-			this.camera.position.copy(position);
-			this.camera.up.set(0, 1, 0);
-			this.camera.lookAt(0, 0, 0);
-			this.camera.updateMatrixWorld();
-			this.material.uniforms.shadowMatrix.value.multiplyMatrices(
-				this.camera.projectionMatrix,
-				this.camera.matrixWorldInverse,
-			);
-			this.dirty = true;
-		}
+		const lightDistance = Math.sqrt(61);
+		const position = direction.clone().multiplyScalar(lightDistance);
+		// Refit the orthographic box to the badge volume plus its projection
+		// onto the receiver (the badge's rear plane at z≈-0.174*scale when
+		// flat, the studio floor when standing, and the backdrop wall when set).
+		const half = scale * 1.1;
+		const frustum = shadowFrustum(
+			direction,
+			wallZ,
+			[-half, -half, -half],
+			[half, half, half],
+			lightDistance,
+			-scale,
+		);
+		const camera = this.camera;
+		camera.left = frustum.left;
+		camera.right = frustum.right;
+		camera.top = frustum.top;
+		camera.bottom = frustum.bottom;
+		camera.near = frustum.near;
+		camera.far = frustum.far;
+		camera.position.copy(position);
+		camera.up.set(0, 1, 0);
+		camera.lookAt(0, 0, 0);
+		camera.updateProjectionMatrix();
+		camera.updateMatrixWorld();
+		this.material.uniforms.shadowMatrix.value.multiplyMatrices(
+			camera.projectionMatrix,
+			camera.matrixWorldInverse,
+		);
+		this.dirty = true;
 		if (this.caster.scale.x !== scale) {
 			this.caster.scale.setScalar(scale);
 			this.dirty = true;

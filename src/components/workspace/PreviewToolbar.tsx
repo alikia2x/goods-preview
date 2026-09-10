@@ -1,4 +1,5 @@
 import { ChevronUp, RotateCcw } from "lucide-react";
+import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Popover,
@@ -9,19 +10,17 @@ import { BADGE_SIZES, VIEW_OPTIONS } from "@/lib/badge/constants";
 import type { BadgeView } from "@/lib/badge/types";
 
 type PreviewToolbarProps = {
-	size: number;
-	onSizeChange: (size: number) => void;
+	children: ReactNode;
 	onViewChange: (view: BadgeView) => void;
 };
 
 export function PreviewToolbar({
-	size,
-	onSizeChange,
+	children,
 	onViewChange,
 }: PreviewToolbarProps) {
 	return (
 		<footer className="preview-footer">
-			<SizeControl size={size} onSizeChange={onSizeChange} />
+			{children}
 			<Popover>
 				<PopoverTrigger asChild>
 					<Button className="pill">

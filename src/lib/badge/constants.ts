@@ -1,4 +1,4 @@
-import { ORIGINAL_LIGHT_ANGLES } from "./lighting";
+import { ORIGINAL_LIGHT_ANGLES } from "../studio/lighting";
 import type { BadgeView, Settings } from "./types";
 
 export const PRODUCT_NAME = "覆膜吧唧 · 亮膜";
@@ -6,6 +6,7 @@ export const PRODUCT_VERSION = "v0.1.0";
 
 export const DEFAULT_SETTINGS: Settings = {
 	finish: "glossy",
+	lighting: "glossy",
 	shadow: 26,
 	scene: "plain",
 	light: 50,

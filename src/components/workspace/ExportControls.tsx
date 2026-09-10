@@ -10,7 +10,7 @@ import {
 import { EXPORT_RESOLUTIONS } from "@/lib/badge/constants";
 import { exportDimensions } from "@/lib/badge/studio";
 
-type ExportControlsProps = {
+export type ExportControlsProps = {
 	ready: boolean;
 	busy: boolean;
 	error: string;

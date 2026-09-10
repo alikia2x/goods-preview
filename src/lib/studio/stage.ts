@@ -1,10 +1,14 @@
 import * as THREE from "three";
-import { SCENES, type SceneKind } from "./scenes";
+import type { Reflector } from "three/addons/objects/Reflector.js";
+import { createReflectionFloor } from "./reflection-floor";
+import { SCENES, type SceneKind, sceneWallZ } from "./scenes";
 
+// Framework-independent set geometry; each renderer owns its lighting and shadows.
 export class SceneStage {
 	readonly group = new THREE.Group();
 	readonly casters = new THREE.Group();
 	private key = "";
+	private reflector: Reflector | null = null;
 	configure(kind: SceneKind, scale: number) {
 		const key = `${kind}:${scale}`;
 		if (key === this.key) return false;
@@ -12,30 +16,37 @@ export class SceneStage {
 		this.key = key;
 		if (kind === "plain" || kind === "transparent") return true;
 		const material = new THREE.MeshStandardMaterial({
-			color: kind === "table" ? "#f7f7f3" : "#fafaf7",
+			color: kind === "black" ? "#08090b" : "#ffffff",
 			roughness: kind === "table" ? 0.82 : 0.94,
 			metalness: 0,
+			envMapIntensity: kind === "black" ? 1 : 1.7,
 		});
 		if (kind !== "studio") {
 			const top = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), material);
 			top.rotation.x = -Math.PI / 2;
 			top.position.y = -scale - 0.004;
 			this.group.add(top);
+			if (kind === "black") {
+				this.reflector = createReflectionFloor(-scale - 0.002);
+				this.group.add(this.reflector);
+			}
 		}
-		{
+		const wallZ = sceneWallZ(kind);
+		if (wallZ !== null) {
 			const wallMaterial =
 				kind === "studio"
 					? material
 					: new THREE.MeshStandardMaterial({
-							color: "#e3e5e5",
+							color: "#ffffff",
 							roughness: 1,
 							metalness: 0,
+							envMapIntensity: 1.7,
 						});
 			const wall = new THREE.Mesh(
 				new THREE.PlaneGeometry(200, 200),
 				wallMaterial,
 			);
-			wall.position.set(0, 0, kind === "studio" ? -2 : -4);
+			wall.position.set(0, 0, wallZ);
 			this.group.add(wall);
 			if (kind === "studio") {
 				// Depth-only window mullions project onto the bright wall. The bars stay
@@ -73,6 +84,12 @@ export class SceneStage {
 		}
 	}
 	dispose() {
+		if (this.reflector) {
+			this.group.remove(this.reflector);
+			this.reflector.geometry.dispose();
+			this.reflector.dispose();
+			this.reflector = null;
+		}
 		const materials = new Set<THREE.Material>();
 		for (const root of [this.group, this.casters])
 			root.traverse((object) => {

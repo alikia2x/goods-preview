@@ -374,6 +374,38 @@ button.pill:hover {
 	text-align: center;
 	color: #777;
 }
+.debug-panel {
+	position: fixed;
+	top: 84px;
+	left: 12px;
+	background: rgba(20, 20, 22, 0.82);
+	color: #e6e6e6;
+	font-size: 10px;
+	padding: 8px 12px;
+	border-radius: 8px;
+	font-family: ui-monospace, SFMono-Regular, monospace;
+	pointer-events: none;
+	z-index: 20;
+}
+.debug-row {
+	display: flex;
+	justify-content: space-between;
+	gap: 12px;
+	margin: 0;
+}
+.debug-row + .debug-row {
+	margin-top: 2px;
+}
+.debug-row span {
+	color: #98989c;
+}
+.debug-row strong {
+	font-weight: 500;
+}
+.debug-alert span,
+.debug-alert strong {
+	color: #ff7d68;
+}
 .gesture-label {
 	color: #929292;
 	font-size: 11px;
@@ -521,6 +553,11 @@ button.pill:hover {
 	}
 	.preview {
 		inset: 0 0 54dvh 0;
+	}
+	/* Panel collapsed: the usable area is nearly full screen, so the square
+	   crop should center on the visible region, not on the original half. */
+	.workspace:has(.adjust-panel[data-expanded="false"]) .preview {
+		inset: 0 0 calc(72px + max(8px, env(safe-area-inset-bottom))) 0;
 	}
 	.preview-header {
 		top: max(10px, env(safe-area-inset-top));

@@ -1,11 +1,17 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { tickDebug } from "../studio/debug-stats";
+import { squareCrop } from "../studio/framing";
+import { lightDirection } from "../studio/lighting";
+import {
+	LIGHTING_PRESETS,
+	type LightingPreset,
+	prepareLightingPreset,
+} from "../studio/lighting-presets";
+import { SCENES, type SceneKind, sceneWallZ } from "../studio/scenes";
+import { SceneStage } from "../studio/stage";
 import { ContactShadow } from "./contact-shadow";
 import { FINISHES, type Finish, finishMaterial } from "./finishes";
-import { squareCrop } from "./framing";
-import { lightDirection, lightRotation } from "./lighting";
-import { SCENES, type SceneKind } from "./scenes";
-import { SceneStage } from "./stage";
 import { exportDimensions, studioEnvironment } from "./studio";
 import type { Settings } from "./types";
 
@@ -94,7 +100,8 @@ export class BadgeRenderer {
 	framing: HTMLElement;
 	observer: ResizeObserver;
 	frame = 0;
-	environments: Record<Finish, THREE.WebGLRenderTarget>;
+	environments = new Map<LightingPreset, THREE.WebGLRenderTarget>();
+	lighting: LightingPreset = "glossy";
 	finish: Finish = "glossy";
 	shadow: ContactShadow;
 	stage = new SceneStage();
@@ -114,11 +121,9 @@ export class BadgeRenderer {
 		this.renderer.toneMappingExposure = 1;
 		host.appendChild(this.renderer.domElement);
 		this.renderer.domElement.setAttribute("aria-label", "徽章 3D 预览");
-		this.environments = {
-			matte: studioEnvironment(this.renderer, "matte"),
-			glossy: studioEnvironment(this.renderer, "glossy"),
-		};
-		this.scene.environment = this.environments.glossy.texture;
+		const initial = studioEnvironment(this.renderer, "glossy");
+		this.environments.set("glossy", initial);
+		this.scene.environment = initial.texture;
 		this.texture = new THREE.CanvasTexture(defaultArtwork());
 		this.texture.colorSpace = THREE.SRGBColorSpace;
 		this.texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
@@ -181,6 +186,7 @@ export class BadgeRenderer {
 			this.controls.update();
 			this.shadow.render(this.renderer);
 			this.renderer.render(this.scene, this.camera);
+			if (import.meta.env.DEV) tickDebug(this.renderer);
 		};
 		animate();
 	}
@@ -225,22 +231,43 @@ export class BadgeRenderer {
 			this.controls.enableDamping = true;
 		}
 		// Scale the whole lighting rig together; 50% is the neutral studio setup.
+		// The black scene drops the synthetic presets' lift since its mood is dark.
 		const illumination =
-			2 ** ((s.light - 50) / 50) * (s.scene === "studio" ? 1.2 : 1);
+			2 ** ((s.light - 50) / 50) *
+			LIGHTING_PRESETS[s.lighting].intensity *
+			(s.scene === "black" ? 1 / 1.4 : 1);
 		this.scene.environmentIntensity = illumination;
 		// One light direction drives both environment reflection and shadow projection.
 		const direction = lightDirection(s.lightAzimuth, s.lightElevation);
-		this.scene.environmentRotation.setFromQuaternion(lightRotation(direction));
+		this.scene.environmentRotation.setFromQuaternion(
+			new THREE.Quaternion().setFromUnitVectors(
+				LIGHTING_PRESETS[s.lighting].keyDirection,
+				direction,
+			),
+		);
 		const preset = FINISHES[s.finish];
 		this.finish = s.finish;
-		this.scene.environment = this.environments[s.finish].texture;
+		this.lighting = s.lighting;
+		const cached = this.environments.get(s.lighting);
+		if (cached) {
+			this.scene.environment = cached.texture;
+		} else {
+			// HDR needs an async fetch; swap it in when the promise resolves.
+			void prepareLightingPreset(this.renderer, s.lighting).then((target) => {
+				this.environments.set(s.lighting, target);
+				if (this.lighting === s.lighting)
+					this.scene.environment = target.texture;
+			});
+		}
 		this.material.setValues(finishMaterial(s.finish, s.gloss));
 		this.renderer.toneMappingExposure = preset.exposure;
-		this.shadow.update(s.size / 65, direction);
+		const wallZ = sceneWallZ(s.scene);
+		this.shadow.update(s.size / 65, direction, wallZ);
 		this.shadow.setPose(this.group, standing, s.scene === "studio");
 		this.shadow.material.uniforms.strength.value = s.shadow / 100;
 		this.shadow.plane.visible = s.shadow > 0 && s.scene !== "studio";
-		this.shadow.wall.visible = s.scene === "studio" && s.shadow > 0;
+		this.shadow.wall.visible = wallZ !== null && s.shadow > 0;
+		if (wallZ !== null) this.shadow.wall.position.z = wallZ + 0.003;
 		this.group.scale.setScalar(s.size / 65);
 		const previous = this.artworkState;
 		if (
@@ -366,8 +393,7 @@ export class BadgeRenderer {
 			}
 		});
 		this.texture.dispose();
-		this.environments.matte.dispose();
-		this.environments.glossy.dispose();
+		for (const target of this.environments.values()) target.dispose();
 		this.shadow.dispose();
 		this.renderer.dispose();
 		this.renderer.domElement.remove();

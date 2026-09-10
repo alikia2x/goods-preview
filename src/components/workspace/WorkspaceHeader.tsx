@@ -1,4 +1,3 @@
-import { Check, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
 	Popover,
@@ -11,6 +10,7 @@ import { FINISHES } from "@/lib/badge/finishes";
 import type { SettingChange, Settings } from "@/lib/badge/types";
 import { FinishControls } from "./FinishControls";
 import { SizeControl } from "./PreviewToolbar";
+import { ProductMenu } from "./ProductMenu";
 
 export function WorkspaceHeader({
 	settings,
@@ -25,19 +25,7 @@ export function WorkspaceHeader({
 	return (
 		<header className="preview-header">
 			<div className="header-group">
-				<Popover>
-					<PopoverTrigger asChild>
-						<Button className="pill menu-button" aria-label="工作区菜单">
-							<Menu />
-						</Button>
-					</PopoverTrigger>
-					<PopoverContent align="start" className="menu-content">
-						<span className="small-label">制品</span>
-						<Button variant="ghost" className="w-full justify-between">
-							{productName} <Check />
-						</Button>
-					</PopoverContent>
-				</Popover>
+				<ProductMenu product="badge" />
 				<Popover>
 					<PopoverTrigger asChild>
 						<Button

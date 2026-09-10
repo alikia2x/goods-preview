@@ -25,7 +25,7 @@ export const FINISHES = Object.freeze({
 	}),
 });
 export type Finish = keyof typeof FINISHES;
-export const KEY_DIRECTION = [-3, 4, 6] as const;
+export { KEY_DIRECTION } from "../studio/lighting";
 export function finishMaterial(
 	finish: Finish,
 	gloss: number,

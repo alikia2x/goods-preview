@@ -1,11 +1,24 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import BadgeWorkspace from "@/pages/BadgeWorkspace";
+
+const KeychainWorkspace = lazy(() => import("@/pages/KeychainWorkspace"));
 export default function App() {
 	return (
 		<BrowserRouter>
 			<Routes>
 				<Route path="/" element={<Navigate to="/workspace/badge" replace />} />
 				<Route path="/workspace/badge" element={<BadgeWorkspace />} />
+				<Route
+					path="/workspace/keychain"
+					element={
+						<Suspense
+							fallback={<div className="canvas-status">正在准备工作区…</div>}
+						>
+							<KeychainWorkspace />
+						</Suspense>
+					}
+				/>
 				<Route path="*" element={<Navigate to="/workspace/badge" replace />} />
 			</Routes>
 		</BrowserRouter>

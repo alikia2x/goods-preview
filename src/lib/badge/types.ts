@@ -1,7 +1,9 @@
+import type { LightingPreset } from "../studio/lighting-presets";
+import type { SceneKind } from "../studio/scenes";
 import type { Finish } from "./finishes";
-import type { SceneKind } from "./scenes";
 export type Settings = {
 	finish: Finish;
+	lighting: LightingPreset;
 	shadow: number;
 	scene: SceneKind;
 	light: number;

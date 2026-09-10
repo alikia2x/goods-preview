@@ -5,7 +5,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { SCENES, type SceneKind } from "@/lib/badge/scenes";
+import { HIDDEN_SCENES, SCENES, type SceneKind } from "@/lib/studio/scenes";
 
 export function SceneControls({
 	value,
@@ -25,11 +25,13 @@ export function SceneControls({
 					<SelectValue />
 				</SelectTrigger>
 				<SelectContent>
-					{(Object.keys(SCENES) as SceneKind[]).map((key) => (
-						<SelectItem key={key} value={key}>
-							{SCENES[key].label}
-						</SelectItem>
-					))}
+					{(Object.keys(SCENES) as SceneKind[])
+						.filter((key) => !HIDDEN_SCENES.has(key))
+						.map((key) => (
+							<SelectItem key={key} value={key}>
+								{SCENES[key].label}
+							</SelectItem>
+						))}
 				</SelectContent>
 			</Select>
 		</section>

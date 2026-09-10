@@ -1,15 +1,15 @@
 import type { PointerEvent } from "react";
 import { Button } from "@/components/ui/button";
-import { lightAnglesFromPoint, lightDirection } from "@/lib/badge/lighting";
-import type { SettingChange, Settings } from "@/lib/badge/types";
+import type { Settings } from "@/lib/badge/types";
+import { lightAnglesFromPoint, lightDirection } from "@/lib/studio/lighting";
 import { RangeControl } from "./RangeControl";
 
 export function LightDirectionControls({
 	settings,
 	onChange,
 }: {
-	settings: Settings;
-	onChange: SettingChange;
+	settings: Pick<Settings, "lightAzimuth" | "lightElevation">;
+	onChange: (key: "lightAzimuth" | "lightElevation", value: number) => void;
 }) {
 	const direction = lightDirection(
 		settings.lightAzimuth,

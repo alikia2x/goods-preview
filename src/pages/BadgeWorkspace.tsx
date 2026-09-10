@@ -1,3 +1,4 @@
+import { DebugPanel } from "@/components/studio/DebugPanel";
 import { BadgeAdjustmentPanel } from "@/components/workspace/BadgeAdjustmentPanel";
 import { BadgePreview } from "@/components/workspace/BadgePreview";
 import { useBadgeWorkspace } from "@/hooks/useBadgeWorkspace";
@@ -33,6 +34,7 @@ export default function BadgeWorkspace() {
 				onResolutionChange={workspace.setResolution}
 				onExport={workspace.exportArtwork}
 			/>
+			{import.meta.env.DEV && <DebugPanel />}
 		</main>
 	);
 }
