@@ -1,0 +1,187 @@
+import * as THREE from "three";
+import { KEY_DIRECTION } from "./finishes";
+
+// A depth-only pass of the actual badge. No background surface or lighting is
+// rendered into this map. PCSS approximates area-source visibility at the receiver.
+export class ContactShadow {
+	readonly camera = new THREE.OrthographicCamera(-2, 2, 2, -2, 1, 14);
+	readonly target = new THREE.WebGLRenderTarget(2048, 2048, {
+		depthTexture: new THREE.DepthTexture(2048, 2048, THREE.UnsignedIntType),
+		minFilter: THREE.NearestFilter,
+		magFilter: THREE.NearestFilter,
+	});
+	readonly scene = new THREE.Scene();
+	readonly caster: THREE.Group;
+	readonly depthMaterial = new THREE.MeshDepthMaterial({
+		side: THREE.DoubleSide,
+	});
+	readonly material: THREE.ShaderMaterial;
+	readonly plane: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
+	readonly wall: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
+	private sceneCasters: THREE.Group | null = null;
+	dirty = true;
+	constructor(group: THREE.Group) {
+		this.caster = group.clone(true);
+		this.scene.add(this.caster);
+		this.scene.overrideMaterial = this.depthMaterial;
+		this.camera.position.set(...KEY_DIRECTION);
+		this.camera.lookAt(0, 0, 0);
+		this.camera.updateMatrixWorld();
+		const shadowMatrix = new THREE.Matrix4().multiplyMatrices(
+			this.camera.projectionMatrix,
+			this.camera.matrixWorldInverse,
+		);
+		const samples = Array.from({ length: 64 }, (_, i) => {
+			const r = Math.sqrt((i + 0.5) / 64),
+				theta = i * 2.399963229728653;
+			return new THREE.Vector2(r * Math.cos(theta), r * Math.sin(theta));
+		});
+		this.material = new THREE.ShaderMaterial({
+			transparent: true,
+			depthWrite: false,
+			toneMapped: false,
+			uniforms: {
+				shadowDepth: { value: this.target.depthTexture },
+				shadowMatrix: { value: shadowMatrix },
+				disk: { value: samples },
+				softness: { value: 0.11 },
+				strength: { value: 0.26 },
+			},
+			vertexShader: `uniform mat4 shadowMatrix; varying vec3 shadowPosition;
+    void main() {
+     vec4 world = modelMatrix * vec4(position, 1.0);
+     shadowPosition = (shadowMatrix * world).xyz * .5 + .5;
+     gl_Position = projectionMatrix * viewMatrix * world;
+    }`,
+			fragmentShader: `uniform sampler2D shadowDepth;
+    uniform vec2 disk[64]; uniform float softness; uniform float strength;
+    varying vec3 shadowPosition;
+    float depthAt(vec2 uv) {
+     if (any(lessThan(uv, vec2(0.0))) || any(greaterThan(uv, vec2(1.0)))) return 1.0;
+     return texture2D(shadowDepth, uv).r;
+    }
+    // Interpolate comparison results, not depths: this retains occluder edges
+    // while producing continuous coverage instead of 32 binary opacity steps.
+    float filteredOcclusion(vec2 uv, float receiver) {
+     vec2 pixel = uv * 2048.0 - .5;
+     vec2 base = (floor(pixel) + .5) / 2048.0;
+     vec2 f = fract(pixel);
+     float a = step(depthAt(base) + .00015, receiver);
+     float b = step(depthAt(base + vec2(1.0, 0.0)/2048.0) + .00015, receiver);
+     float c = step(depthAt(base + vec2(0.0, 1.0)/2048.0) + .00015, receiver);
+     float d = step(depthAt(base + vec2(1.0)/2048.0) + .00015, receiver);
+     return mix(mix(a,b,f.x),mix(c,d,f.x),f.y);
+    }
+    void main() {
+     vec3 p = shadowPosition;
+     if (any(lessThan(p, vec3(0.0))) || any(greaterThan(p, vec3(1.0)))) discard;
+     // Fixed in shadow space: breaks coherent sample rings without animation flicker.
+     float noise = fract(52.9829189 * fract(dot(floor(p.xy * 4096.0), vec2(.06711056, .00583715))));
+     float angle = noise * 6.2831853;
+     mat2 rotation = mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
+     float blockers = 0.0; float blockerDepth = 0.0;
+     for (int i = 0; i < 16; i++) {
+      float depth = depthAt(p.xy + rotation * disk[i * 4] * .045);
+      if (depth < p.z - .00015) { blockerDepth += depth; blockers += 1.0; }
+     }
+     if (blockers == 0.0) discard;
+     float separation = max(0.0, p.z - blockerDepth / blockers) * 13.0;
+     float radius = clamp(separation * softness / 4.0, 1.5 / 2048.0, .045);
+     float occlusion = 0.0;
+     for (int i = 0; i < 64; i++) {
+      occlusion += filteredOcclusion(p.xy + rotation * disk[i] * radius, p.z);
+     }
+     float boundary = min(min(p.x, 1.0-p.x), min(p.y, 1.0-p.y));
+     float coverage = occlusion / 64.0 * smoothstep(0.0, .05, boundary);
+     float alpha = strength * coverage;
+     // Sub-LSB dithering of the final blend avoids 8-bit PNG/display banding.
+     alpha += (noise - .5) / 255.0 * 4.0 * coverage * (1.0 - coverage) * strength;
+     gl_FragColor = vec4(0.0, 0.0, 0.0, clamp(alpha, 0.0, 1.0));
+    }`,
+		});
+		this.plane = new THREE.Mesh(
+			new THREE.PlaneGeometry(200, 200),
+			this.material,
+		);
+		this.plane.position.z = -0.174;
+		this.wall = new THREE.Mesh(
+			new THREE.PlaneGeometry(200, 200),
+			this.material,
+		);
+		this.wall.visible = false;
+	}
+	update(
+		scale: number,
+		direction = new THREE.Vector3(...KEY_DIRECTION).normalize(),
+	) {
+		const position = direction.clone().multiplyScalar(Math.sqrt(61));
+		if (this.camera.position.distanceToSquared(position) > 1e-10) {
+			this.camera.position.copy(position);
+			this.camera.up.set(0, 1, 0);
+			this.camera.lookAt(0, 0, 0);
+			this.camera.updateMatrixWorld();
+			this.material.uniforms.shadowMatrix.value.multiplyMatrices(
+				this.camera.projectionMatrix,
+				this.camera.matrixWorldInverse,
+			);
+			this.dirty = true;
+		}
+		if (this.caster.scale.x !== scale) {
+			this.caster.scale.setScalar(scale);
+			this.dirty = true;
+		}
+		this.plane.position.z = -0.174 * scale;
+	}
+	setStageCasters(group: THREE.Group) {
+		if (this.sceneCasters) this.scene.remove(this.sceneCasters);
+		this.sceneCasters = group.clone(true);
+		this.scene.add(this.sceneCasters);
+		this.dirty = true;
+	}
+	setPose(group: THREE.Group, standing: boolean, windowScene: boolean) {
+		if (
+			!this.caster.quaternion.equals(group.quaternion) ||
+			!this.caster.position.equals(group.position)
+		) {
+			this.caster.quaternion.copy(group.quaternion);
+			this.caster.position.copy(group.position);
+			this.dirty = true;
+		}
+		if (standing) {
+			this.plane.rotation.x = -Math.PI / 2;
+			this.plane.position.set(0, -group.scale.x, 0);
+		} else {
+			this.plane.rotation.set(0, 0, 0);
+			this.plane.position.set(0, 0, -0.174 * group.scale.x);
+		}
+		this.wall.position.set(0, 0, -1.999);
+		this.wall.visible = windowScene;
+		this.material.uniforms.softness.value = windowScene ? 0.038 : 0.11;
+	}
+
+	render(renderer: THREE.WebGLRenderer) {
+		if (!this.dirty) return;
+		const target = renderer.getRenderTarget();
+		const clear = renderer.getClearColor(new THREE.Color()),
+			alpha = renderer.getClearAlpha();
+		const autoClear = renderer.autoClear;
+		try {
+			renderer.autoClear = true;
+			renderer.setRenderTarget(this.target);
+			renderer.setClearColor(0xffffff, 1);
+			renderer.clear();
+			renderer.render(this.scene, this.camera);
+			this.dirty = false;
+		} finally {
+			renderer.setRenderTarget(target);
+			renderer.setClearColor(clear, alpha);
+			renderer.autoClear = autoClear;
+		}
+	}
+	dispose() {
+		this.target.dispose();
+		this.depthMaterial.dispose();
+		// Caster geometries/materials are shared with the badge and owned by its renderer.
+		this.scene.clear();
+	}
+}
