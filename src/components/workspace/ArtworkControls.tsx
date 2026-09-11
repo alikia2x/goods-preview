@@ -52,7 +52,10 @@ export function ArtworkControls({
 							aria-label="调整图像裁切"
 						>
 							{thumbnail && <img src={thumbnail} alt={artworkName} />}
-							<span className="absolute right-[5px] bottom-[5px] rounded-[5px] bg-[#292929] p-[5px] text-white [&_svg]:size-4">
+							<span
+								className="absolute right-1.25 bottom-1.25 rounded-[5px] bg-[#292929]
+							 p-1.25 text-white [&_svg]:size-4"
+							>
 								<SlidersHorizontal />
 							</span>
 						</Button>

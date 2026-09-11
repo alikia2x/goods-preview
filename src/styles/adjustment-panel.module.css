@@ -26,7 +26,7 @@
 	}
 
 	.adjustPanel[data-expanded="false"] {
-		height: 72px;
+		height: 96px;
 	}
 
 	.adjustPanel[data-expanded="false"] .panelHeading {

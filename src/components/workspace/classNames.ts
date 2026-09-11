@@ -8,7 +8,7 @@ export const OPTION_ROW_CLASS_NAME =
 	"flex flex-wrap gap-2.5 [&_[data-slot=button]]:flex-1 [&_[data-slot=button]]:px-2.5";
 
 export const SELECT_CONTENT_CLASS_NAME =
-	"!rounded-[20px] !bg-[#292929] p-2.5 shadow-[0_10px_30px_#0003] max-[700px]:select-none";
+	"!rounded-[20px] !bg-[#292929] !p-2.5 shadow-[0_10px_30px_#0003] max-[700px]:select-none";
 
 export const IMAGE_ROW_CLASS_NAME = "flex gap-4";
 
@@ -37,7 +37,7 @@ export const EXPORT_BUTTON_CLASS_NAME =
 
 export const ERROR_MESSAGE_CLASS_NAME = "mb-3.5 text-xs text-[#ffac9f]";
 
-export const SCENE_SELECT_CLASS_NAME = "min-h-11 !w-full !rounded-[14px] px-4";
+export const SCENE_SELECT_CLASS_NAME = "min-h-11 !w-full !rounded-[14px] !px-4";
 
 export const POPOVER_LABEL_CLASS_NAME = "mb-4 text-sm";
 

@@ -15,20 +15,27 @@ export function AdjustmentPanel({
 		id = useId();
 	return (
 		<aside
-			className={`${panelStyles.adjustPanel} fixed top-[var(--workspace-inset)] right-[var(--workspace-inset)] bottom-[var(--workspace-inset)] z-[1] flex min-h-0 w-[var(--panel-width)] flex-col rounded-[36px] bg-[#292929] p-[30px] text-[#fafafa] shadow-[0_12px_40px_#0000001a] max-[1100px]:p-[26px]`}
+			className={`${panelStyles.adjustPanel} fixed top-(--workspace-inset) right-(--workspace-inset)
+				bottom-(--workspace-inset) z-1 flex min-h-0 w-(--panel-width)
+				flex-col rounded-[36px] bg-[#292929] p-7.5 text-[#fafafa] shadow-[0_12px_40px_#0000001a]
+				max-[1100px]:p-6.5`}
 			data-expanded={!mobile || expanded}
 			aria-label={label}
 		>
 			<div
-				className={`${panelStyles.panelHeading} flex shrink-0 items-center justify-between gap-4 mb-8 min-h-11 max-[700px]:mb-2`}
+				className={`${panelStyles.panelHeading} flex shrink-0 items-center justify-between gap-4 mb-8
+					 min-h-11 max-[700px]:mb-2`}
 			>
-				<h1 className="m-0 text-[34px] font-[650] leading-[1.2] underline decoration-[7px] text-[#009fff] underline-offset-[-2px] [text-decoration-skip-ink:none] max-[700px]:text-[26px]">
+				<h1
+					className="m-0 text-[34px] font-[650] leading-[1.2] underline decoration-[7px] text-white
+				 decoration-[#009fff] -underline-offset-2 [text-decoration-skip-ink:none] max-[700px]:text-[26px]"
+				>
 					调整
 				</h1>
 				{mobile ? (
 					<div className="flex gap-2">
 						<Button
-							className="!size-12 !rounded-full"
+							className="size-12! rounded-full!"
 							variant="ghost"
 							size="icon"
 							aria-label={exportProps.busy ? "正在导出" : "下载 PNG"}
@@ -38,7 +45,7 @@ export function AdjustmentPanel({
 							<Download />
 						</Button>
 						<Button
-							className="!size-12 !rounded-full"
+							className="size-12! rounded-full!"
 							variant="ghost"
 							size="icon"
 							aria-label={expanded ? "收起调整面板" : "展开调整面板"}
@@ -50,7 +57,7 @@ export function AdjustmentPanel({
 						</Button>
 					</div>
 				) : (
-					<svg className="size-[42px]" viewBox="0 0 48 48" aria-hidden="true">
+					<svg className="size-10.5" viewBox="0 0 48 48" aria-hidden="true">
 						<circle
 							cx="28"
 							cy="24"
@@ -66,7 +73,9 @@ export function AdjustmentPanel({
 			</div>
 			<div
 				id={id}
-				className={`${panelStyles.panelScroll} min-w-0 flex-1 overflow-x-hidden overflow-y-auto p-1 px-2.5 max-[700px]:min-h-0 max-[700px]:px-1.5 max-[700px]:py-0 max-[700px]:overscroll-contain max-[700px]:touch-pan-y`}
+				className={`${panelStyles.panelScroll} min-w-0 flex-1 overflow-x-hidden overflow-y-auto p-1
+					px-2.5 max-[700px]:min-h-0 max-[700px]:px-1.5 max-[700px]:py-0 max-[700px]:overscroll-contain
+					 max-[700px]:touch-pan-y`}
 				aria-hidden={mobile && !expanded}
 				inert={mobile && !expanded}
 			>

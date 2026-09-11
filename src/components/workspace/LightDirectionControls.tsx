@@ -52,7 +52,7 @@ export function LightDirectionControls({
 				</div>
 				<Button
 					variant="ghost"
-					className="aspect-square !w-full cursor-crosshair !rounded-full p-0 touch-none"
+					className="aspect-square !h-auto !w-full cursor-crosshair !rounded-full p-0 touch-none"
 					aria-label={`拖动调整光照，方向 ${Math.round(settings.lightAzimuth)} 度，高度 ${Math.round(settings.lightElevation)} 度；方向键调整`}
 					onPointerDown={(event) => {
 						event.preventDefault();
