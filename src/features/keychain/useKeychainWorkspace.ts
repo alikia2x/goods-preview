@@ -15,7 +15,17 @@ import { useExportController } from "@/features/studio/useExportController";
 import { useWorkspaceViewport } from "@/features/studio/useWorkspaceViewport";
 import { useSceneBackground } from "@/hooks/useSceneBackground";
 
-export function useKeychainWorkspace() {
+function constrainAcrylicSettings(next: KeychainSettings): KeychainSettings {
+	return {
+		...next,
+		connectorWidth: Math.min(70, Math.max(5, next.connectorWidth)),
+		baseDiameter: Math.max(next.baseDiameter, next.connectorWidth + 8),
+	};
+}
+
+export function useKeychainWorkspace(
+	productKind: KeychainSettings["productKind"] = "keychain",
+) {
 	const {
 		framingRef,
 		backgroundRef,
@@ -25,7 +35,20 @@ export function useKeychainWorkspace() {
 		changeView,
 	} = useWorkspaceViewport();
 	const { settings, updateSetting: applySetting } = useSettings(
-		DEFAULT_KEYCHAIN_SETTINGS,
+		{
+			...DEFAULT_KEYCHAIN_SETTINGS,
+			productKind,
+			...(productKind === "standee"
+				? {
+						scene: "table" as const,
+						lighting: "studioContrast" as const,
+						lightAzimuth: -35,
+						lightElevation: 40,
+						shadow: 65,
+					}
+				: {}),
+		},
+		constrainAcrylicSettings,
 	);
 	const [artwork, setArtwork] = useState<KeychainArtwork | null>(null);
 	const [outline, setOutline] = useState<Outline | null>(null);
@@ -40,8 +63,8 @@ export function useKeychainWorkspace() {
 
 	const fileName = useCallback(
 		(resolution: number, transparent: boolean) =>
-			`keychain-${settings.scene}${transparent ? "-transparent" : ""}-${resolution}x${resolution}.png`,
-		[settings.scene],
+			`${productKind}-${settings.scene}${transparent ? "-transparent" : ""}-${resolution}x${resolution}.png`,
+		[settings.scene, productKind],
 	);
 
 	const exportState = useExportController({
@@ -83,12 +106,37 @@ export function useKeychainWorkspace() {
 	useEffect(() => {
 		if (!artwork) return;
 		try {
-			setOutline(traceOutline(artwork.mask, settings.border / settings.size));
+			setOutline(
+				traceOutline(
+					artwork.mask,
+					settings.border / settings.size,
+					productKind === "keychain"
+						? "keychain"
+						: productKind === "standee"
+							? {
+									width: settings.connectorWidth / settings.size,
+									height: settings.connectorHeight / settings.size,
+									x: settings.connectorX / 100,
+									gap: settings.connectorY / settings.size,
+								}
+							: null,
+				),
+			);
 			setError("");
 		} catch (cause) {
 			setError(cause instanceof Error ? cause.message : "无法生成切边。");
 		}
-	}, [artwork, settings.border, settings.size, setError]);
+	}, [
+		artwork,
+		settings.border,
+		settings.size,
+		settings.connectorWidth,
+		settings.connectorHeight,
+		settings.connectorX,
+		settings.connectorY,
+		productKind,
+		setError,
+	]);
 
 	const upload = useCallback(
 		async (file?: File) => {

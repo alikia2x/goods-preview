@@ -27,7 +27,7 @@ export function ProductWorkspace({
 	overlays,
 	onViewChange,
 }: {
-	product: "badge" | "keychain";
+	product: "badge" | "keychain" | "acrylic" | "standee";
 	productName: string;
 	variantAriaLabel: string;
 	variantControls: ReactNode;

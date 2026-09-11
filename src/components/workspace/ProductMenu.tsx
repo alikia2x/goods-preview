@@ -27,9 +27,15 @@ type MenuGroup = {
 const PRODUCT_OPTIONS = [
 	{ id: "badge", label: "覆膜吧唧", to: "/workspace/badge" },
 	{ id: "keychain", label: "亚克力钥匙扣", to: "/workspace/keychain" },
+	{ id: "acrylic", label: "任意亚克力", to: "/workspace/acrylic" },
+	{ id: "standee", label: "亚克力立牌", to: "/workspace/standee" },
 ] satisfies MenuItem[];
 
-export function ProductMenu({ product }: { product: "badge" | "keychain" }) {
+export function ProductMenu({
+	product,
+}: {
+	product: "badge" | "keychain" | "acrylic" | "standee";
+}) {
 	const [open, setOpen] = useState(false);
 	const { openAbout, openTutorial } = useWorkspaceSupport();
 	const groups: MenuGroup[] = [

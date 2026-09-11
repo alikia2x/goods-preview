@@ -1,3 +1,4 @@
+import type { KeychainSettings } from "@/features/keychain/settings";
 import * as THREE from "three";
 import { toCreasedNormals } from "three/addons/utils/BufferGeometryUtils.js";
 
@@ -43,18 +44,36 @@ export type Outline = {
 	holeRadius: number;
 	width: number;
 	height: number;
+	connector?: { x: number; width: number };
 };
 
 // Work on a bounded raster, then trace its outside boundary. Interior transparent
 // pixels remain clear acrylic; only the mounting hole is cut through the sheet.
-export function traceOutline(mask: ArtworkMask, borderRatio: number): Outline {
+export type OutlineMount = {
+	width: number;
+	height: number;
+	x: number;
+	gap: number;
+};
+
+export function traceOutline(
+	mask: ArtworkMask,
+	borderRatio: number,
+	mount: "keychain" | OutlineMount | null = "keychain",
+): Outline {
 	const { width, height, alpha } = mask;
 	if (width < 1 || height < 1 || alpha.length !== width * height)
 		throw new Error("图像轮廓数据无效。");
 	const radius = Math.max(2, Math.ceil(Math.max(width, height) * borderRatio));
 	const resolutionScale = Math.max(width, height) / 192;
 	const lugRadius = Math.round(11 * resolutionScale);
-	const pad = radius + lugRadius + Math.ceil(3 * resolutionScale) + 3;
+	const extra =
+		typeof mount === "object" && mount
+			? Math.ceil(
+					(mount.gap + mount.height + mount.width) * Math.max(width, height),
+				)
+			: 0;
+	const pad = radius + lugRadius + Math.ceil(3 * resolutionScale) + 3 + extra;
 	const w = width + pad * 2,
 		h = height + pad * 2;
 	const filled = new Uint8Array(w * h);
@@ -88,14 +107,50 @@ export function traceOutline(mask: ArtworkMask, borderRatio: number): Outline {
 			anchor = x;
 	const cx = anchor + pad,
 		cy = top + pad - radius - Math.ceil(3 * resolutionScale);
-	for (let y = cy - lugRadius; y <= top + pad; y++)
-		for (let x = cx - lugRadius; x <= cx + lugRadius; x++) {
-			if (
-				(x - cx) ** 2 + (y - cy) ** 2 <= lugRadius ** 2 ||
-				(y >= cy && Math.abs(x - cx) <= 7 * resolutionScale)
-			)
+	if (mount === "keychain")
+		for (let y = cy - lugRadius; y <= top + pad; y++)
+			for (let x = cx - lugRadius; x <= cx + lugRadius; x++) {
+				if (
+					(x - cx) ** 2 + (y - cy) ** 2 <= lugRadius ** 2 ||
+					(y >= cy && Math.abs(x - cx) <= 7 * resolutionScale)
+				)
+					filled[y * w + x] = 1;
+			}
+	let connector: Outline["connector"];
+	if (mount && typeof mount === "object") {
+		const pixels = Math.max(width, height);
+		let bottom = 0;
+		let left = w,
+			right = 0;
+		for (let y = 1; y < h - 1; y++)
+			for (let x = 1; x < w - 1; x++) {
+				if (filled[y * w + x]) {
+					bottom = Math.max(bottom, y);
+					left = Math.min(left, x);
+					right = Math.max(right, x);
+				}
+			}
+		const half = Math.max(1, Math.round((mount.width * pixels) / 2));
+		const center = Math.round(
+			(left + right) / 2 + (mount.x * (right - left)) / 2,
+		);
+		const start = center - half;
+		const end = center + half;
+		connector = {
+			x: (((start + end + 1) / 2 - pad - width / 2) * 2) / pixels,
+			width: ((end - start + 1) * 2) / pixels,
+		};
+		const foot = bottom + Math.ceil((mount.gap + mount.height) * pixels);
+		const shoulder = bottom + Math.ceil(mount.gap * pixels);
+		// Project every column upward to its first intersection, then union in
+		// the raster before tracing. Empty columns join via the common shoulder.
+		for (let x = start; x <= end; x++) {
+			let hit = bottom;
+			while (hit > 0 && !filled[hit * w + x]) hit--;
+			for (let y = hit > 0 ? hit : shoulder; y <= foot; y++)
 				filled[y * w + x] = 1;
 		}
+	}
 	const edges = new Map<number, number[]>();
 	const vertex = (x: number, y: number) => y * (w + 1) + x;
 	const add = (a: number, b: number) => {
@@ -159,9 +214,10 @@ export function traceOutline(mask: ArtworkMask, borderRatio: number): Outline {
 			(height / 2 - (p.y - pad)) * unit,
 		);
 	return {
+		connector,
 		points: smooth.map(convert),
 		hole: convert(new THREE.Vector2(cx, cy)),
-		holeRadius: 4 * resolutionScale * unit,
+		holeRadius: mount === "keychain" ? 4 * resolutionScale * unit : 0,
 		width: width * unit,
 		height: height * unit,
 	};
@@ -178,7 +234,7 @@ export function acrylicGeometry(outline: Outline, thickness: number) {
 		Math.PI * 2,
 		true,
 	);
-	shape.holes.push(hole);
+	if (outline.holeRadius > 0) shape.holes.push(hole);
 	const bevel = Math.min(0.008, thickness / 8);
 	const geometry = new THREE.ExtrudeGeometry(shape, {
 		depth: thickness - 2 * bevel,
@@ -203,9 +259,29 @@ export function keychainFrame(
 	outline: Outline,
 	size: number,
 	hardware: "ring" | "clasp",
+	settings?: Pick<KeychainSettings, "productKind" | "baseDiameter">,
 ) {
 	const scale = size / 60;
 	const bottom = Math.min(...outline.points.map((point) => point.y));
+	if (settings && settings.productKind !== "keychain") {
+		const top = Math.max(...outline.points.map((p) => p.y));
+		const left = Math.min(...outline.points.map((p) => p.x));
+		const right = Math.max(...outline.points.map((p) => p.x));
+		const base =
+			settings.productKind === "standee" ? settings.baseDiameter / 30 : 0;
+		const height = (top - bottom) * scale;
+		const baseX = (outline.connector?.x ?? 0) * scale;
+		const minX = Math.min(left * scale, baseX - base / 2);
+		const maxX = Math.max(right * scale, baseX + base / 2);
+		return {
+			center: [(minX + maxX) / 2, -1 + height / 2, 0] as [
+				number,
+				number,
+				number,
+			],
+			span: Math.max(maxX - minX, height, base) + 0.15,
+		};
+	}
 	const translation = -1 - bottom * scale;
 	const minX =
 		Math.min(...outline.points.map((point) => point.x), outline.hole.x - 0.47) *

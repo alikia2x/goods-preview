@@ -8,6 +8,13 @@ const KeychainWorkspace = lazy(
 	() => import("@/features/keychain/KeychainWorkspace"),
 );
 
+const AcrylicWorkspace = lazy(
+	() => import("@/features/acrylic/AcrylicWorkspace"),
+);
+const StandeeWorkspace = lazy(
+	() => import("@/features/acrylic/StandeeWorkspace"),
+);
+
 const WORKSPACE_FALLBACK = (
 	<LoadingOverlay label="正在准备工作区…" className="fixed inset-0 z-10" />
 );
@@ -52,6 +59,22 @@ export default function App() {
 						element={
 							<Suspense fallback={WORKSPACE_FALLBACK}>
 								<KeychainWorkspace />
+							</Suspense>
+						}
+					/>
+					<Route
+						path="/workspace/acrylic"
+						element={
+							<Suspense fallback={WORKSPACE_FALLBACK}>
+								<AcrylicWorkspace />
+							</Suspense>
+						}
+					/>
+					<Route
+						path="/workspace/standee"
+						element={
+							<Suspense fallback={WORKSPACE_FALLBACK}>
+								<StandeeWorkspace />
 							</Suspense>
 						}
 					/>

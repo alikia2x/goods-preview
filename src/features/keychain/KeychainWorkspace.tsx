@@ -1,3 +1,5 @@
+import { AcrylicProductControls } from "@/features/acrylic/AcrylicProductControls";
+import type { KeychainSettings } from "@/features/keychain/settings";
 import { useMemo } from "react";
 import { ProductWorkspace } from "@/components/workspace/ProductWorkspace";
 import { WorkspaceProvider } from "@/components/workspace/WorkspaceContext";
@@ -8,7 +10,6 @@ import { keychainFrame } from "@/features/keychain/lib/geometry";
 import { KEYCHAIN_HARDWARE_COLORS } from "@/features/keychain/lib/materials";
 import { KeychainKeyLight } from "@/features/keychain/model/KeychainKeyLight";
 import { KeychainModel } from "@/features/keychain/model/KeychainModel";
-import { ShadowPlanes } from "@/features/keychain/model/ShadowPlanes";
 import {
 	KEYCHAIN_MAX_DISTANCE,
 	KEYCHAIN_MIN_DISTANCE,
@@ -24,7 +25,15 @@ import { useStudioEnvironment } from "@/features/studio/useStudioEnvironment";
 const CAMERA_FOV = 35;
 
 export default function KeychainWorkspace() {
-	const workspace = useKeychainWorkspace();
+	return <AcrylicWorkspaceContent productKind="keychain" />;
+}
+
+export function AcrylicWorkspaceContent({
+	productKind,
+}: {
+	productKind: KeychainSettings["productKind"];
+}) {
+	const workspace = useKeychainWorkspace(productKind);
 	const { settings, model, updateSetting, exportState } = workspace;
 	const {
 		environment,
@@ -36,20 +45,37 @@ export default function KeychainWorkspace() {
 	const frame = useMemo(
 		() =>
 			model
-				? keychainFrame(model.outline, settings.size, settings.hardware)
+				? keychainFrame(model.outline, settings.size, settings.hardware, {
+						productKind: settings.productKind,
+						baseDiameter: settings.baseDiameter,
+					})
 				: { center: [0, 0.6, 0] as [number, number, number], span: 3.6 },
-		[model, settings.size, settings.hardware],
+		[
+			model,
+			settings.size,
+			settings.hardware,
+			settings.productKind,
+			settings.baseDiameter,
+		],
 	);
 	const distance = studioDistance(frame.span, CAMERA_FOV);
 	const pose = useMemo(
-		() => keychainPose(frame.center, distance),
-		[frame.center, distance],
+		() =>
+			productKind === "standee"
+				? keychainViews(frame.center, distance).angle
+				: keychainPose(frame.center, distance),
+		[frame.center, distance, productKind],
 	);
 	const views = useMemo(
 		() => keychainViews(frame.center, distance),
 		[frame.center, distance],
 	);
-	const productName = `亚克力钥匙扣 · ${KEYCHAIN_HARDWARE_COLORS[settings.hardwareColor].label}`;
+	const productName =
+		productKind === "keychain"
+			? `亚克力钥匙扣 · ${KEYCHAIN_HARDWARE_COLORS[settings.hardwareColor].label}`
+			: productKind === "standee"
+				? "亚克力立牌"
+				: "任意亚克力";
 
 	return (
 		<WorkspaceProvider
@@ -58,10 +84,16 @@ export default function KeychainWorkspace() {
 			exportState={exportState}
 		>
 			<ProductWorkspace
-				product="keychain"
+				product={productKind}
 				productName={productName}
-				variantAriaLabel={`${productName}，设置连接件和颜色`}
-				variantControls={<KeychainProductControls />}
+				variantAriaLabel={`${productName}，制品设置`}
+				variantControls={
+					productKind === "keychain" ? (
+						<KeychainProductControls />
+					) : (
+						<AcrylicProductControls />
+					)
+				}
 				renderSizeControl={(placement) => (
 					<KeychainSizePopover
 						size={settings.size}
@@ -78,7 +110,7 @@ export default function KeychainWorkspace() {
 						onUpload={workspace.upload}
 					/>
 				}
-				panelLabel="调整钥匙扣"
+				panelLabel={`调整${productName}`}
 				framingRef={workspace.framingRef}
 				canvas={
 					<StudioCanvas
@@ -97,16 +129,15 @@ export default function KeychainWorkspace() {
 						minDistance={KEYCHAIN_MIN_DISTANCE}
 						maxDistance={KEYCHAIN_MAX_DISTANCE}
 						sceneObjects={
-							<>
-								<KeychainKeyLight
-									preset={settings.lighting}
-									intensity={settings.light}
-									azimuth={settings.lightAzimuth}
-									elevation={settings.lightElevation}
-									scene={settings.scene}
-								/>
-								<ShadowPlanes kind={settings.scene} shadow={settings.shadow} />
-							</>
+							<KeychainKeyLight
+								preset={settings.lighting}
+								shadow={settings.shadow}
+								span={frame.span}
+								intensity={settings.light}
+								azimuth={settings.lightAzimuth}
+								elevation={settings.lightElevation}
+								scene={settings.scene}
+							/>
 						}
 					>
 						{model && <KeychainModel {...model} settings={settings} />}

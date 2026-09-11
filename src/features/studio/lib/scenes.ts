@@ -18,5 +18,5 @@ export function isSceneKind(value: string): value is SceneKind {
 export const HIDDEN_SCENES: ReadonlySet<SceneKind> = new Set(["studio"]);
 
 export function sceneWallZ(kind: SceneKind): number | null {
-	return kind === "standing" ? -0.65 : kind === "studio" ? -2 : null;
+	return kind === "standing" ? -2.2 : kind === "studio" ? -2 : null;
 }

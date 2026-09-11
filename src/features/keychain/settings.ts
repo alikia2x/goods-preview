@@ -8,6 +8,12 @@ export type KeychainHardware = "ring" | "clasp";
 export type KeychainHardwareColor = "silver" | "gold";
 
 export type KeychainSettings = StudioSettings & {
+	productKind: "keychain" | "acrylic" | "standee";
+	baseDiameter: number;
+	connectorWidth: number;
+	connectorHeight: number;
+	connectorX: number;
+	connectorY: number;
 	thickness: number;
 	border: number;
 	hardware: KeychainHardware;
@@ -22,6 +28,12 @@ export const DEFAULT_KEYCHAIN_SETTINGS: KeychainSettings = {
 	light: 50,
 	lightAzimuth: ORIGINAL_LIGHT_ANGLES.azimuth,
 	lightElevation: ORIGINAL_LIGHT_ANGLES.elevation,
+	productKind: "keychain",
+	baseDiameter: 55,
+	connectorWidth: 18,
+	connectorHeight: 4,
+	connectorX: 0,
+	connectorY: 3,
 	thickness: 3,
 	border: 2,
 	hardware: "ring",

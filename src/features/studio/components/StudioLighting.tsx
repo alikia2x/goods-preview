@@ -71,6 +71,8 @@ export function StudioLighting({
 	}, [scene, environment]);
 
 	useEffect(() => {
+		// The source is sampled during loading; do not rotate an unmeasured rig.
+		if (!environment) return;
 		// Rotate the preset's measured main emitter onto the user's direction.
 		scene.environmentRotation.setFromQuaternion(
 			new THREE.Quaternion().setFromUnitVectors(
@@ -79,7 +81,7 @@ export function StudioLighting({
 			),
 		);
 		scene.environmentIntensity = energy * LIGHTING_PRESETS[preset].intensity;
-	}, [scene, direction, energy, preset]);
+	}, [scene, direction, energy, preset, environment]);
 
 	return null;
 }

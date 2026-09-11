@@ -42,12 +42,13 @@ export class SceneStage {
 		if (kind === "plain") return true;
 		const material = new THREE.MeshStandardMaterial({
 			color: kind === "black" ? "#08090b" : "#ffffff",
-			roughness: kind === "table" ? 0.82 : 0.94,
+			roughness: kind === "table" ? 0.48 : 0.94,
 			metalness: 0,
-			envMapIntensity: kind === "black" ? 1 : 1.7,
+			envMapIntensity: 1,
 		});
 		if (kind !== "studio") {
 			const top = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), material);
+			top.receiveShadow = true;
 			top.rotation.x = -Math.PI / 2;
 			top.position.y = -scale - 0.004;
 			this.group.add(top);
@@ -65,12 +66,13 @@ export class SceneStage {
 							color: "#ffffff",
 							roughness: 1,
 							metalness: 0,
-							envMapIntensity: 1.7,
+							envMapIntensity: 1,
 						});
 			const wall = new THREE.Mesh(
 				new THREE.PlaneGeometry(200, 200),
 				wallMaterial,
 			);
+			wall.receiveShadow = true;
 			wall.position.set(0, 0, wallZ);
 			this.group.add(wall);
 			if (kind === "studio") {

@@ -104,7 +104,11 @@ export function StudioCanvas({
 					elevation={settings.lightElevation}
 					scene={settings.scene}
 				/>
-				<StudioStage kind={settings.scene} backgroundRef={backgroundRef} />
+				<StudioStage
+					kind={settings.scene}
+					backgroundRef={backgroundRef}
+					directLighting={Boolean(sceneObjects)}
+				/>
 				{sceneObjects}
 				{children}
 				{import.meta.env.DEV && <DebugCollector />}

@@ -13,13 +13,13 @@ export function KeychainSizePopover({
 	align?: "start" | "end" | "center";
 }) {
 	return (
-		<SizePopover display={`${size} mm`} arrow={arrow} align={align}>
+		<SizePopover display={`${size / 10} cm`} arrow={arrow} align={align}>
 			<RangeControl
 				label="图案长边"
 				value={size}
-				min={40}
-				max={80}
-				display={`${size} mm`}
+				min={30}
+				max={250}
+				display={`${size / 10} cm`}
 				onChange={onSizeChange}
 			/>
 		</SizePopover>

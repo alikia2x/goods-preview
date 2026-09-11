@@ -2,7 +2,8 @@ import { Vector3, type WebGLRenderer, type WebGLRenderTarget } from "three";
 import { createStudioEnvironment } from "@/features/studio/lib/environment";
 import { KEY_DIRECTION } from "@/features/studio/lib/lighting";
 import {
-	PHOTOGRAPHIC_STUDIO,
+	PHOTOGRAPHIC_ENVIRONMENTS,
+	isPhotographicPreset,
 	preparePhotographicStudio,
 } from "@/features/studio/lib/photographic-environment";
 import type { SceneKind } from "@/features/studio/lib/scenes";
@@ -25,12 +26,7 @@ export const LIGHTING_PRESETS = {
 		intensity: 1.4,
 		gain: 1,
 	},
-	hdr: {
-		label: "实景 · 摄影棚",
-		keyDirection: PHOTOGRAPHIC_STUDIO.keyDirection,
-		intensity: PHOTOGRAPHIC_STUDIO.intensity,
-		gain: PHOTOGRAPHIC_STUDIO.gain,
-	},
+	...PHOTOGRAPHIC_ENVIRONMENTS,
 } as const;
 export type LightingPreset = keyof typeof LIGHTING_PRESETS;
 export const LIGHTING_PRESET_KEYS = Object.keys(
@@ -73,17 +69,16 @@ export function prepareLightingPreset(
 	}
 	let pending = perRenderer.get(preset);
 	if (!pending) {
-		pending =
-			preset === "hdr"
-				? preparePhotographicStudio(renderer)
-				: Promise.resolve(
-						createStudioEnvironment(renderer, {
-							fill: 0.62,
-							peak: preset === "matte" ? 1.8 : 33,
-							width: preset === "matte" ? 0.22 : 0.012,
-							elongated: preset === "glossy",
-						}),
-					);
+		pending = isPhotographicPreset(preset)
+			? preparePhotographicStudio(renderer, preset)
+			: Promise.resolve(
+					createStudioEnvironment(renderer, {
+						fill: 0.62,
+						peak: preset === "matte" ? 1.8 : 33,
+						width: preset === "matte" ? 0.22 : 0.012,
+						elongated: preset === "glossy",
+					}),
+				);
 		perRenderer.set(preset, pending);
 	}
 	return pending;

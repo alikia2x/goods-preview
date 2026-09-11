@@ -20,7 +20,12 @@ export function ProductVariantPopover({
 			<PopoverTrigger asChild>
 				<PillButton aria-label={ariaLabel}>{label}</PillButton>
 			</PopoverTrigger>
-			<PopoverContent align="start">{children}</PopoverContent>
+			<PopoverContent
+				align="start"
+				className="max-h-[var(--radix-popover-content-available-height)] overflow-y-auto"
+			>
+				{children}
+			</PopoverContent>
 		</Popover>
 	);
 }

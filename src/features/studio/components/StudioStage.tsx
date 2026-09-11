@@ -1,3 +1,8 @@
+import {
+	neutralFloor,
+	tabletopLighting,
+} from "@/features/studio/lib/floor-material";
+import { sampledDiffuseLighting } from "@/features/studio/lib/indirect-light";
 import { useThree } from "@react-three/fiber";
 import { type RefObject, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
@@ -9,8 +14,10 @@ import { SceneStage } from "@/features/studio/lib/stage";
 export function StudioStage({
 	kind,
 	backgroundRef,
+	directLighting = false,
 }: {
 	kind: SceneKind;
+	directLighting?: boolean;
 	backgroundRef: RefObject<THREE.Group | null>;
 }) {
 	const scene = useThree((state) => state.scene);
@@ -22,6 +29,15 @@ export function StudioStage({
 		if (!root) return;
 		const stage = new SceneStage();
 		stage.configure(kind, 1);
+		if (directLighting)
+			stage.group.traverse((object) => {
+				if (
+					object instanceof THREE.Mesh &&
+					object.material instanceof THREE.MeshStandardMaterial
+				)
+					object.material.onBeforeCompile =
+						kind === "table" ? tabletopLighting : sampledDiffuseLighting;
+			});
 		scene.background = stage.background;
 		setBackground(stage.background);
 		stage.casters.traverse((object) => {
@@ -36,15 +52,24 @@ export function StudioStage({
 			root.remove(stage.group, stage.casters);
 			stage.dispose();
 		};
-	}, [kind, scene]);
+	}, [kind, scene, directLighting]);
 
 	return (
 		<group ref={backgroundRef}>
 			<group ref={setRef} />
 			{kind === "plain" && background && (
-				<mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.004, 0]}>
+				<mesh
+					receiveShadow
+					rotation={[-Math.PI / 2, 0, 0]}
+					position={[0, -1.004, 0]}
+				>
 					<planeGeometry args={[200, 200]} />
-					<meshStandardMaterial color={background} roughness={0.9} />
+					<shadowMaterial
+						color={background}
+						transparent={false}
+						toneMapped={false}
+						onBeforeCompile={neutralFloor}
+					/>
 				</mesh>
 			)}
 		</group>

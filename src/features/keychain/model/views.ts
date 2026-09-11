@@ -4,7 +4,7 @@ import type {
 } from "@/features/studio/components/StudioViewport";
 
 export const KEYCHAIN_MIN_DISTANCE = 3;
-export const KEYCHAIN_MAX_DISTANCE = 12;
+export const KEYCHAIN_MAX_DISTANCE = 60;
 
 type Vec3 = [number, number, number];
 

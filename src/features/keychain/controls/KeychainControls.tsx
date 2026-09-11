@@ -49,7 +49,7 @@ export function KeychainControls({
 					onChange={(value) => updateSetting("border", value)}
 				/>
 			</AdjustmentSection>
-			<StudioControls glossLabel="表面反光" />
+			<StudioControls glossLabel="反光强度" />
 		</>
 	);
 }

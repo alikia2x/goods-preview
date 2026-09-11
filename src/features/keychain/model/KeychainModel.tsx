@@ -1,3 +1,7 @@
+import { sampledDiffuseLighting } from "@/features/studio/lib/indirect-light";
+import { createOpticalShadow } from "@/features/acrylic/optical-shadow";
+import { AcrylicMaterial } from "@/features/acrylic/AcrylicMaterial";
+import { StandeeBase } from "@/features/acrylic/StandeeBase";
 import { useEffect, useMemo } from "react";
 import * as THREE from "three";
 import type { KeychainArtwork } from "@/features/keychain/lib/artwork";
@@ -17,6 +21,8 @@ export function KeychainModel({
 	outline: Outline;
 	settings: KeychainSettings;
 }) {
+	const opticalShadow = useMemo(createOpticalShadow, []);
+	useEffect(() => () => opticalShadow.dispose(), [opticalShadow]);
 	const thickness = (settings.thickness / settings.size) * 2;
 	const geometry = useMemo(
 		() => acrylicGeometry(outline, thickness),
@@ -50,22 +56,28 @@ export function KeychainModel({
 	const bottom = Math.min(...outline.points.map((point) => point.y));
 	return (
 		<group position={[0, -1 - bottom * scale, 0]} scale={scale}>
-			<mesh geometry={geometry} dispose={null}>
-				<meshPhysicalMaterial
-					color="#ffffff"
-					transmission={1}
+			<mesh
+				castShadow
+				customDepthMaterial={opticalShadow}
+				geometry={geometry}
+				dispose={null}
+			>
+				<AcrylicMaterial
+					attach="material-0"
 					thickness={thickness}
-					ior={1.49}
-					roughness={0.012 + (1 - settings.gloss / 100) ** 2 * 0.12}
-					metalness={0}
-					clearcoat={0}
-					attenuationColor="#ffffff"
-					attenuationDistance={10}
+					gloss={settings.gloss}
+				/>
+				<AcrylicMaterial
+					attach="material-1"
+					thickness={thickness}
+					gloss={settings.gloss}
+					edge
 				/>
 			</mesh>
 			<mesh castShadow receiveShadow customDepthMaterial={depth}>
 				<planeGeometry args={[outline.width, outline.height]} />
 				<meshStandardMaterial
+					onBeforeCompile={sampledDiffuseLighting}
 					map={texture}
 					alphaTest={0.08}
 					side={THREE.DoubleSide}
@@ -73,12 +85,25 @@ export function KeychainModel({
 					metalness={0}
 				/>
 			</mesh>
-			<KeychainHardware
-				hole={outline.hole}
-				kind={settings.hardware}
-				thickness={thickness}
-				color={settings.hardwareColor}
-			/>
+			{settings.productKind === "standee" && (
+				<StandeeBase
+					settings={settings}
+					bottom={bottom}
+					x={outline.connector?.x ?? 0}
+					width={
+						outline.connector?.width ??
+						(settings.connectorWidth / settings.size) * 2
+					}
+				/>
+			)}
+			{settings.productKind === "keychain" && (
+				<KeychainHardware
+					hole={outline.hole}
+					kind={settings.hardware}
+					thickness={thickness}
+					color={settings.hardwareColor}
+				/>
+			)}
 		</group>
 	);
 }

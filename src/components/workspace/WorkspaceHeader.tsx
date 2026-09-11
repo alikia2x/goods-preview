@@ -15,7 +15,7 @@ export function WorkspaceHeader({
 	variant,
 	sizeControl,
 }: {
-	product: "badge" | "keychain";
+	product: "badge" | "keychain" | "acrylic" | "standee";
 	productName: string;
 	variantAriaLabel: string;
 	variant: ReactNode;
