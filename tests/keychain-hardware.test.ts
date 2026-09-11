@@ -7,7 +7,7 @@ import {
 	claspGateGeometry,
 	ovalLinkGeometry,
 	splitRingGeometry,
-} from "../src/lib/keychain/hardware";
+} from "@/features/keychain/lib/hardware";
 
 test("spring ring has outward faces, an open center and separated windings", () => {
 	const geometry = splitRingGeometry(),

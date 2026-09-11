@@ -1,0 +1,69 @@
+import { ImagePlus, SlidersHorizontal } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
+import { ArtworkUploadSection } from "@/components/workspace/ArtworkUploadSection";
+import { RangeControl } from "@/components/workspace/RangeControl";
+import type { BadgeSettings } from "@/features/badge/settings";
+import type { SettingChange } from "@/features/studio/settings";
+
+type ArtworkControlsProps = {
+	settings: BadgeSettings;
+	thumbnail: string;
+	artworkName: string;
+	onSettingChange: SettingChange<BadgeSettings>;
+	onUpload: (file?: File) => Promise<void>;
+};
+
+export function ArtworkControls({
+	settings,
+	thumbnail,
+	artworkName,
+	onSettingChange,
+	onUpload,
+}: ArtworkControlsProps) {
+	return (
+		<ArtworkUploadSection
+			thumbnail={thumbnail}
+			name={artworkName}
+			changeLabel="更换图像"
+			uploadLabel="上传图像"
+			onUpload={(file) => void onUpload(file)}
+			status={
+				<>
+					<ImagePlus />
+					<span>内容图像</span>
+				</>
+			}
+			overlay={
+				<Popover>
+					<PopoverTrigger asChild>
+						<Button
+							variant="ghost"
+							size="icon"
+							className="absolute right-1 bottom-1 z-10 rounded-[5px]! bg-panel! p-1.25 text-white! hover:bg-panel-hover! [&_svg]:size-4"
+							aria-label="调整出血"
+						>
+							<SlidersHorizontal />
+						</Button>
+					</PopoverTrigger>
+					<PopoverContent>
+						<p className="mb-4 text-sm">图像调整</p>
+						<RangeControl
+							label="出血"
+							value={settings.bleed}
+							display={`${settings.bleed} mm`}
+							min={0}
+							max={5}
+							step={0.5}
+							onChange={(value) => onSettingChange("bleed", value)}
+						/>
+					</PopoverContent>
+				</Popover>
+			}
+		/>
+	);
+}

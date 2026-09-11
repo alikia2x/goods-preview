@@ -1,4 +1,4 @@
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { Slider as SliderPrimitive } from "radix-ui";
 import * as React from "react";
 

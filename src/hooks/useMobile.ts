@@ -6,10 +6,10 @@ function subscribe(listener: () => void) {
 	media.addEventListener("change", listener);
 	return () => media.removeEventListener("change", listener);
 }
-export function useMobile() {
+export function useMobile(): "mobile" | "desktop" {
 	return useSyncExternalStore(
 		subscribe,
-		() => window.matchMedia(query).matches,
-		() => false,
+		() => (window.matchMedia(query).matches ? "mobile" : "desktop"),
+		() => "desktop",
 	);
 }

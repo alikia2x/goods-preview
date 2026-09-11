@@ -24,9 +24,9 @@ export function RangeControl({
 }: RangeControlProps) {
 	return (
 		<div
-			className={`${controlStyles.sliderControl} mb-5 min-w-0 max-[700px]:mb-2 ${className ?? ""}`}
+			className={`${controlStyles.sliderControl} mb-5 min-w-0 max-mobile:mb-2 ${className ?? ""}`}
 		>
-			<div className="mb-1 flex justify-between gap-3 text-sm text-[#d9d9d9] tabular-nums">
+			<div className="mb-1 flex justify-between gap-3 text-sm text-panel-label tabular-nums">
 				<span>{label}</span>
 				<span className="tabular-nums">{display ?? `${value}%`}</span>
 			</div>

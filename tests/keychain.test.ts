@@ -5,8 +5,8 @@ import {
 	acrylicGeometry,
 	keychainFrame,
 	traceOutline,
-} from "../src/lib/keychain/geometry";
-import { captureSquare } from "../src/lib/studio/capture";
+} from "@/features/keychain/lib/geometry";
+import { captureSquare } from "@/features/studio/lib/capture";
 
 function maskFor(predicate: (x: number, y: number) => boolean): ArtworkMask {
 	const width = 192,
@@ -141,12 +141,8 @@ test("square transparent capture keeps shadows, crops framing, and restores rend
 	} as HTMLElement;
 	await expect(
 		captureSquare({
-			renderer,
-			scene,
-			camera,
-			framing,
-			edge: 2048,
-			transparent: true,
+			context: { renderer, scene, camera, framing },
+			output: { edge: 2048, transparent: true },
 			backgroundObjects: [stage],
 		}),
 	).rejects.toThrow("capture failed");

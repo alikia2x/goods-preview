@@ -7,6 +7,7 @@ import {
 	useState,
 	useSyncExternalStore,
 } from "react";
+import { tv } from "tailwind-variants";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -16,7 +17,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { PRODUCT_VERSION } from "@/lib/badge/constants";
+import { PRODUCT_VERSION } from "@/features/badge/constants";
 
 const TUTORIAL_STORAGE_KEY = "goods-preview.tutorial-seen";
 const COARSE_POINTER_QUERY = "(pointer: coarse)";
@@ -29,6 +30,50 @@ function subscribeToCoarsePointer(listener: () => void) {
 
 function getCoarsePointerSnapshot() {
 	return window.matchMedia(COARSE_POINTER_QUERY).matches;
+}
+
+const supportDialog = tv({
+	slots: {
+		content:
+			"gap-6 rounded-4xl bg-panel p-7 text-panel-foreground shadow-[0_24px_80px_#00000040] max-mobile:p-6",
+		title: "text-[28px] font-[650] text-white",
+		description: "text-sm leading-6 text-panel-dim",
+		action: "h-11 rounded-full bg-white text-panel hover:bg-inverse-hover",
+	},
+});
+
+function SupportDialog({
+	open,
+	onOpenChange,
+	title,
+	description,
+	actionLabel,
+	children,
+}: {
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	title: string;
+	description: ReactNode;
+	actionLabel: string;
+	children: ReactNode;
+}) {
+	const styles = supportDialog();
+	return (
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent className={styles.content()} showCloseButton={false}>
+				<DialogHeader className="gap-2 pr-10">
+					<DialogTitle className={styles.title()}>{title}</DialogTitle>
+					<DialogDescription className={styles.description()}>
+						{description}
+					</DialogDescription>
+				</DialogHeader>
+				{children}
+				<DialogClose asChild>
+					<Button className={styles.action()}>{actionLabel}</Button>
+				</DialogClose>
+			</DialogContent>
+		</Dialog>
+	);
 }
 
 type WorkspaceSupport = {
@@ -78,104 +123,76 @@ export function WorkspaceSupportProvider({
 			}}
 		>
 			{children}
-			<Dialog open={tutorialOpen} onOpenChange={setTutorialVisibility}>
-				<DialogContent
-					className="gap-6 rounded-4xl bg-[#292929] p-7
-				 text-[#fafafa] shadow-[0_24px_80px_#00000040] max-[700px]:p-6"
-					showCloseButton={false}
-				>
-					<DialogHeader className="gap-2 pr-10">
-						<DialogTitle className="text-[28px] font-[650] text-white">
-							上手教程
-						</DialogTitle>
-						<DialogDescription className="text-sm leading-6 text-[#bdbdbd]">
-							从图像到 PNG，只需完成这四步。
-						</DialogDescription>
-					</DialogHeader>
-					<ol className="m-0 grid list-none gap-3 p-0">
-						{[
-							["01", "选择制品", "从左上角菜单切换制品。"],
-							["02", "上传图像", "在调整面板中替换内容图像。"],
-							[
-								"03",
-								"调整预览",
-								`设置场景、光照和材质参数。${
-									coarsePointer
-										? "使用双指缩放/平移，滑动旋转。"
-										: "使用鼠标按住左键拖拽旋转，右键拖拽平移，滚轮缩放。"
-								}`,
-							],
-							["04", "导出 PNG", "选择尺寸后保存 PNG 文件。"],
-						].map(([index, title, description]) => (
-							<li
-								key={index}
-								className="grid grid-cols-[28px_1fr] gap-3 rounded-2xl bg-white/6 p-3.5"
+			<SupportDialog
+				open={tutorialOpen}
+				onOpenChange={setTutorialVisibility}
+				title="上手教程"
+				description="从图像到 PNG，只需完成这四步。"
+				actionLabel="开始使用"
+			>
+				<ol className="m-0 grid list-none gap-3 p-0">
+					{[
+						["01", "选择制品", "从左上角菜单切换制品。"],
+						["02", "上传图像", "在调整面板中替换内容图像。"],
+						[
+							"03",
+							"调整预览",
+							`设置场景、光照和材质参数。${
+								coarsePointer
+									? "使用双指缩放/平移，滑动旋转。"
+									: "使用鼠标按住左键拖拽旋转，右键拖拽平移，滚轮缩放。"
+							}`,
+						],
+						["04", "导出 PNG", "选择尺寸后保存 PNG 文件。"],
+					].map(([index, title, description]) => (
+						<li
+							key={index}
+							className="grid grid-cols-[28px_1fr] gap-3 rounded-2xl bg-white/6 p-3.5"
+						>
+							<span className="self-center pt-0.5 text-2xl tabular-nums font-medium text-brand">
+								{index}
+							</span>
+							<span className="grid gap-0.5">
+								<span className="text-sm font-medium text-white">{title}</span>
+								<span className="text-xs leading-5 text-panel-dim">
+									{description}
+								</span>
+							</span>
+						</li>
+					))}
+				</ol>
+			</SupportDialog>
+			<SupportDialog
+				open={aboutOpen}
+				onOpenChange={setAboutOpen}
+				title="关于"
+				description="Goods Preview 是一个在线 3D 制品预览工具。"
+				actionLabel="关闭"
+			>
+				<dl className="m-0 grid gap-3 text-sm">
+					<div className="flex items-center justify-between rounded-2xl bg-white/6 px-4 py-3">
+						<dt className="text-panel-dim">版本</dt>
+						<dd className="m-0 tabular-nums text-white">{PRODUCT_VERSION}</dd>
+					</div>
+					<div className="flex items-center justify-between gap-6 rounded-2xl bg-white/6 px-4 py-3">
+						<dt className="text-panel-dim">作者</dt>
+						<dd className="m-0 text-right leading-6 text-white">
+							星寒 / alikia2x
+						</dd>
+					</div>
+					<div className="flex items-center justify-between gap-6 rounded-2xl bg-white/6 px-4 py-3">
+						<dt className="text-panel-dim">GitHub</dt>
+						<dd className="m-0 text-right leading-6 text-white">
+							<a
+								href="https://github.com/alikia2x/goods-preview"
+								className="underline"
 							>
-								<span className="self-center pt-0.5 text-2xl tabular-nums font-medium text-[#009fff]">
-									{index}
-								</span>
-								<span className="grid gap-0.5">
-									<span className="text-sm font-medium text-white">
-										{title}
-									</span>
-									<span className="text-xs leading-5 text-[#bdbdbd]">
-										{description}
-									</span>
-								</span>
-							</li>
-						))}
-					</ol>
-					<DialogClose asChild>
-						<Button className="h-11 rounded-full bg-white text-[#292929] hover:bg-[#e6e6e6]">
-							开始使用
-						</Button>
-					</DialogClose>
-				</DialogContent>
-			</Dialog>
-			<Dialog open={aboutOpen} onOpenChange={setAboutOpen}>
-				<DialogContent
-					className="gap-6 rounded-4xl bg-[#292929] p-7
-					 text-[#fafafa] shadow-[0_24px_80px_#00000040] max-[700px]:p-6"
-					showCloseButton={false}
-				>
-					<DialogHeader className="gap-2 pr-10">
-						<DialogTitle className="text-[28px] font-[650] text-white">
-							关于
-						</DialogTitle>
-						<DialogDescription className="text-sm leading-6 text-[#bdbdbd]">
-							Goods Preview 是一个在线 3D 制品预览工具。
-						</DialogDescription>
-					</DialogHeader>
-					<dl className="m-0 grid gap-3 text-sm">
-						<div className="flex items-center justify-between rounded-2xl bg-white/6 px-4 py-3">
-							<dt className="text-[#bdbdbd]">版本</dt>
-							<dd className="m-0 tabular-nums text-white">{PRODUCT_VERSION}</dd>
-						</div>
-						<div className="flex items-center justify-between gap-6 rounded-2xl bg-white/6 px-4 py-3">
-							<dt className="text-[#bdbdbd]">作者</dt>
-							<dd className="m-0 text-right leading-6 text-white">
-								星寒 / alikia2x
-							</dd>
-						</div>
-						<div className="flex items-center justify-between gap-6 rounded-2xl bg-white/6 px-4 py-3">
-							<dt className="text-[#bdbdbd]">GitHub</dt>
-							<dd className="m-0 text-right leading-6 text-white">
-								<a
-									href="https://github.com/alikia2x/goods-preview"
-									className="underline"
-								>
-									alikia2x/goods-preview
-								</a>
-							</dd>
-						</div>
-					</dl>
-					<DialogClose asChild>
-						<Button className="h-11 rounded-full bg-white text-[#292929] hover:bg-[#e6e6e6]">
-							关闭
-						</Button>
-					</DialogClose>
-				</DialogContent>
-			</Dialog>
+								alikia2x/goods-preview
+							</a>
+						</dd>
+					</div>
+				</dl>
+			</SupportDialog>
 		</WorkspaceSupportContext.Provider>
 	);
 }

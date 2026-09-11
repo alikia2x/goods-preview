@@ -62,6 +62,42 @@
 	--radius-xl: calc(var(--radius) + 4px);
 }
 
+@theme {
+	--color-panel: #292929;
+	--color-panel-hover: #3b3b3b;
+	--color-panel-soft: #505050;
+	--color-panel-foreground: #fafafa;
+	--color-panel-muted: #dedede;
+	--color-panel-subtle: #aaa;
+	--color-panel-faint: #c2c2c2;
+	--color-panel-label: #d9d9d9;
+	--color-panel-value: #eee;
+	--color-panel-dim: #bdbdbd;
+	--color-placeholder: #888;
+	--color-placeholder-foreground: #e5e5e5;
+	--color-inverse-hover: #e6e6e6;
+	--color-status-muted: #777;
+	--color-danger-soft: #ffac9f;
+	--color-brand: #009fff;
+	--color-coral: #f36557;
+	--color-swatch-border: #898989;
+	--color-wheel-stroke: #d5d5d5;
+	--color-wheel-fill: #5b5b5b;
+	--breakpoint-mobile: 700px;
+	--breakpoint-compact: 1100px;
+	--animate-progress-sweep: progress-sweep 1.4s ease-in-out infinite;
+}
+
+@keyframes progress-sweep {
+	from {
+		transform: translateX(-110%);
+	}
+
+	to {
+		transform: translateX(260%);
+	}
+}
+
 * {
 	box-sizing: border-box;
 	border-color: var(--border);

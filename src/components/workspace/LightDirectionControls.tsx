@@ -1,14 +1,18 @@
 import type { PointerEvent } from "react";
 import { Button } from "@/components/ui/button";
-import type { Settings } from "@/lib/badge/types";
-import { lightAnglesFromPoint, lightDirection } from "@/lib/studio/lighting";
-import { RangeControl } from "./RangeControl";
+import type { StudioSettings } from "@/features/studio/settings";
+import {
+	lightAnglesFromPoint,
+	lightDirection,
+} from "@/features/studio/lib/lighting";
+import { AdjustmentSection } from "@/components/workspace/AdjustmentSection";
+import { RangeControl } from "@/components/workspace/RangeControl";
 
 export function LightDirectionControls({
 	settings,
 	onChange,
 }: {
-	settings: Pick<Settings, "lightAzimuth" | "lightElevation">;
+	settings: Pick<StudioSettings, "lightAzimuth" | "lightElevation">;
 	onChange: (key: "lightAzimuth" | "lightElevation", value: number) => void;
 }) {
 	const direction = lightDirection(
@@ -26,8 +30,7 @@ export function LightDirectionControls({
 		onChange("lightElevation", angles.elevation);
 	};
 	return (
-		<section className="mb-8 [&_h2]:mb-3 [&_h2]:text-sm [&_h2]:font-medium [&_h2]:text-[#dedede] max-[700px]:mb-4 max-[700px]:[&_h2]:mb-2">
-			<h2>光照方向</h2>
+		<AdjustmentSection title="光照方向">
 			<div className="grid grid-cols-[minmax(0,1fr)_88px] items-center gap-3.5">
 				<div className="min-w-0">
 					<RangeControl
@@ -51,7 +54,7 @@ export function LightDirectionControls({
 				</div>
 				<Button
 					variant="ghost"
-					className="aspect-square !h-auto !w-full cursor-crosshair !rounded-full p-0 touch-none"
+					className="aspect-square h-auto! w-full! cursor-crosshair rounded-full! p-0 touch-none"
 					aria-label={`拖动调整光照，方向 ${Math.round(settings.lightAzimuth)} 度，高度 ${Math.round(settings.lightElevation)} 度；方向键调整`}
 					onPointerDown={(event) => {
 						event.preventDefault();
@@ -105,11 +108,10 @@ export function LightDirectionControls({
 						aria-label={`光照方向 ${Math.round(settings.lightAzimuth)} 度，高度 ${Math.round(settings.lightElevation)} 度`}
 					>
 						<circle
+							className="fill-wheel-fill stroke-wheel-stroke"
 							cx="50"
 							cy="50"
 							r="46"
-							fill="#5b5b5b"
-							stroke="#d5d5d5"
 							strokeWidth="1"
 						/>
 						<circle
@@ -121,6 +123,6 @@ export function LightDirectionControls({
 					</svg>
 				</Button>
 			</div>
-		</section>
+		</AdjustmentSection>
 	);
 }

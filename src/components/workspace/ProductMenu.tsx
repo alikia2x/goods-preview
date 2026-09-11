@@ -7,8 +7,8 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import controlStyles from "@/styles/studio-controls.module.css";
-import { useWorkspaceSupport } from "./WorkspaceSupport";
+import { PillButton } from "@/components/workspace/PillButton";
+import { useWorkspaceSupport } from "@/components/workspace/WorkspaceSupport";
 
 type MenuItem = {
 	id: string;
@@ -63,21 +63,16 @@ export function ProductMenu({ product }: { product: "badge" | "keychain" }) {
 	return (
 		<Popover open={open} onOpenChange={setOpen}>
 			<PopoverTrigger asChild>
-				<Button
-					variant="ghost"
-					className="inline-flex h-[46px] w-11.5 items-center justify-center gap-[9px] !rounded-full !bg-[#292929] p-0 text-sm font-[550] whitespace-nowrap !text-[#fafafa] shadow-[0_5px_15px_#00000015] hover:!bg-[#3b3b3b] max-[700px]:size-11! max-[700px]:min-w-11"
-					aria-label="打开菜单"
-				>
+				<PillButton icon aria-label="打开菜单">
 					<Menu className="size-5" />
-				</Button>
+				</PillButton>
 			</PopoverTrigger>
-			<PopoverContent
-				align="start"
-				className={`${controlStyles.popoverContent} max-[700px]:select-none`}
-			>
+			<PopoverContent align="start">
 				{groups.map((group) => (
 					<div className="grid gap-1.5" key={group.id}>
-						<span className="px-2.5 text-xs text-[#aaa]">{group.label}</span>
+						<span className="px-2.5 text-xs text-panel-subtle">
+							{group.label}
+						</span>
 						{group.items.map((item) => {
 							const Icon = item.icon;
 							if (item.to)
