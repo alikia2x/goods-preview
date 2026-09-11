@@ -15,7 +15,6 @@ import {
 import { useBadgeWorkspace } from "@/features/badge/useBadgeWorkspace";
 import { StudioCanvas } from "@/features/studio/components/StudioCanvas";
 import { StudioStatus } from "@/features/studio/components/StudioStatus";
-import { SCENES } from "@/features/studio/lib/scenes";
 import { useStudioEnvironment } from "@/features/studio/useStudioEnvironment";
 
 export default function BadgeWorkspace() {
@@ -29,10 +28,7 @@ export default function BadgeWorkspace() {
 	} = useStudioEnvironment(settings.lighting);
 
 	const pose = useMemo(() => badgePose(settings.scene), [settings.scene]);
-	const views = useMemo(
-		() => badgeViews(SCENES[settings.scene].standing),
-		[settings.scene],
-	);
+	const views = useMemo(() => badgeViews(), []);
 	const productName = `覆膜吧唧 · ${FINISHES[settings.finish].label}`;
 
 	return (

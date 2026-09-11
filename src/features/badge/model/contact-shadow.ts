@@ -118,8 +118,7 @@ export class ContactShadow {
 		const lightDistance = Math.sqrt(61);
 		const position = direction.clone().multiplyScalar(lightDistance);
 		// Refit the orthographic box to the badge volume plus its projection
-		// onto the receiver (the badge's rear plane at z≈-0.174*scale when
-		// flat, the studio floor when standing, and the backdrop wall when set).
+		// onto the receiver (the studio floor, and the backdrop wall when set).
 		const half = scale * 1.1;
 		const frustum = shadowFrustum(
 			direction,
@@ -150,7 +149,6 @@ export class ContactShadow {
 			this.caster.scale.setScalar(scale);
 			this.dirty = true;
 		}
-		this.plane.position.z = -0.174 * scale;
 	}
 	setStageCasters(group: THREE.Group) {
 		if (this.sceneCasters) this.scene.remove(this.sceneCasters);
@@ -158,7 +156,7 @@ export class ContactShadow {
 		this.scene.add(this.sceneCasters);
 		this.dirty = true;
 	}
-	setPose(group: THREE.Group, standing: boolean, windowScene: boolean) {
+	setPose(group: THREE.Group, windowScene: boolean) {
 		if (
 			!this.caster.quaternion.equals(group.quaternion) ||
 			!this.caster.position.equals(group.position)
@@ -167,13 +165,9 @@ export class ContactShadow {
 			this.caster.position.copy(group.position);
 			this.dirty = true;
 		}
-		if (standing) {
-			this.plane.rotation.x = -Math.PI / 2;
-			this.plane.position.set(0, -group.scale.x, 0);
-		} else {
-			this.plane.rotation.set(0, 0, 0);
-			this.plane.position.set(0, 0, -0.174 * group.scale.x);
-		}
+		// Every scene stands the badge on the floor, so the shadow lands there.
+		this.plane.rotation.x = -Math.PI / 2;
+		this.plane.position.set(0, -group.scale.x, 0);
 		this.wall.position.set(0, 0, -1.999);
 		this.wall.visible = windowScene;
 		this.material.uniforms.softness.value = windowScene ? 0.038 : 0.11;

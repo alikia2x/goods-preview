@@ -14,7 +14,7 @@ import { ContactShadow } from "@/features/badge/model/contact-shadow";
 import { FINISHES, finishMaterial } from "@/features/badge/model/finishes";
 import type { BadgeSettings } from "@/features/badge/settings";
 import { lightDirection } from "@/features/studio/lib/lighting";
-import { SCENES, sceneWallZ } from "@/features/studio/lib/scenes";
+import { sceneWallZ } from "@/features/studio/lib/scenes";
 import { poseProductGroup } from "@/features/studio/lib/stage";
 
 const METAL = { color: "#b8bdc2", metalness: 1, roughness: 0.27 };
@@ -86,11 +86,7 @@ export function BadgeModel({
 		const wallZ = sceneWallZ(settings.scene);
 		shadow.update(scale, direction, wallZ);
 		if (groupRef.current)
-			shadow.setPose(
-				groupRef.current,
-				SCENES[settings.scene].standing,
-				settings.scene === "studio",
-			);
+			shadow.setPose(groupRef.current, settings.scene === "studio");
 		shadow.material.uniforms.strength.value = settings.shadow / 100;
 		shadow.plane.visible = settings.shadow > 0 && settings.scene !== "studio";
 		shadow.wall.visible = wallZ !== null && settings.shadow > 0;

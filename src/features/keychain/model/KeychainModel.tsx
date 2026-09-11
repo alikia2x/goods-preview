@@ -2,7 +2,7 @@ import { sampledDiffuseLighting } from "@/features/studio/lib/indirect-light";
 import { createOpticalShadow } from "@/features/acrylic/optical-shadow";
 import { AcrylicMaterial } from "@/features/acrylic/AcrylicMaterial";
 import { StandeeBase } from "@/features/acrylic/StandeeBase";
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import type { KeychainArtwork } from "@/features/keychain/lib/artwork";
 import {
@@ -11,6 +11,7 @@ import {
 } from "@/features/keychain/lib/geometry";
 import type { KeychainSettings } from "@/features/keychain/settings";
 import { KeychainHardware } from "@/features/keychain/model/KeychainHardware";
+import { ambientIblShare } from "@/features/studio/lib/light-budget";
 
 export function KeychainModel({
 	artwork,
@@ -54,6 +55,18 @@ export function KeychainModel({
 	);
 	const scale = settings.size / 60;
 	const bottom = Math.min(...outline.points.map((point) => point.y));
+	// The printed surface is the one the key light also strikes, so it carries the
+	// ambient share. Held in a uniform: the scene can change its split without
+	// forcing the shader to recompile.
+	const ambientShare = useRef({ value: ambientIblShare(settings.scene) });
+	useEffect(() => {
+		ambientShare.current.value = ambientIblShare(settings.scene);
+	}, [settings.scene]);
+	const patchDiffuse = useCallback(
+		(shader: THREE.WebGLProgramParametersWithUniforms) =>
+			sampledDiffuseLighting(shader, ambientShare.current),
+		[],
+	);
 	return (
 		<group position={[0, -1 - bottom * scale, 0]} scale={scale}>
 			<mesh
@@ -77,7 +90,7 @@ export function KeychainModel({
 			<mesh castShadow receiveShadow customDepthMaterial={depth}>
 				<planeGeometry args={[outline.width, outline.height]} />
 				<meshStandardMaterial
-					onBeforeCompile={sampledDiffuseLighting}
+					onBeforeCompile={patchDiffuse}
 					map={texture}
 					alphaTest={0.08}
 					side={THREE.DoubleSide}

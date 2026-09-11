@@ -1,6 +1,20 @@
 import * as THREE from "three";
 import { EXRLoader } from "three/addons/loaders/EXRLoader.js";
-import { sampleEnvironment } from "@/features/studio/lib/environment-sampling";
+import {
+	environmentIrradiance,
+	sampleEnvironment,
+} from "@/features/studio/lib/environment-sampling";
+import { RIG_RATIO } from "@/features/studio/lib/light-budget";
+
+// The normal the presets are exposed for: the product faces the camera, so a
+// surface turned towards +Z is what the framing shows most of.
+const REFERENCE_NORMAL = new THREE.Vector3(0, 0, 1);
+// Irradiance a white surface facing that normal receives at light = 50, once the
+// environment and the emitters have split the budget between them. A capture is
+// exposed by what it delivers rather than by how concentrated its emitters are,
+// so swapping one for another changes the character of the light, not the
+// exposure.
+const REFERENCE_IRRADIANCE = 0.6;
 
 export const PHOTOGRAPHIC_ENVIRONMENTS = {
 	hdr: {
@@ -8,7 +22,9 @@ export const PHOTOGRAPHIC_ENVIRONMENTS = {
 		file: "studio_small_09_512.exr",
 		keyDirection: new THREE.Vector3(),
 		intensity: 1.05,
-		gain: 1.3,
+		gain: 1,
+		rigGain: 1,
+		legacyGain: 1,
 	},
 	studioContrast: {
 		label: "实景 · 明暗影棚",
@@ -16,6 +32,8 @@ export const PHOTOGRAPHIC_ENVIRONMENTS = {
 		keyDirection: new THREE.Vector3(),
 		intensity: 1,
 		gain: 1,
+		rigGain: 1,
+		legacyGain: 1,
 	},
 	studioSoft: {
 		label: "实景 · 柔光影棚",
@@ -23,6 +41,8 @@ export const PHOTOGRAPHIC_ENVIRONMENTS = {
 		keyDirection: new THREE.Vector3(),
 		intensity: 1,
 		gain: 1,
+		rigGain: 1,
+		legacyGain: 1,
 	},
 } satisfies Record<
 	string,
@@ -31,7 +51,11 @@ export const PHOTOGRAPHIC_ENVIRONMENTS = {
 		file: string;
 		keyDirection: THREE.Vector3;
 		intensity: number;
+		// Measured at load: exposure from the environment's irradiance, level for
+		// the sampled emitters, and the pre-calibration normalisation.
 		gain: number;
+		rigGain: number;
+		legacyGain: number;
 	}
 >;
 export type PhotographicPreset = keyof typeof PHOTOGRAPHIC_ENVIRONMENTS;
@@ -67,9 +91,26 @@ export function loadPhotographicEnvironment(
 					throw new Error("光照贴图没有有效采样。");
 				}
 				PHOTOGRAPHIC_ENVIRONMENTS[preset].keyDirection.copy(main.direction);
-				// Normalize integrated emitter energy across captures, keeping their
-				// contrast and chromaticity. A white Lambert surface has BRDF 1/pi.
-				PHOTOGRAPHIC_ENVIRONMENTS[preset].gain =
+				const entry = PHOTOGRAPHIC_ENVIRONMENTS[preset];
+				const irradiance = environmentIrradiance(source, REFERENCE_NORMAL);
+				if (irradiance <= 0) {
+					source.dispose();
+					throw new Error("光照贴图没有有效辐照度。");
+				}
+				// Expose every capture by what a surface actually receives, not by how
+				// concentrated its emitters are. A white Lambert surface has BRDF 1/pi.
+				entry.gain = (REFERENCE_IRRADIANCE * Math.PI) / irradiance;
+				// The emitters take their share of that budget, so a contrasty capture
+				// keeps its direction and colour without also changing the exposure.
+				const response = samples.reduce(
+					(total, sample) =>
+						total +
+						sample.energy * Math.max(0, REFERENCE_NORMAL.dot(sample.direction)),
+					0,
+				);
+				entry.rigGain = response > 0 ? (RIG_RATIO * irradiance) / response : 0;
+				// Kept only for the black scene, which was tuned against it.
+				entry.legacyGain =
 					Math.PI / samples.reduce((total, sample) => total + sample.energy, 0);
 				return source;
 			})

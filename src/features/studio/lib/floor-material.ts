@@ -8,19 +8,3 @@ export function neutralFloor(shader: THREE.WebGLProgramParametersWithUniforms) {
 		"gl_FragColor = vec4( color * mix( 1.0, getShadowMask(), opacity ), 1.0 );",
 	);
 }
-
-// A white tabletop gets more diffuse bounce than the printed product, while
-// retaining directional shadows and its own physical specular response.
-export function tabletopLighting(
-	shader: THREE.WebGLProgramParametersWithUniforms,
-) {
-	shader.fragmentShader = shader.fragmentShader.replace(
-		"#include <lights_fragment_maps>",
-		`
-  #include <lights_fragment_maps>
-  #if defined( RE_IndirectDiffuse )
-   iblIrradiance *= 0.55;
-  #endif
- `,
-	);
-}

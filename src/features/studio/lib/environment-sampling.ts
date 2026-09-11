@@ -65,3 +65,41 @@ export function sampleEnvironment(
 			};
 		});
 }
+
+// Cosine-weighted irradiance the whole map delivers to a surface with the given
+// normal, using the same solid-angle Jacobian as the cell sampling. This is the
+// yardstick the presets are normalised against: the summed cell energies only
+// describe how concentrated a source is, so a small bright emitter and a broad
+// soft one cannot be compared with them.
+export function environmentIrradiance(
+	source: THREE.DataTexture,
+	normal: THREE.Vector3,
+) {
+	const { width, height, data } = source.image;
+	if (!data) return 0;
+	const read = (i: number) =>
+		source.type === THREE.HalfFloatType
+			? THREE.DataUtils.fromHalfFloat(data[i])
+			: data[i];
+	let total = 0;
+	for (let y = 0; y < height; y += 2)
+		for (let x = 0; x < width; x += 2) {
+			const u = (x + 0.5) / width,
+				v = source.flipY ? 1 - (y + 0.5) / height : (y + 0.5) / height;
+			const theta = (1 - v) * Math.PI,
+				phi = (u - 0.5) * Math.PI * 2;
+			const cosine =
+				Math.sin(theta) * Math.cos(phi) * normal.x +
+				Math.cos(theta) * normal.y +
+				Math.sin(theta) * Math.sin(phi) * normal.z;
+			if (cosine <= 0) continue;
+			const i = (y * width + x) * 4;
+			const luminance =
+				0.2126 * read(i) + 0.7152 * read(i + 1) + 0.0722 * read(i + 2);
+			const solidAngle =
+				(Math.sin(theta) * 8 * Math.PI * Math.PI) / (width * height);
+			const contribution = luminance * cosine * solidAngle;
+			if (Number.isFinite(contribution)) total += contribution;
+		}
+	return total;
+}

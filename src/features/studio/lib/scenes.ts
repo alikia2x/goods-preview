@@ -2,7 +2,6 @@
 // "studio" (窗影影棚) is temporarily hidden from the picker — its window-caster
 // staging needs further tuning before it earns a place next to the others.
 export const SCENES = {
-	plain: { label: "普通场景", background: "#e9e9e7", standing: false },
 	table: { label: "日光台面", background: "#f3f3f1", standing: true },
 	studio: { label: "窗影影棚", background: "#f0f1ef", standing: true },
 	standing: { label: "立放展示", background: "#f1f1ef", standing: true },
@@ -19,4 +18,10 @@ export const HIDDEN_SCENES: ReadonlySet<SceneKind> = new Set(["studio"]);
 
 export function sceneWallZ(kind: SceneKind): number | null {
 	return kind === "standing" ? -2.2 : kind === "studio" ? -2 : null;
+}
+
+// The backdrop is one plane rising from another, so the wall carries a shade of
+// its own: the seam stays legible instead of the set reading as a single sheet.
+export function sceneWallBackground(kind: SceneKind): string | null {
+	return kind === "standing" ? "#e7e7e5" : null;
 }

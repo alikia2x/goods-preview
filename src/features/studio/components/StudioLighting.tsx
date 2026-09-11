@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import * as THREE from "three";
 import { lightDirection } from "@/features/studio/lib/lighting";
 import {
-	lightEnergy,
+	environmentEnergy,
 	LIGHTING_PRESETS,
 	type LightingPreset,
 	prepareLightingPreset,
@@ -61,7 +61,7 @@ export function StudioLighting({
 }) {
 	const { scene } = useThree();
 	const direction = lightDirection(azimuth, elevation);
-	const energy = lightEnergy(preset, intensity, sceneKind);
+	const energy = environmentEnergy(preset, intensity, sceneKind);
 
 	useEffect(() => {
 		scene.environment = environment ? environment.texture : null;
