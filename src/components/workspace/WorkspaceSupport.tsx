@@ -4,6 +4,7 @@ import {
 	useCallback,
 	useContext,
 	useEffect,
+	useMemo,
 	useState,
 	useSyncExternalStore,
 } from "react";
@@ -115,13 +116,15 @@ export function WorkspaceSupportProvider({
 		}
 	}, []);
 
+	const openTutorial = useCallback(() => setTutorialOpen(true), []);
+	const openAbout = useCallback(() => setAboutOpen(true), []);
+	const support = useMemo(
+		() => ({ openTutorial, openAbout }),
+		[openTutorial, openAbout],
+	);
+
 	return (
-		<WorkspaceSupportContext.Provider
-			value={{
-				openTutorial: () => setTutorialOpen(true),
-				openAbout: () => setAboutOpen(true),
-			}}
-		>
+		<WorkspaceSupportContext.Provider value={support}>
 			{children}
 			<SupportDialog
 				open={tutorialOpen}

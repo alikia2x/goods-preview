@@ -1,22 +1,17 @@
-import type { BadgeSettings } from "@/features/badge/settings";
-import { FINISHES } from "@/features/badge/model/finishes";
 import { OptionButtonGroup } from "@/components/workspace/OptionButtonGroup";
-import type { SettingChange } from "@/features/studio/settings";
+import { useWorkspace } from "@/components/workspace/WorkspaceContext";
+import { FINISHES } from "@/features/badge/model/finishes";
+import type { BadgeSettings } from "@/features/badge/settings";
 
 const FINISH_VALUES = ["glossy", "matte"] as const;
 
-export function FinishControls({
-	settings,
-	onChange,
-}: {
-	settings: BadgeSettings;
-	onChange: SettingChange<BadgeSettings>;
-}) {
+export function FinishControls() {
+	const { settings, updateSetting } = useWorkspace<BadgeSettings>();
 	return (
 		<OptionButtonGroup
 			options={FINISH_VALUES}
 			value={settings.finish}
-			onChange={(finish) => onChange("finish", finish)}
+			onChange={(finish) => updateSetting("finish", finish)}
 			renderLabel={(finish) => FINISHES[finish].label}
 		/>
 	);

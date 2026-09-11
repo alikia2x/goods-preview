@@ -1,23 +1,22 @@
 import { OptionButtonGroup } from "@/components/workspace/OptionButtonGroup";
+import { useWorkspace } from "@/components/workspace/WorkspaceContext";
 import { KEYCHAIN_HARDWARE_COLORS } from "@/features/keychain/lib/materials";
-import type { KeychainHardwareColor } from "@/features/keychain/settings";
+import type {
+	KeychainHardwareColor,
+	KeychainSettings,
+} from "@/features/keychain/settings";
 
 const HARDWARE_COLORS = Object.keys(
 	KEYCHAIN_HARDWARE_COLORS,
 ) as KeychainHardwareColor[];
 
-export function KeychainProductControls({
-	hardwareColor,
-	onChange,
-}: {
-	hardwareColor: KeychainHardwareColor;
-	onChange: (value: KeychainHardwareColor) => void;
-}) {
+export function KeychainProductControls() {
+	const { settings, updateSetting } = useWorkspace<KeychainSettings>();
 	return (
 		<OptionButtonGroup
 			options={HARDWARE_COLORS}
-			value={hardwareColor}
-			onChange={onChange}
+			value={settings.hardwareColor}
+			onChange={(value) => updateSetting("hardwareColor", value)}
 			renderLabel={(color) => (
 				<>
 					<span

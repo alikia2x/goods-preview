@@ -1,8 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type * as THREE from "three";
-import type { StudioHandle } from "@/features/studio/components/StudioViewport";
-import { useExportState } from "@/hooks/useExportState";
-import { useSceneBackground } from "@/hooks/useSceneBackground";
+import { useWorkspaceExportState } from "@/components/workspace/WorkspaceContext";
 import {
 	defaultKeychainArtwork,
 	type KeychainArtwork,
@@ -13,47 +10,62 @@ import {
 	DEFAULT_KEYCHAIN_SETTINGS,
 	type KeychainSettings,
 } from "@/features/keychain/settings";
-import { downloadPng } from "@/features/studio/lib/capture";
 import { type SettingChange, useSettings } from "@/features/studio/settings";
+import { useExportController } from "@/features/studio/useExportController";
+import { useWorkspaceViewport } from "@/features/studio/useWorkspaceViewport";
+import { useSceneBackground } from "@/hooks/useSceneBackground";
 
 export function useKeychainWorkspace() {
+	const {
+		framingRef,
+		backgroundRef,
+		apiRef,
+		ready,
+		onViewportReady,
+		changeView,
+	} = useWorkspaceViewport();
 	const { settings, updateSetting: applySetting } = useSettings(
 		DEFAULT_KEYCHAIN_SETTINGS,
 	);
 	const [artwork, setArtwork] = useState<KeychainArtwork | null>(null);
 	const [outline, setOutline] = useState<Outline | null>(null);
 	const [loading, setLoading] = useState(false);
-	const [ready, setReady] = useState(false);
-
-	const apiRef = useRef<StudioHandle | null>(null);
-	const framingRef = useRef<HTMLElement | null>(null);
-	const backgroundRef = useRef<THREE.Group | null>(null);
 	const sequence = useRef(0);
 
 	// The set is what a transparent export hides.
 	const backgroundObjects = useCallback(() => {
 		const object = backgroundRef.current;
 		return object ? [object] : [];
-	}, []);
+	}, [backgroundRef]);
 
-	const renderExport = useCallback(
-		async (resolution: number, transparentBackground: boolean) => {
-			const api = apiRef.current;
-			if (!api) return;
-			const blob = await api.capture(resolution, transparentBackground);
-			downloadPng(
-				blob,
-				`keychain-${settings.scene}${transparentBackground ? "-transparent" : ""}-${resolution}x${resolution}.png`,
-			);
-		},
+	const fileName = useCallback(
+		(resolution: number, transparent: boolean) =>
+			`keychain-${settings.scene}${transparent ? "-transparent" : ""}-${resolution}x${resolution}.png`,
 		[settings.scene],
 	);
-	const exportState = useExportState({
-		exportArtwork: renderExport,
+
+	const exportState = useExportController({
+		apiRef,
+		fileName,
 		transparentBackground: settings.transparentBackground,
 		blocked: loading,
 	});
-	const { error, setError } = exportState;
+	const { setError } = exportState;
+
+	const updateSetting = useCallback<SettingChange<KeychainSettings>>(
+		(key, value) => {
+			applySetting(key, value);
+			setError("");
+		},
+		[applySetting, setError],
+	);
+
+	const workspaceExport = useWorkspaceExportState({
+		ready,
+		exportState,
+		transparentBackground: settings.transparentBackground,
+		updateSetting,
+	});
 
 	useSceneBackground(settings.scene);
 
@@ -78,14 +90,6 @@ export function useKeychainWorkspace() {
 		}
 	}, [artwork, settings.border, settings.size, setError]);
 
-	const updateSetting = useCallback<SettingChange<KeychainSettings>>(
-		(key, value) => {
-			applySetting(key, value);
-			setError("");
-		},
-		[applySetting, setError],
-	);
-
 	const upload = useCallback(
 		async (file?: File) => {
 			if (!file) return;
@@ -106,8 +110,6 @@ export function useKeychainWorkspace() {
 		[setError],
 	);
 
-	const onViewportReady = useCallback(() => setReady(true), []);
-
 	const model = useMemo(
 		() => (artwork && outline ? { artwork, outline } : null),
 		[artwork, outline],
@@ -116,19 +118,15 @@ export function useKeychainWorkspace() {
 	return {
 		settings,
 		model,
-		error,
-		ready,
-		busy: exportState.busy,
 		loading,
-		resolution: exportState.resolution,
-		setResolution: exportState.setResolution,
+		exportState: workspaceExport,
 		updateSetting,
 		upload,
-		apiRef,
 		framingRef,
 		backgroundRef,
+		apiRef,
 		backgroundObjects,
 		onViewportReady,
-		exportArtwork: exportState.exportArtwork,
+		changeView,
 	};
 }

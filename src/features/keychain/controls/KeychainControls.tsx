@@ -2,25 +2,23 @@ import { AdjustmentSection } from "@/components/workspace/AdjustmentSection";
 import { ArtworkUploadSection } from "@/components/workspace/ArtworkUploadSection";
 import { RangeControl } from "@/components/workspace/RangeControl";
 import { StudioControls } from "@/components/workspace/StudioControls";
+import { useWorkspace } from "@/components/workspace/WorkspaceContext";
 import type { KeychainSettings } from "@/features/keychain/settings";
-import type { SettingChange } from "@/features/studio/settings";
 
-// Everything the keychain panel adds beyond the shared studio controls.
+// Everything the keychain panel adds beyond the shared studio controls. Settings
+// come from WorkspaceContext; only the artwork metadata is passed in.
 export function KeychainControls({
-	settings,
 	thumbnail,
 	name,
 	loading,
-	onSettingChange,
 	onUpload,
 }: {
-	settings: KeychainSettings;
 	thumbnail: string;
 	name: string;
 	loading: boolean;
-	onSettingChange: SettingChange<KeychainSettings>;
 	onUpload: (file?: File) => Promise<void>;
 }) {
+	const { settings, updateSetting } = useWorkspace<KeychainSettings>();
 	return (
 		<>
 			<ArtworkUploadSection
@@ -39,7 +37,7 @@ export function KeychainControls({
 					max={5}
 					step={0.5}
 					display={`${settings.thickness} mm`}
-					onChange={(value) => onSettingChange("thickness", value)}
+					onChange={(value) => updateSetting("thickness", value)}
 				/>
 				<RangeControl
 					label="透明留边"
@@ -48,14 +46,10 @@ export function KeychainControls({
 					max={5}
 					step={0.5}
 					display={`${settings.border} mm`}
-					onChange={(value) => onSettingChange("border", value)}
+					onChange={(value) => updateSetting("border", value)}
 				/>
 			</AdjustmentSection>
-			<StudioControls
-				settings={settings}
-				onChange={onSettingChange}
-				glossLabel="表面反光"
-			/>
+			<StudioControls glossLabel="表面反光" />
 		</>
 	);
 }

@@ -3,14 +3,16 @@ import { AdjustmentPanel } from "@/components/workspace/AdjustmentPanel";
 import { PreviewToolbar } from "@/components/workspace/PreviewToolbar";
 import { WorkspaceHeader } from "@/components/workspace/WorkspaceHeader";
 import { WorkspaceLayout } from "@/components/workspace/WorkspaceLayout";
-import type { StudioView } from "@/features/studio/components/StudioViewport";
 import { DebugPanel } from "@/features/studio/components/DebugPanel";
+import type { StudioView } from "@/features/studio/components/StudioViewport";
 import { useMobile } from "@/hooks/useMobile";
 import { cn } from "@/lib/utils";
 import layoutStyles from "@/styles/workspace.module.css";
 
 // The one workspace shell. A product supplies its canvas, its controls and its
 // status overlays; layout, header, footer, panel and export chrome are shared.
+// Settings and export state reach the panel through WorkspaceContext instead of
+// being threaded here.
 export function ProductWorkspace({
 	product,
 	productName,
@@ -23,14 +25,6 @@ export function ProductWorkspace({
 	canvasHostRef,
 	canvas,
 	overlays,
-	ready,
-	busy,
-	error,
-	resolution,
-	transparentBackground,
-	onResolutionChange,
-	onTransparentBackgroundChange,
-	onExport,
 	onViewChange,
 }: {
 	product: "badge" | "keychain";
@@ -44,14 +38,6 @@ export function ProductWorkspace({
 	canvasHostRef?: RefObject<HTMLDivElement | null>;
 	canvas: ReactNode;
 	overlays?: ReactNode;
-	ready: boolean;
-	busy: boolean;
-	error: string;
-	resolution: string;
-	transparentBackground: boolean;
-	onResolutionChange: (value: string) => void;
-	onTransparentBackgroundChange: (value: boolean) => void;
-	onExport: () => Promise<void>;
 	onViewChange: (view: StudioView) => void;
 }) {
 	const mobile = useMobile() === "mobile";
@@ -82,19 +68,7 @@ export function ProductWorkspace({
 					)
 				}
 			/>
-			<AdjustmentPanel
-				label={panelLabel}
-				ready={ready}
-				busy={busy}
-				error={error}
-				resolution={resolution}
-				transparentBackground={transparentBackground}
-				onResolutionChange={onResolutionChange}
-				onTransparentBackgroundChange={onTransparentBackgroundChange}
-				onExport={onExport}
-			>
-				{modelControls}
-			</AdjustmentPanel>
+			<AdjustmentPanel label={panelLabel}>{modelControls}</AdjustmentPanel>
 			{import.meta.env.DEV && <DebugPanel />}
 		</main>
 	);

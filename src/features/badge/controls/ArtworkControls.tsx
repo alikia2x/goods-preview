@@ -7,24 +7,19 @@ import {
 } from "@/components/ui/popover";
 import { ArtworkUploadSection } from "@/components/workspace/ArtworkUploadSection";
 import { RangeControl } from "@/components/workspace/RangeControl";
+import { useWorkspace } from "@/components/workspace/WorkspaceContext";
 import type { BadgeSettings } from "@/features/badge/settings";
-import type { SettingChange } from "@/features/studio/settings";
-
-type ArtworkControlsProps = {
-	settings: BadgeSettings;
-	thumbnail: string;
-	artworkName: string;
-	onSettingChange: SettingChange<BadgeSettings>;
-	onUpload: (file?: File) => Promise<void>;
-};
 
 export function ArtworkControls({
-	settings,
 	thumbnail,
 	artworkName,
-	onSettingChange,
 	onUpload,
-}: ArtworkControlsProps) {
+}: {
+	thumbnail: string;
+	artworkName: string;
+	onUpload: (file?: File) => Promise<void>;
+}) {
+	const { settings, updateSetting } = useWorkspace<BadgeSettings>();
 	return (
 		<ArtworkUploadSection
 			thumbnail={thumbnail}
@@ -59,7 +54,7 @@ export function ArtworkControls({
 							min={0}
 							max={5}
 							step={0.5}
-							onChange={(value) => onSettingChange("bleed", value)}
+							onChange={(value) => updateSetting("bleed", value)}
 						/>
 					</PopoverContent>
 				</Popover>

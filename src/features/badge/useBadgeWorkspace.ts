@@ -1,28 +1,32 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type * as THREE from "three";
-import { useExportState } from "@/hooks/useExportState";
-import { useSceneBackground } from "@/hooks/useSceneBackground";
+import { useWorkspaceExportState } from "@/components/workspace/WorkspaceContext";
 import { DEFAULT_SETTINGS } from "@/features/badge/constants";
-import { defaultArtwork } from "@/features/badge/model/artwork";
 import type { BadgeShadowHandle } from "@/features/badge/model/BadgeModel";
+import { defaultArtwork } from "@/features/badge/model/artwork";
 import { deriveBadgeSettings } from "@/features/badge/settings";
-import type { StudioHandle } from "@/features/studio/components/StudioViewport";
-import { downloadPng } from "@/features/studio/lib/capture";
 import { decodeImage, validateImageFile } from "@/features/studio/lib/image";
 import { useSettings } from "@/features/studio/settings";
+import { useExportController } from "@/features/studio/useExportController";
+import { useWorkspaceViewport } from "@/features/studio/useWorkspaceViewport";
+import { useSceneBackground } from "@/hooks/useSceneBackground";
 
 export function useBadgeWorkspace() {
-	const framingRef = useRef<HTMLElement>(null);
-	const backgroundRef = useRef<THREE.Group>(null);
+	const {
+		framingRef,
+		backgroundRef,
+		apiRef,
+		ready,
+		onViewportReady,
+		changeView,
+	} = useWorkspaceViewport();
 	const shadowRef = useRef<BadgeShadowHandle | null>(null);
-	const apiRef = useRef<StudioHandle | null>(null);
 	const uploadSequenceRef = useRef(0);
 
-	const { settings, setSettings, updateSetting } = useSettings(
+	const { settings, updateSetting } = useSettings(
 		DEFAULT_SETTINGS,
 		deriveBadgeSettings,
 	);
-	const [ready, setReady] = useState(false);
 	const [artwork, setArtwork] = useState<
 		HTMLImageElement | HTMLCanvasElement | null
 	>(null);
@@ -36,27 +40,33 @@ export function useBadgeWorkspace() {
 		const surface = shadowRef.current?.surface;
 		if (surface) objects.push(surface);
 		return objects;
+	}, [backgroundRef]);
+
+	const beforeCapture = useCallback(() => {
+		// Refresh the depth pass so the captured frame matches the viewport.
+		shadowRef.current?.render();
 	}, []);
 
-	const renderExport = useCallback(
-		async (resolution: number, transparentBackground: boolean) => {
-			const api = apiRef.current;
-			if (!api) return;
-			// Refresh the depth pass so the captured frame matches the viewport.
-			shadowRef.current?.render();
-			const blob = await api.capture(resolution, transparentBackground);
-			downloadPng(
-				blob,
-				`${settings.finish}-badge-${settings.scene}${transparentBackground ? "-transparent" : ""}-${resolution}x${resolution}.png`,
-			);
-		},
+	const fileName = useCallback(
+		(resolution: number, transparent: boolean) =>
+			`${settings.finish}-badge-${settings.scene}${transparent ? "-transparent" : ""}-${resolution}x${resolution}.png`,
 		[settings.finish, settings.scene],
 	);
-	const exportState = useExportState({
-		exportArtwork: renderExport,
+
+	const exportState = useExportController({
+		apiRef,
+		fileName,
 		transparentBackground: settings.transparentBackground,
+		beforeCapture,
 	});
-	const { error, setError } = exportState;
+	const { setError } = exportState;
+
+	const workspaceExport = useWorkspaceExportState({
+		ready,
+		exportState,
+		transparentBackground: settings.transparentBackground,
+		updateSetting,
+	});
 
 	useSceneBackground(settings.scene);
 
@@ -85,10 +95,7 @@ export function useBadgeWorkspace() {
 				context?.drawImage(image, 0, 0, 160, 160);
 				setThumbnail(preview.toDataURL());
 				setArtworkName(file.name);
-				setSettings((current) => ({
-					...current,
-					bleed: DEFAULT_SETTINGS.bleed,
-				}));
+				updateSetting("bleed", DEFAULT_SETTINGS.bleed);
 				setError("");
 			} catch (cause) {
 				if (sequence === uploadSequenceRef.current) {
@@ -100,13 +107,8 @@ export function useBadgeWorkspace() {
 				}
 			}
 		},
-		[setError, setSettings],
+		[setError, updateSetting],
 	);
-
-	const changeView = useCallback((view: "front" | "angle" | "back") => {
-		apiRef.current?.view(view);
-	}, []);
-	const onViewportReady = useCallback(() => setReady(true), []);
 
 	return {
 		framingRef,
@@ -116,17 +118,12 @@ export function useBadgeWorkspace() {
 		backgroundObjects,
 		settings,
 		artwork,
-		ready,
-		error,
-		busy: exportState.busy,
 		thumbnail,
 		artworkName,
-		resolution: exportState.resolution,
+		exportState: workspaceExport,
 		updateSetting,
 		uploadArtwork,
 		changeView,
 		onViewportReady,
-		setResolution: exportState.setResolution,
-		exportArtwork: exportState.exportArtwork,
 	};
 }

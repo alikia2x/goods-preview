@@ -1,19 +1,20 @@
 import { ChevronDown, ChevronUp, Download } from "lucide-react";
 import { type ReactNode, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ExportControls } from "@/components/workspace/ExportControls";
+import { useWorkspace } from "@/components/workspace/WorkspaceContext";
 import { useMobile } from "@/hooks/useMobile";
 import panelStyles from "@/styles/adjustment-panel.module.css";
-import {
-	ExportControls,
-	type ExportControlsProps,
-} from "@/components/workspace/ExportControls";
 
 export function AdjustmentPanel({
 	children,
 	label,
-	...exportProps
-}: ExportControlsProps & { children: ReactNode; label: string }) {
+}: {
+	children: ReactNode;
+	label: string;
+}) {
 	const mobile = useMobile() === "mobile";
+	const { exportState } = useWorkspace();
 	const [expanded, setExpanded] = useState(true);
 	const id = useId();
 	return (
@@ -41,9 +42,9 @@ export function AdjustmentPanel({
 							className="size-12! rounded-full!"
 							variant="ghost"
 							size="icon"
-							aria-label={exportProps.busy ? "正在导出" : "下载 PNG"}
-							disabled={!exportProps.ready || exportProps.busy}
-							onClick={() => void exportProps.onExport()}
+							aria-label={exportState.busy ? "正在导出" : "下载 PNG"}
+							disabled={!exportState.ready || exportState.busy}
+							onClick={() => void exportState.onExport()}
 						>
 							<Download />
 						</Button>
@@ -82,9 +83,9 @@ export function AdjustmentPanel({
 				inert={mobile && !expanded}
 			>
 				{children}
-				{mobile && <ExportControls {...exportProps} showDownload={false} />}
+				{mobile && <ExportControls {...exportState} showDownload={false} />}
 			</div>
-			{!mobile && <ExportControls {...exportProps} />}
+			{!mobile && <ExportControls {...exportState} />}
 		</aside>
 	);
 }

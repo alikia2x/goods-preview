@@ -1,36 +1,25 @@
-import { ArtworkControls } from "@/features/badge/controls/ArtworkControls";
-import type { BadgeSettings } from "@/features/badge/settings";
 import { StudioControls } from "@/components/workspace/StudioControls";
-import type { SettingChange } from "@/features/studio/settings";
+import { ArtworkControls } from "@/features/badge/controls/ArtworkControls";
 
-// Everything the badge panel adds beyond the shared studio controls.
+// Everything the badge panel adds beyond the shared studio controls. Settings
+// come from WorkspaceContext; only the artwork metadata is passed in.
 export function BadgeControls({
-	settings,
 	thumbnail,
 	artworkName,
-	onSettingChange,
 	onUpload,
 }: {
-	settings: BadgeSettings;
 	thumbnail: string;
 	artworkName: string;
-	onSettingChange: SettingChange<BadgeSettings>;
 	onUpload: (file?: File) => Promise<void>;
 }) {
 	return (
 		<>
 			<ArtworkControls
-				settings={settings}
 				thumbnail={thumbnail}
 				artworkName={artworkName}
-				onSettingChange={onSettingChange}
 				onUpload={onUpload}
 			/>
-			<StudioControls
-				settings={settings}
-				onChange={onSettingChange}
-				glossLabel="覆膜反光"
-			/>
+			<StudioControls glossLabel="覆膜反光" />
 		</>
 	);
 }

@@ -18,7 +18,7 @@ export const DEFAULT_SETTINGS: BadgeSettings = {
 	light: 72,
 	lightAzimuth: 23,
 	lightElevation: 48,
-	gloss: 75,
+	gloss: 50,
 	size: 65,
 	bleed: 0,
 	transparentBackground: false,

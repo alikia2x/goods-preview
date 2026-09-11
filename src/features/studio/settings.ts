@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useReducer } from "react";
 import { ORIGINAL_LIGHT_ANGLES } from "@/features/studio/lib/lighting";
 import type { LightingPreset } from "@/features/studio/lib/lighting-presets";
 import type { SceneKind } from "@/features/studio/lib/scenes";
@@ -33,6 +33,11 @@ export const DEFAULT_STUDIO_SETTINGS: StudioSettings = {
 
 export type SettingChange<S> = <K extends keyof S>(key: K, value: S[K]) => void;
 
+// One setting change, keyed so the value type follows the key.
+type SettingAction<S> = {
+	[K in keyof S]: { key: K; value: S[K] };
+}[keyof S];
+
 // One settings reducer for every product. `derive` is an optional pure rule that
 // reacts to a change (for example the badge's finish also selects a lighting
 // preset and gloss) and must be a stable module-level function.
@@ -40,15 +45,19 @@ export function useSettings<S extends StudioSettings>(
 	defaults: S,
 	derive?: (next: S, key: keyof S) => S,
 ) {
-	const [settings, setSettings] = useState<S>(() => ({ ...defaults }));
-	const updateSetting = useCallback<SettingChange<S>>(
-		(key, value) => {
-			setSettings((current) => {
-				const next = { ...current, [key]: value };
-				return derive ? derive(next, key) : next;
-			});
+	const reducer = useCallback(
+		(state: S, action: SettingAction<S>) => {
+			const next = { ...state, [action.key]: action.value };
+			return derive ? derive(next, action.key) : next;
 		},
 		[derive],
 	);
-	return { settings, setSettings, updateSetting };
+	const [settings, dispatch] = useReducer(reducer, defaults, (initial) => ({
+		...initial,
+	}));
+	const updateSetting = useCallback<SettingChange<S>>(
+		(key, value) => dispatch({ key, value } as SettingAction<S>),
+		[],
+	);
+	return { settings, updateSetting };
 }

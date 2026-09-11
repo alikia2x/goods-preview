@@ -18,7 +18,7 @@ export const FINISHES = Object.freeze({
 	glossy: Object.freeze({
 		...base,
 		label: "亮膜",
-		defaultGloss: 75,
+		defaultGloss: 50,
 		roughness: 0.65,
 	}),
 });
