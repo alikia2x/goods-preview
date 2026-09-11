@@ -16,16 +16,19 @@ export const LIGHTING_PRESETS = {
 		label: "柔光 · 哑光",
 		keyDirection: new Vector3(...KEY_DIRECTION).normalize(),
 		intensity: 1.4,
+		gain: 1,
 	},
 	glossy: {
 		label: "聚光 · 亮面",
 		keyDirection: new Vector3(...KEY_DIRECTION).normalize(),
 		intensity: 1.4,
+		gain: 1,
 	},
 	hdr: {
 		label: "实景 · 摄影棚",
 		keyDirection: PHOTOGRAPHIC_STUDIO.keyDirection,
 		intensity: PHOTOGRAPHIC_STUDIO.intensity,
+		gain: PHOTOGRAPHIC_STUDIO.gain,
 	},
 } as const;
 export type LightingPreset = keyof typeof LIGHTING_PRESETS;

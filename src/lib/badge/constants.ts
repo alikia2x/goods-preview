@@ -1,22 +1,21 @@
-import { ORIGINAL_LIGHT_ANGLES } from "../studio/lighting";
 import type { BadgeView, Settings } from "./types";
+import pkg from "../../../package.json";
 
 export const PRODUCT_NAME = "覆膜吧唧 · 亮膜";
-export const PRODUCT_VERSION = "v0.1.0";
+export const PRODUCT_VERSION = pkg.version;
 
 export const DEFAULT_SETTINGS: Settings = {
 	finish: "glossy",
-	lighting: "glossy",
+	lighting: "hdr",
 	shadow: 26,
-	scene: "plain",
-	light: 50,
-	lightAzimuth: ORIGINAL_LIGHT_ANGLES.azimuth,
-	lightElevation: ORIGINAL_LIGHT_ANGLES.elevation,
-	gloss: 85,
+	scene: "table",
+	light: 72,
+	lightAzimuth: 23,
+	lightElevation: 48,
+	gloss: 75,
 	size: 65,
-	zoom: 1,
-	x: 0,
-	y: 0,
+	bleed: 0,
+	transparentBackground: false,
 };
 
 export const BADGE_SIZES = [32, 44, 58, 65, 75] as const;

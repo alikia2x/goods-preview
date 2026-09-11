@@ -11,9 +11,8 @@ export type Settings = {
 	lightElevation: number;
 	gloss: number;
 	size: number;
-	zoom: number;
-	x: number;
-	y: number;
+	bleed: number;
+	transparentBackground: boolean;
 };
 
 export type BadgeView = "front" | "angle" | "back";

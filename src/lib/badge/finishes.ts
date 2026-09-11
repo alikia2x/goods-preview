@@ -6,12 +6,12 @@ const base = {
 	ior: 1.48,
 	environmentFill: 0.62,
 	exposure: 1,
-	defaultGloss: 85,
 };
 export const FINISHES = Object.freeze({
 	matte: Object.freeze({
 		...base,
 		label: "哑膜",
+		defaultGloss: 30,
 		roughness: 0.8,
 		environmentWidth: 0.22,
 		environmentPeak: 1.8,
@@ -19,6 +19,7 @@ export const FINISHES = Object.freeze({
 	glossy: Object.freeze({
 		...base,
 		label: "亮膜",
+		defaultGloss: 75,
 		roughness: 0.65,
 		environmentWidth: 0.012,
 		environmentPeak: 33,

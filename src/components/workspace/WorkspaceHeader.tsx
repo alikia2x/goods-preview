@@ -10,10 +10,10 @@ import { FINISHES } from "@/lib/badge/finishes";
 import type { SettingChange, Settings } from "@/lib/badge/types";
 import controlStyles from "@/styles/studio-controls.module.css";
 import layoutStyles from "@/styles/workspace.module.css";
-import { PILL_CLASS_NAME } from "./classNames";
 import { FinishControls } from "./FinishControls";
 import { SizeControl } from "./PreviewToolbar";
 import { ProductMenu } from "./ProductMenu";
+import { useWorkspaceSupport } from "./WorkspaceSupport";
 
 export function WorkspaceHeader({
 	settings,
@@ -24,6 +24,7 @@ export function WorkspaceHeader({
 }) {
 	const finish = settings.finish;
 	const mobile = useMobile();
+	const { openAbout } = useWorkspaceSupport();
 	const productName = `覆膜吧唧 · ${FINISHES[finish].label}`;
 	return (
 		<header
@@ -35,7 +36,7 @@ export function WorkspaceHeader({
 					<PopoverTrigger asChild>
 						<Button
 							variant="ghost"
-							className={PILL_CLASS_NAME}
+							className="inline-flex h-[46px] items-center justify-center gap-[9px] !rounded-full !bg-[#292929] px-[22px] text-sm font-[550] whitespace-nowrap !text-[#fafafa] shadow-[0_5px_15px_#00000015] hover:!bg-[#3b3b3b] max-[700px]:h-11 max-[700px]:gap-1 max-[700px]:px-3 max-[700px]:text-[11px]"
 							aria-label={`${productName}，切换覆膜`}
 						>
 							{productName}
@@ -56,11 +57,14 @@ export function WorkspaceHeader({
 					onSizeChange={(value) => onSettingChange("size", value)}
 				/>
 			) : (
-				<span
-					className={`${PILL_CLASS_NAME} gap-[5px] [&_span]:text-xs [&_span]:text-[#c2c2c2] max-[1100px]:hidden`}
+				<Button
+					variant="ghost"
+					className="inline-flex h-[46px] items-center justify-center gap-1.25 !rounded-full !bg-[#292929] px-[22px] text-sm font-[550] whitespace-nowrap !text-[#fafafa] shadow-[0_5px_15px_#00000015] hover:!bg-[#3b3b3b] [&_span]:text-xs [&_span]:text-[#c2c2c2] max-[1100px]:hidden"
+					onClick={openAbout}
+					aria-label="打开 Goods Preview 关于信息"
 				>
 					Goods Preview <span>{PRODUCT_VERSION}</span>
-				</span>
+				</Button>
 			)}
 		</header>
 	);

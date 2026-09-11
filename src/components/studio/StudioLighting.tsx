@@ -56,7 +56,7 @@ export function StudioLighting({
 	const { scene } = useThree();
 	const light = useRef<THREE.DirectionalLight>(null);
 	const direction = lightDirection(azimuth, elevation);
-	const energy = 2 ** ((intensity - 50) / 50);
+	const energy = 2 ** ((intensity - 50) / 50) * LIGHTING_PRESETS[preset].gain;
 	useEffect(() => {
 		if (environment) {
 			scene.environment = environment.texture;

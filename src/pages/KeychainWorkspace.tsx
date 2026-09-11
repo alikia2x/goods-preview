@@ -22,9 +22,9 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import { PILL_CLASS_NAME } from "@/components/workspace/classNames";
 import { PreviewToolbar } from "@/components/workspace/PreviewToolbar";
 import { ProductMenu } from "@/components/workspace/ProductMenu";
+import { useWorkspaceSupport } from "@/components/workspace/WorkspaceSupport";
 import { useKeychainWorkspace } from "@/hooks/useKeychainWorkspace";
 import { useMobile } from "@/hooks/useMobile";
 import { PRODUCT_VERSION } from "@/lib/badge/constants";
@@ -37,6 +37,7 @@ import layoutStyles from "@/styles/workspace.module.css";
 export default function KeychainWorkspace() {
 	const workspace = useKeychainWorkspace(),
 		mobile = useMobile();
+	const { openAbout } = useWorkspaceSupport();
 	const backgroundRef = useRef<THREE.Group | null>(null);
 	const [environments, setEnvironments] = useState<
 		Partial<Record<LightingPreset, THREE.WebGLRenderTarget>>
@@ -156,7 +157,7 @@ export default function KeychainWorkspace() {
 							<PopoverTrigger asChild>
 								<Button
 									variant="ghost"
-									className={PILL_CLASS_NAME}
+									className="inline-flex h-[46px] items-center justify-center gap-[9px] !rounded-full !bg-[#292929] px-[22px] text-sm font-[550] whitespace-nowrap !text-[#fafafa] shadow-[0_5px_15px_#00000015] hover:!bg-[#3b3b3b] max-[700px]:h-11 max-[700px]:gap-1 max-[700px]:px-3 max-[700px]:text-[11px]"
 									aria-label={`${productName}，设置连接件和颜色`}
 								>
 									{productName}
@@ -176,11 +177,16 @@ export default function KeychainWorkspace() {
 					{mobile ? (
 						<KeychainSize workspace={workspace} arrow="down" />
 					) : (
-						<span
-							className={`${PILL_CLASS_NAME} gap-[5px] [&_span]:text-xs [&_span]:text-[#c2c2c2] max-[1100px]:hidden`}
+						<Button
+							variant="ghost"
+							className="inline-flex h-11.5 items-center justify-center gap-1.25 rounded-full!
+							 bg-[#292929]! px-5.5 text-sm font-[550] whitespace-nowrap text-[#fafafa]! 
+							 shadow-[0_5px_15px_#00000015] hover:bg-[#3b3b3b]! [&_span]:text-xs [&_span]:text-[#c2c2c2] max-[1100px]:hidden"
+							onClick={openAbout}
+							aria-label="打开 Goods Preview 关于信息"
 						>
 							Goods Preview <span>{PRODUCT_VERSION}</span>
-						</span>
+						</Button>
 					)}
 				</header>
 				{!mobile && (

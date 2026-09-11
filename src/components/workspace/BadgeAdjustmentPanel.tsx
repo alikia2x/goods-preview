@@ -17,7 +17,6 @@ type BadgeAdjustmentPanelProps = {
 	busy: boolean;
 	resolution: string;
 	onSettingChange: SettingChange;
-	onResetCrop: () => void;
 	onUpload: (file?: File) => Promise<void>;
 	onResolutionChange: (value: string) => void;
 	onExport: () => Promise<void>;
@@ -33,7 +32,6 @@ export function BadgeAdjustmentPanel({
 	busy,
 	resolution,
 	onSettingChange,
-	onResetCrop,
 	onUpload,
 	onResolutionChange,
 	onExport,
@@ -45,7 +43,11 @@ export function BadgeAdjustmentPanel({
 			busy={busy}
 			error={error}
 			resolution={resolution}
+			transparentBackground={settings.transparentBackground}
 			onResolutionChange={onResolutionChange}
+			onTransparentBackgroundChange={(value) =>
+				onSettingChange("transparentBackground", value)
+			}
 			onExport={onExport}
 		>
 			<ArtworkControls
@@ -54,7 +56,6 @@ export function BadgeAdjustmentPanel({
 				artworkName={artworkName}
 				inputRef={inputRef}
 				onSettingChange={onSettingChange}
-				onResetCrop={onResetCrop}
 				onUpload={onUpload}
 			/>
 			<SceneControls

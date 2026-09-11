@@ -2,7 +2,6 @@ import type { PointerEvent } from "react";
 import { Button } from "@/components/ui/button";
 import type { Settings } from "@/lib/badge/types";
 import { lightAnglesFromPoint, lightDirection } from "@/lib/studio/lighting";
-import { CONTROL_SECTION_CLASS_NAME } from "./classNames";
 import { RangeControl } from "./RangeControl";
 
 export function LightDirectionControls({
@@ -27,7 +26,7 @@ export function LightDirectionControls({
 		onChange("lightElevation", angles.elevation);
 	};
 	return (
-		<section className={CONTROL_SECTION_CLASS_NAME}>
+		<section className="mb-8 [&_h2]:mb-3 [&_h2]:text-sm [&_h2]:font-medium [&_h2]:text-[#dedede] max-[700px]:mb-4 max-[700px]:[&_h2]:mb-2">
 			<h2>光照方向</h2>
 			<div className="grid grid-cols-[minmax(0,1fr)_88px] items-center gap-3.5">
 				<div className="min-w-0">

@@ -6,6 +6,7 @@ export const PHOTOGRAPHIC_STUDIO = {
 	url: `${import.meta.env.BASE_URL}environments/studio_small_09_512.exr`,
 	keyDirection: new THREE.Vector3(-0.823, 0.262, -0.504).normalize(),
 	intensity: 1.05,
+	gain: 1.3,
 };
 
 // The compressed half-float EXR fetch is global (network + parse), but PMREM

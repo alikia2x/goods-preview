@@ -42,7 +42,7 @@ export function StudioStage({
 		<>
 			<group ref={backgroundRef}>
 				<group ref={setRef} />
-				{(kind === "plain" || kind === "transparent") && (
+				{kind === "plain" && (
 					<mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.004, 0]}>
 						<planeGeometry args={[200, 200]} />
 						<meshStandardMaterial

@@ -93,9 +93,8 @@ export class BadgeRenderer {
 	artwork: CanvasImageSource = defaultArtwork();
 	private artworkState?: {
 		source: CanvasImageSource;
-		zoom: number;
-		x: number;
-		y: number;
+		size: number;
+		bleed: number;
 	};
 	framing: HTMLElement;
 	observer: ResizeObserver;
@@ -235,6 +234,7 @@ export class BadgeRenderer {
 		const illumination =
 			2 ** ((s.light - 50) / 50) *
 			LIGHTING_PRESETS[s.lighting].intensity *
+			LIGHTING_PRESETS[s.lighting].gain *
 			(s.scene === "black" ? 1 / 1.4 : 1);
 		this.scene.environmentIntensity = illumination;
 		// One light direction drives both environment reflection and shadow projection.
@@ -272,9 +272,8 @@ export class BadgeRenderer {
 		const previous = this.artworkState;
 		if (
 			previous?.source === this.artwork &&
-			previous.zoom === s.zoom &&
-			previous.x === s.x &&
-			previous.y === s.y
+			previous.size === s.size &&
+			previous.bleed === s.bleed
 		)
 			return;
 		const canvas = document.createElement("canvas");
@@ -288,19 +287,20 @@ export class BadgeRenderer {
 				source instanceof HTMLImageElement
 					? source.naturalHeight
 					: source.height;
-		const scale = Math.max(2048 / w, 2048 / h) * s.zoom;
+		// Bleed extends past the finished diameter on both sides of the badge.
+		const scale = Math.max(2048 / w, 2048 / h) * (1 + (2 * s.bleed) / s.size);
 		c.fillStyle = "#ffffff";
 		c.fillRect(0, 0, 2048, 2048);
 		c.drawImage(
 			source,
-			(2048 - w * scale) / 2 + s.x * 20.48,
-			(2048 - h * scale) / 2 + s.y * 20.48,
+			(2048 - w * scale) / 2,
+			(2048 - h * scale) / 2,
 			w * scale,
 			h * scale,
 		);
 		this.texture.image = canvas;
 		this.texture.needsUpdate = true;
-		this.artworkState = { source: this.artwork, zoom: s.zoom, x: s.x, y: s.y };
+		this.artworkState = { source: this.artwork, size: s.size, bleed: s.bleed };
 	}
 	view(view: string) {
 		this.controls.enableDamping = false;
@@ -320,7 +320,7 @@ export class BadgeRenderer {
 		this.controls.update();
 		this.controls.enableDamping = true;
 	}
-	async export(size: number) {
+	async export(size: number, transparentBackground: boolean) {
 		const ratio = this.renderer.getPixelRatio();
 		const w = this.host.clientWidth,
 			h = this.host.clientHeight;
@@ -343,7 +343,7 @@ export class BadgeRenderer {
 		const clearAlpha = this.renderer.getClearAlpha();
 		let pending: Promise<Blob>;
 		try {
-			if (this.sceneKind === "transparent") {
+			if (transparentBackground) {
 				this.scene.background = null;
 				this.renderer.setClearAlpha(0);
 				this.shadow.wall.visible = false;
@@ -373,7 +373,7 @@ export class BadgeRenderer {
 		const url = URL.createObjectURL(blob),
 			a = document.createElement("a");
 		a.href = url;
-		a.download = `${this.finish}-badge-${this.sceneKind}-${output.width}x${output.height}.png`;
+		a.download = `${this.finish}-badge-${this.sceneKind}${transparentBackground ? "-transparent" : ""}-${output.width}x${output.height}.png`;
 		a.click();
 		setTimeout(() => URL.revokeObjectURL(url), 1000);
 	}

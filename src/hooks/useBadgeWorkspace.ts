@@ -5,6 +5,7 @@ import {
 	MAX_IMAGE_PIXELS,
 	SUPPORTED_IMAGE_TYPES,
 } from "@/lib/badge/constants";
+import { FINISHES } from "@/lib/badge/finishes";
 import { BadgeRenderer, defaultArtwork } from "@/lib/badge/renderer";
 import type { BadgeView, SettingChange, Settings } from "@/lib/badge/types";
 import { SCENES } from "@/lib/studio/scenes";
@@ -74,58 +75,63 @@ export function useBadgeWorkspace() {
 		};
 	}, [settings.scene]);
 	const updateSetting = useCallback<SettingChange>((key, value) => {
-		setSettings((current) => ({ ...current, [key]: value }));
+		setSettings((current) => {
+			if (key === "finish" && (value === "glossy" || value === "matte"))
+				return {
+					...current,
+					finish: value,
+					lighting: "hdr",
+					gloss: FINISHES[value].defaultGloss,
+				};
+			return { ...current, [key]: value };
+		});
 	}, []);
 
-	const resetCrop = useCallback(() => {
-		setSettings((current) => ({ ...current, zoom: 1, x: 0, y: 0 }));
+	const uploadArtwork = useCallback(async (file?: File) => {
+		if (!file) return;
+		const sequence = ++uploadSequenceRef.current;
+		if (!SUPPORTED_IMAGE_TYPES.includes(file.type)) {
+			setError("请选择 PNG、JPG 或 WebP 图像。");
+			return;
+		}
+		if (file.size > MAX_IMAGE_FILE_SIZE) {
+			setError("图像大小不能超过 20 MB。");
+			return;
+		}
+
+		const url = URL.createObjectURL(file);
+		const image = new Image();
+		image.src = url;
+		try {
+			await image.decode();
+			if (sequence !== uploadSequenceRef.current) return;
+			if (image.naturalWidth * image.naturalHeight > MAX_IMAGE_PIXELS) {
+				throw new Error("图像像素过大，请缩小至 6400 万像素以内。");
+			}
+			setArtwork(image);
+			const preview = document.createElement("canvas");
+			preview.width = preview.height = 160;
+			const context = preview.getContext("2d");
+			context?.drawImage(image, 0, 0, 160, 160);
+			setThumbnail(preview.toDataURL());
+			setArtworkName(file.name);
+			setSettings((current) => ({
+				...current,
+				bleed: DEFAULT_SETTINGS.bleed,
+			}));
+			setError("");
+		} catch (cause) {
+			if (sequence === uploadSequenceRef.current) {
+				setError(
+					cause instanceof Error && cause.message.startsWith("图像像素")
+						? cause.message
+						: "无法读取这张图片，请重新选择。",
+				);
+			}
+		} finally {
+			URL.revokeObjectURL(url);
+		}
 	}, []);
-
-	const uploadArtwork = useCallback(
-		async (file?: File) => {
-			if (!file) return;
-			const sequence = ++uploadSequenceRef.current;
-			if (!SUPPORTED_IMAGE_TYPES.includes(file.type)) {
-				setError("请选择 PNG、JPG 或 WebP 图像。");
-				return;
-			}
-			if (file.size > MAX_IMAGE_FILE_SIZE) {
-				setError("图像大小不能超过 20 MB。");
-				return;
-			}
-
-			const url = URL.createObjectURL(file);
-			const image = new Image();
-			image.src = url;
-			try {
-				await image.decode();
-				if (sequence !== uploadSequenceRef.current) return;
-				if (image.naturalWidth * image.naturalHeight > MAX_IMAGE_PIXELS) {
-					throw new Error("图像像素过大，请缩小至 6400 万像素以内。");
-				}
-				setArtwork(image);
-				const preview = document.createElement("canvas");
-				preview.width = preview.height = 160;
-				const context = preview.getContext("2d");
-				context?.drawImage(image, 0, 0, 160, 160);
-				setThumbnail(preview.toDataURL());
-				setArtworkName(file.name);
-				resetCrop();
-				setError("");
-			} catch (cause) {
-				if (sequence === uploadSequenceRef.current) {
-					setError(
-						cause instanceof Error && cause.message.startsWith("图像像素")
-							? cause.message
-							: "无法读取这张图片，请重新选择。",
-					);
-				}
-			} finally {
-				URL.revokeObjectURL(url);
-			}
-		},
-		[resetCrop],
-	);
 
 	const changeView = useCallback((view: BadgeView) => {
 		rendererRef.current?.view(view);
@@ -138,13 +144,13 @@ export function useBadgeWorkspace() {
 		setBusy(true);
 		setError("");
 		try {
-			await renderer.export(Number(resolution));
+			await renderer.export(Number(resolution), settings.transparentBackground);
 		} catch {
 			setError("导出失败，请降低分辨率后重试。");
 		} finally {
 			setBusy(false);
 		}
-	}, [resolution]);
+	}, [resolution, settings.transparentBackground]);
 
 	return {
 		canvasHostRef,
@@ -158,7 +164,6 @@ export function useBadgeWorkspace() {
 		artworkName,
 		resolution,
 		updateSetting,
-		resetCrop,
 		uploadArtwork,
 		changeView,
 		setResolution,

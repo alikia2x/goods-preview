@@ -14,7 +14,7 @@ export class SceneStage {
 		if (key === this.key) return false;
 		this.dispose();
 		this.key = key;
-		if (kind === "plain" || kind === "transparent") return true;
+		if (kind === "plain") return true;
 		const material = new THREE.MeshStandardMaterial({
 			color: kind === "black" ? "#08090b" : "#ffffff",
 			roughness: kind === "table" ? 0.82 : 0.94,

@@ -41,6 +41,7 @@ export function KeychainHardware({
 		color: material.color,
 		metalness: 1,
 		roughness: material.roughness,
+		envMapIntensity: material.environmentIntensity,
 	};
 	return (
 		<group position={[hole.x, hole.y, 0]}>
@@ -64,12 +65,12 @@ export function KeychainHardware({
 					castShadow
 					receiveShadow
 				>
-					<meshStandardMaterial {...polished} roughness={0.12} />
+					<meshStandardMaterial {...polished} />
 				</mesh>
 			) : (
 				<group position={[0, 1.02, 0]} rotation={[0, 0.08, 0]}>
 					<mesh geometry={geometries.body} castShadow receiveShadow>
-						<meshStandardMaterial {...polished} roughness={0.14} />
+						<meshStandardMaterial {...polished} />
 					</mesh>
 					<mesh geometry={geometries.gate} castShadow receiveShadow>
 						<meshStandardMaterial {...polished} />
@@ -80,7 +81,7 @@ export function KeychainHardware({
 						castShadow
 					>
 						<cylinderGeometry args={[0.024, 0.024, 0.062, 24]} />
-						<meshStandardMaterial {...polished} roughness={0.19} />
+						<meshStandardMaterial {...polished} />
 					</mesh>
 					<mesh position={[0.11, -0.2, 0]} rotation={[0, 0, -0.45]} castShadow>
 						<capsuleGeometry args={[0.023, 0.07, 6, 16]} />

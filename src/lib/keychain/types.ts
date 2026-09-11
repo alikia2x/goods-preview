@@ -18,6 +18,7 @@ export type KeychainSettings = {
 	lightAzimuth: number;
 	lightElevation: number;
 	shadow: number;
+	transparentBackground: boolean;
 };
 
 export type KeychainSettingChange = <K extends keyof KeychainSettings>(
@@ -38,4 +39,5 @@ export const DEFAULT_KEYCHAIN_SETTINGS: KeychainSettings = {
 	lightAzimuth: ORIGINAL_LIGHT_ANGLES.azimuth,
 	lightElevation: ORIGINAL_LIGHT_ANGLES.elevation,
 	shadow: 26,
+	transparentBackground: false,
 };

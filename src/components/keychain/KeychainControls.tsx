@@ -7,14 +7,6 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { AdjustmentPanel } from "@/components/workspace/AdjustmentPanel";
-import {
-	ART_THUMBNAIL_CLASS_NAME,
-	CONTROL_SECTION_CLASS_NAME,
-	FILE_STATUS_CLASS_NAME,
-	IMAGE_ROW_CLASS_NAME,
-	PILL_CLASS_NAME,
-	UPLOAD_BUTTON_CLASS_NAME,
-} from "@/components/workspace/classNames";
 import { LightDirectionControls } from "@/components/workspace/LightDirectionControls";
 import { LightingControls } from "@/components/workspace/LightingControls";
 import { RangeControl } from "@/components/workspace/RangeControl";
@@ -35,7 +27,10 @@ export function KeychainSize({
 	return (
 		<Popover>
 			<PopoverTrigger asChild>
-				<Button variant="ghost" className={`${PILL_CLASS_NAME} tabular-nums`}>
+				<Button
+					variant="ghost"
+					className="inline-flex h-[46px] items-center justify-center gap-[9px] !rounded-full !bg-[#292929] px-[22px] text-sm font-[550] whitespace-nowrap !text-[#fafafa] shadow-[0_5px_15px_#00000015] hover:!bg-[#3b3b3b] tabular-nums max-[700px]:h-11 max-[700px]:gap-1 max-[700px]:px-3 max-[700px]:text-[11px]"
+				>
 					<Arrow />
 					{workspace.settings.size} mm
 				</Button>
@@ -66,15 +61,19 @@ export function KeychainControls({ workspace: w }: { workspace: Workspace }) {
 			busy={w.busy}
 			error={w.error}
 			resolution={w.resolution}
+			transparentBackground={w.settings.transparentBackground}
 			onResolutionChange={w.setResolution}
+			onTransparentBackgroundChange={(value) =>
+				w.change("transparentBackground", value)
+			}
 			onExport={w.exportArtwork}
 		>
-			<section className={CONTROL_SECTION_CLASS_NAME}>
+			<section className="mb-8 [&_h2]:mb-3 [&_h2]:text-sm [&_h2]:font-medium [&_h2]:text-[#dedede] max-[700px]:mb-4 max-[700px]:[&_h2]:mb-2">
 				<h2>图像</h2>
-				<div className={IMAGE_ROW_CLASS_NAME}>
+				<div className="flex gap-4">
 					<Button
 						variant="ghost"
-						className={ART_THUMBNAIL_CLASS_NAME}
+						className="relative h-[100px] w-[100px] overflow-hidden !rounded-[10px] !bg-[#888] p-0 max-[700px]:!size-20 [&_img]:size-full [&_img]:object-cover"
 						aria-label="更换图案"
 						onClick={() => input.current?.click()}
 					>
@@ -82,7 +81,7 @@ export function KeychainControls({ workspace: w }: { workspace: Workspace }) {
 					</Button>
 					<Button
 						variant="ghost"
-						className={UPLOAD_BUTTON_CLASS_NAME}
+						className="relative h-[100px] w-[100px] overflow-hidden !rounded-[10px] !border-0 !bg-[#888] p-0 !text-[#e5e5e5] hover:!bg-[#505050] max-[700px]:!size-20 [&_svg]:size-[25px]"
 						aria-label="上传图案"
 						onClick={() => input.current?.click()}
 					>
@@ -99,13 +98,16 @@ export function KeychainControls({ workspace: w }: { workspace: Workspace }) {
 						event.target.value = "";
 					}}
 				/>
-				<p className={FILE_STATUS_CLASS_NAME} role="status">
+				<p
+					className="mt-2.5 flex items-center gap-1.5 text-[11px] text-[#aaa] [&_svg]:size-3 [&_span]:max-w-[240px] [&_span]:overflow-hidden [&_span]:text-ellipsis [&_span]:whitespace-nowrap"
+					role="status"
+				>
 					<span title={w.model?.artwork.name}>
 						{w.loading ? "正在生成切边…" : w.model?.artwork.name}
 					</span>
 				</p>
 			</section>
-			<section className={CONTROL_SECTION_CLASS_NAME}>
+			<section className="mb-8 [&_h2]:mb-3 [&_h2]:text-sm [&_h2]:font-medium [&_h2]:text-[#dedede] max-[700px]:mb-4 max-[700px]:[&_h2]:mb-2">
 				<h2>亚克力</h2>
 				<RangeControl
 					label="厚度"

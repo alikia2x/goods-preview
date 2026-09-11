@@ -1,9 +1,5 @@
 import { Slider } from "@/components/ui/slider";
 import controlStyles from "@/styles/studio-controls.module.css";
-import {
-	CONTROL_LABEL_CLASS_NAME,
-	SLIDER_CONTROL_CLASS_NAME,
-} from "./classNames";
 
 type RangeControlProps = {
 	label: string;
@@ -28,9 +24,9 @@ export function RangeControl({
 }: RangeControlProps) {
 	return (
 		<div
-			className={`${controlStyles.sliderControl} ${SLIDER_CONTROL_CLASS_NAME} ${className ?? ""}`}
+			className={`${controlStyles.sliderControl} mb-5 min-w-0 max-[700px]:mb-2 ${className ?? ""}`}
 		>
-			<div className={CONTROL_LABEL_CLASS_NAME}>
+			<div className="mb-1 flex justify-between gap-3 text-sm text-[#d9d9d9] tabular-nums">
 				<span>{label}</span>
 				<span className="tabular-nums">{display ?? `${value}%`}</span>
 			</div>

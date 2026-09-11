@@ -32,7 +32,6 @@ export default function BadgeWorkspace() {
 				busy={workspace.busy}
 				resolution={workspace.resolution}
 				onSettingChange={workspace.updateSetting}
-				onResetCrop={workspace.resetCrop}
 				onUpload={workspace.uploadArtwork}
 				onResolutionChange={workspace.setResolution}
 				onExport={workspace.exportArtwork}

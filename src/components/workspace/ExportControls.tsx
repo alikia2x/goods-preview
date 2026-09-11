@@ -7,22 +7,18 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { EXPORT_RESOLUTIONS } from "@/lib/badge/constants";
 import { exportDimensions } from "@/lib/badge/studio";
-import {
-	ERROR_MESSAGE_CLASS_NAME,
-	EXPORT_AREA_CLASS_NAME,
-	EXPORT_BUTTON_CLASS_NAME,
-	EXPORT_RESOLUTION_CLASS_NAME,
-	SELECT_CONTENT_CLASS_NAME,
-} from "./classNames";
 
 export type ExportControlsProps = {
 	ready: boolean;
 	busy: boolean;
 	error: string;
 	resolution: string;
+	transparentBackground: boolean;
 	onResolutionChange: (value: string) => void;
+	onTransparentBackgroundChange: (value: boolean) => void;
 	onExport: () => Promise<void>;
 	showDownload?: boolean;
 };
@@ -32,18 +28,28 @@ export function ExportControls({
 	busy,
 	error,
 	resolution,
+	transparentBackground,
 	onResolutionChange,
+	onTransparentBackgroundChange,
 	onExport,
 	showDownload = true,
 }: ExportControlsProps) {
 	return (
-		<div className={EXPORT_AREA_CLASS_NAME}>
+		<div className="pt-6 max-[700px]:shrink-0 max-[700px]:pt-2">
 			{error && (
-				<p role="alert" className={ERROR_MESSAGE_CLASS_NAME}>
+				<p role="alert" className="mb-3.5 text-xs text-[#ffac9f]">
 					{error}
 				</p>
 			)}
-			<div className={EXPORT_RESOLUTION_CLASS_NAME}>
+			<div className="mb-3.5 flex items-center justify-between text-xs text-[#aaa] tabular-nums max-[700px]:mb-1.5">
+				<label htmlFor="transparent-background">透明背景</label>
+				<Switch
+					id="transparent-background"
+					checked={transparentBackground}
+					onCheckedChange={onTransparentBackgroundChange}
+				/>
+			</div>
+			<div className="mb-3.5 flex items-center justify-between text-xs text-[#aaa] tabular-nums max-[700px]:mb-1.5">
 				<label htmlFor="resolution">导出尺寸</label>
 				<Select value={resolution} onValueChange={onResolutionChange}>
 					<SelectTrigger
@@ -52,7 +58,7 @@ export function ExportControls({
 					>
 						<SelectValue />
 					</SelectTrigger>
-					<SelectContent className={SELECT_CONTENT_CLASS_NAME}>
+					<SelectContent className="!rounded-[20px] !bg-[#292929] !p-2.5 shadow-[0_10px_30px_#0003] max-[700px]:select-none">
 						{EXPORT_RESOLUTIONS.map((value) => {
 							const dimensions = exportDimensions(Number(value));
 							return (
@@ -66,7 +72,7 @@ export function ExportControls({
 			</div>
 			{showDownload && (
 				<Button
-					className={EXPORT_BUTTON_CLASS_NAME}
+					className="h-[50px] w-full gap-3.5 !rounded-full bg-white text-[15px] !text-[#292929] hover:bg-[#e6e6e6] max-[700px]:h-11"
 					disabled={!ready || busy}
 					onClick={() => void onExport()}
 				>

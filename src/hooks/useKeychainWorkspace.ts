@@ -100,18 +100,24 @@ export function useKeychainWorkspace() {
 		try {
 			const blob = await apiRef.current.capture(
 				Number(resolution),
-				settings.scene === "transparent",
+				settings.transparentBackground,
 			);
 			downloadPng(
 				blob,
-				`keychain-${settings.scene}-${resolution}x${resolution}.png`,
+				`keychain-${settings.scene}${settings.transparentBackground ? "-transparent" : ""}-${resolution}x${resolution}.png`,
 			);
 		} catch {
 			setError("导出失败，请降低分辨率后重试。");
 		} finally {
 			setBusy(false);
 		}
-	}, [busy, loading, resolution, settings.scene]);
+	}, [
+		busy,
+		loading,
+		resolution,
+		settings.scene,
+		settings.transparentBackground,
+	]);
 	return {
 		settings,
 		model,
