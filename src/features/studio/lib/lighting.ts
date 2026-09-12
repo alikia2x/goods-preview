@@ -1,22 +1,33 @@
 import { MathUtils, Vector3 } from "three";
 
-// Azimuth: zero is above the badge, negative angles move toward its left.
-// Elevation: angle above the badge's XY plane; 90 degrees is straight on.
+// The light stands somewhere above the floor, described from the product's point
+// of view.
+//
+// Azimuth: which way around the product it stands. Zero is in front of it,
+// towards the camera; positive turns towards its right; ±180 is behind it.
+// Elevation: how high it stands, floor level at 0 and straight overhead at 90.
+//
+// The two together reach every position a studio light can occupy, which a flat
+// two-sided product needs — the back of a panel is only lit from behind it.
 export function lightDirection(azimuth: number, elevation: number) {
 	const a = MathUtils.degToRad(azimuth),
 		e = MathUtils.degToRad(elevation);
 	return new Vector3(
 		Math.sin(a) * Math.cos(e),
-		Math.cos(a) * Math.cos(e),
 		Math.sin(e),
+		Math.cos(a) * Math.cos(e),
 	);
 }
+
+// The direction pad is a plan view of that: its centre is overhead, its rim is
+// floor level, up is in front of the product and down is behind it. `y` arrives
+// as a screen coordinate — positive downwards — so it is negated to match.
 export function lightAnglesFromPoint(
 	x: number,
 	y: number,
 	previousAzimuth: number,
 ) {
-	const radius = Math.min(Math.cos(MathUtils.degToRad(15)), Math.hypot(x, y));
+	const radius = Math.min(1, Math.hypot(x, y));
 	return {
 		azimuth:
 			radius < 0.001 ? previousAzimuth : MathUtils.radToDeg(Math.atan2(x, -y)),

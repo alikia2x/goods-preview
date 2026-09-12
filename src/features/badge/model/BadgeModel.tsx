@@ -14,8 +14,8 @@ import { ContactShadow } from "@/features/badge/model/contact-shadow";
 import { FINISHES, finishMaterial } from "@/features/badge/model/finishes";
 import type { BadgeSettings } from "@/features/badge/settings";
 import { lightDirection } from "@/features/studio/lib/lighting";
-import { poseProductGroup } from "@/features/studio/lib/stage";
-import { MODEL_SCALE, sceneWallZ } from "@/tuning";
+import { placeBadge } from "@/features/badge/model/placement";
+import { MODEL_SCALE, type Vector3Tuple, sceneWallZ } from "@/tuning";
 
 const METAL = { color: "#b8bdc2", metalness: 1, roughness: 0.27 };
 
@@ -30,10 +30,13 @@ export function BadgeModel({
 	settings,
 	artwork,
 	shadowRef,
+	onPlaced,
 }: {
 	settings: BadgeSettings;
 	artwork: HTMLImageElement | HTMLCanvasElement;
 	shadowRef: RefObject<BadgeShadowHandle | null>;
+	/** Reports where the badge sits, for the workspace to aim the camera at. */
+	onPlaced: (center: Vector3Tuple) => void;
 }) {
 	const gl = useThree((state) => state.gl);
 	const groupRef = useRef<THREE.Group>(null);
@@ -70,11 +73,15 @@ export function BadgeModel({
 		};
 	}, [gl, shadowRef]);
 
+	// Seat the badge first, so the shadow below can be fitted around where it
+	// actually ended up.
+	const center = useRef<Vector3Tuple>([0, 0, 0]);
 	useLayoutEffect(() => {
 		const group = groupRef.current;
 		if (!group) return;
-		poseProductGroup(group, settings.scene, scale);
-	}, [settings.scene, scale]);
+		center.current = placeBadge(group, settings, scale);
+		onPlaced(center.current);
+	}, [settings, scale, onPlaced]);
 
 	useLayoutEffect(() => {
 		if (!shadow) return;
@@ -83,9 +90,14 @@ export function BadgeModel({
 			settings.lightElevation,
 		);
 		const wallZ = sceneWallZ(settings.scene);
-		shadow.update(scale, direction, wallZ);
+		shadow.update(scale, direction, wallZ, center.current);
 		if (groupRef.current)
-			shadow.setPose(groupRef.current, settings.scene === "studio");
+			shadow.setPose(
+				groupRef.current,
+				settings.pose,
+				center.current,
+				settings.scene === "studio",
+			);
 		shadow.material.uniforms.strength.value = settings.shadow / 100;
 		shadow.plane.visible = settings.shadow > 0 && settings.scene !== "studio";
 		shadow.wall.visible = wallZ !== null && settings.shadow > 0;
@@ -93,6 +105,7 @@ export function BadgeModel({
 	}, [
 		shadow,
 		settings.scene,
+		settings.pose,
 		settings.shadow,
 		settings.lightAzimuth,
 		settings.lightElevation,

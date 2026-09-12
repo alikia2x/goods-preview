@@ -29,25 +29,6 @@ function createBackdrop(background: THREE.Color) {
 	return mesh;
 }
 
-// Seat a product group on the set: standing scenes tilt it and drop it onto the
-// floor, flat scenes sit at the origin. Shared by the imperative stage and the
-// declarative product models, so both pose identically.
-export function poseProductGroup(
-	group: THREE.Group,
-	kind: SceneKind,
-	scale: number,
-) {
-	group.position.set(0, 0, 0);
-	group.rotation.set(0, 0, 0);
-	group.scale.setScalar(scale);
-	if (SCENES[kind].standing) {
-		group.rotation.set(-0.09, -0.04, 0);
-		group.updateMatrixWorld(true);
-		const bounds = new THREE.Box3().setFromObject(group);
-		group.position.y = -scale - bounds.min.y;
-	}
-}
-
 // Framework-independent set geometry; each renderer owns its lighting and shadows.
 export class SceneStage {
 	readonly group = new THREE.Group();
@@ -124,9 +105,6 @@ export class SceneStage {
 			this.group.add(wall);
 		}
 		return true;
-	}
-	pose(group: THREE.Group, kind: SceneKind, scale: number) {
-		poseProductGroup(group, kind, scale);
 	}
 	dispose() {
 		if (this.reflector) {

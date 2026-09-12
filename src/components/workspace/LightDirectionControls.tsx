@@ -45,7 +45,7 @@ export function LightDirectionControls({
 					<RangeControl
 						label="高度角"
 						value={settings.lightElevation}
-						min={15}
+						min={0}
 						max={90}
 						display={`${Math.round(settings.lightElevation)}°`}
 						className="mb-1.5"
@@ -55,7 +55,7 @@ export function LightDirectionControls({
 				<Button
 					variant="ghost"
 					className="aspect-square h-auto! w-full! cursor-crosshair rounded-full! p-0 touch-none"
-					aria-label={`拖动调整光照，方向 ${Math.round(settings.lightAzimuth)} 度，高度 ${Math.round(settings.lightElevation)} 度；方向键调整`}
+					aria-label={`拖动调整光照。盘中心是正上方，边缘是贴地，上方是制品前方，下方是背面。当前方向 ${Math.round(settings.lightAzimuth)} 度，高度 ${Math.round(settings.lightElevation)} 度；方向键调整`}
 					onPointerDown={(event) => {
 						event.preventDefault();
 						event.currentTarget.setPointerCapture(event.pointerId);
@@ -93,7 +93,7 @@ export function LightDirectionControls({
 								Math.min(
 									90,
 									Math.max(
-										15,
+										0,
 										settings.lightElevation +
 											(event.key === "ArrowUp" ? step : -step),
 									),
@@ -114,9 +114,11 @@ export function LightDirectionControls({
 							r="46"
 							strokeWidth="1"
 						/>
+						{/* Seen from above: the product's front is at the top of the disc
+						    and its right is to the right. */}
 						<circle
 							cx={50 + direction.x * 37}
-							cy={50 - direction.y * 37}
+							cy={50 - direction.z * 37}
 							r="7"
 							fill="white"
 						/>

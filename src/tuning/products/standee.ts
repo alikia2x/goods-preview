@@ -3,10 +3,10 @@ import type { StandeeSettings } from "@/features/acrylic/settings";
 // 亚克力立牌
 export const STANDEE_DEFAULTS = {
 	scene: "table",
-	lighting: "studioContrast",
+	lighting: "studioSoft",
 	light: 50,
-	lightAzimuth: -35,
-	lightElevation: 40,
+	lightAzimuth: -34.35,
+	lightElevation: 38.85,
 	shadow: 65,
 	gloss: 85,
 	size: 60,

@@ -7,10 +7,11 @@ export const BADGE_DEFAULTS = {
 	shadow: 26,
 	scene: "table",
 	light: 72,
-	lightAzimuth: 23,
-	lightElevation: 48,
+	lightAzimuth: 19.4,
+	lightElevation: 38.01,
 	gloss: 50,
 	size: 65,
 	bleed: 0,
+	pose: "standing",
 	transparentBackground: false,
 } satisfies BadgeSettings;

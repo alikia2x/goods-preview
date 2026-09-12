@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type * as THREE from "three";
 import { useWorkspaceExportState } from "@/components/workspace/WorkspaceContext";
-import { PRODUCT_DEFAULTS } from "@/tuning";
+import { PRODUCT_DEFAULTS, type Vector3Tuple } from "@/tuning";
 import type { BadgeShadowHandle } from "@/features/badge/model/BadgeModel";
 import { defaultArtwork } from "@/features/badge/model/artwork";
 import { deriveBadgeSettings } from "@/features/badge/settings";
@@ -10,6 +10,10 @@ import { useSettings } from "@/features/studio/settings";
 import { useExportController } from "@/features/studio/useExportController";
 import { useWorkspaceViewport } from "@/features/studio/useWorkspaceViewport";
 import { useSceneBackground } from "@/hooks/useSceneBackground";
+
+// Where the badge sits before the model has measured itself. The model reports
+// its real centre on the first layout pass, before anything is painted.
+const UNPLACED: Vector3Tuple = [0, 0, 0];
 
 export function useBadgeWorkspace() {
 	const {
@@ -23,6 +27,18 @@ export function useBadgeWorkspace() {
 	} = useWorkspaceViewport();
 	const shadowRef = useRef<BadgeShadowHandle | null>(null);
 	const uploadSequenceRef = useRef(0);
+	const [center, setCenter] = useState<Vector3Tuple>(UNPLACED);
+	// Set once the model has measured itself, which is when the camera can finally
+	// be aimed at the badge instead of at the placeholder.
+	const [placed, setPlaced] = useState(false);
+	const onPlaced = useCallback((next: Vector3Tuple) => {
+		setCenter((current) =>
+			current[0] === next[0] && current[1] === next[1] && current[2] === next[2]
+				? current
+				: next,
+		);
+		setPlaced(true);
+	}, []);
 
 	const { settings, updateSetting } = useSettings(
 		PRODUCT_DEFAULTS.badge,
@@ -121,6 +137,9 @@ export function useBadgeWorkspace() {
 		artwork,
 		thumbnail,
 		artworkName,
+		center,
+		placed,
+		onPlaced,
 		exportState: workspaceExport,
 		updateSetting,
 		uploadArtwork,

@@ -12,3 +12,7 @@
 - Pushes back on fixes that only partially resolve the reported symptom; expects the root cause to be identified and addressed rather than patched incrementally. Confidence: 0.7
 - For non-trivial/architectural work, wants a diagnosis and a consolidated plan (with options) to review before code is written, rather than the agent jumping straight into implementation. Confidence: 0.65
 - Pushes back on unexplained internal jargon or shorthand in explanations (e.g. reacting "8 盏方向光 这是什么鬼"); wants mechanisms explained concretely instead of referencing implementation details as if already known. Confidence: 0.6
+- Expects adjusting a parameter (e.g. product size) to leave the user's current camera/view state untouched — a settings tweak must never silently reset or re-seat the view the user has orbited to ("调整大小时不应调整或着说重置视角"). Confidence: 0.8
+- Communicates bluntly and tersely, including harsh/insulting rebukes when something is wrong (e.g. "蠢货，方向盘上下轴写反了"); expects a brief acknowledgement plus the fix, not defensiveness or long justification. Confidence: 0.6
+- Reports several issues at once as a numbered list and expects every item in that message handled together in one pass, not one at a time. Confidence: 0.65
+- At design decision points, prefers concrete options with an explicit recommendation to approve rather than open-ended questions; typically accepts the recommended option after the facts are laid out. Confidence: 0.6

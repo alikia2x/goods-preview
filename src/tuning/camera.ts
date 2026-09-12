@@ -15,14 +15,17 @@ export const CAMERA = {
 	framingFill: 1.18,
 };
 
-// The badge sits at the origin and is framed from fixed seats, so its views are
-// absolute camera positions.
+// The badge is framed from fixed offsets around wherever it stands, so its seats
+// are added to the badge's own centre rather than being absolute positions.
 export const BADGE_CAMERA: {
 	minDistance: number;
 	maxDistance: number;
 	views: ViewPositions;
+	/** A lying badge is looked at more from above. */
+	flatAngle: Vector3Tuple;
 	opening: Vector3Tuple;
 	tableOpening: Vector3Tuple;
+	flatOpening: Vector3Tuple;
 } = {
 	minDistance: 2,
 	maxDistance: 9,
@@ -31,8 +34,10 @@ export const BADGE_CAMERA: {
 		back: [0, 0, -4.9],
 		angle: [0.3, 0.5, 4.9],
 	},
+	flatAngle: [0.3, -1.15, 4.7],
 	opening: [0.2, 0.55, 4.9],
 	tableOpening: [0.12, 0.4, 5.2],
+	flatOpening: [0.35, 0.55, 4.9],
 };
 
 // An acrylic product is framed around the outline it was cut to, so its views

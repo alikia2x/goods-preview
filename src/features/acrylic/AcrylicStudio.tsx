@@ -79,9 +79,10 @@ export function AcrylicStudio<S extends AcrylicSheetSettings>({
 		[measured.center, distance],
 	);
 	const name = productName(settings);
-	// Re-seat the camera only when the product moves or changes size, not on every
-	// settings change: the frame object is rebuilt whenever the settings are.
-	const poseKey = `${measured.center.join(",")}:${measured.span}`;
+	// The camera is seated when the workspace mounts and once more when the artwork
+	// has been measured, since until then the frame is a placeholder. Resizing
+	// afterwards leaves the view alone — the framing distance changes, but throwing
+	// away whatever orbit the user had found would be worse.
 
 	return (
 		<WorkspaceProvider
@@ -125,7 +126,7 @@ export function AcrylicStudio<S extends AcrylicSheetSettings>({
 						apiRef={workspace.apiRef}
 						onViewportReady={workspace.onViewportReady}
 						pose={pose}
-						poseKey={poseKey}
+						poseKey={`${product}:${workspace.settled}`}
 						views={views}
 						minDistance={ACRYLIC_MIN_DISTANCE}
 						maxDistance={ACRYLIC_MAX_DISTANCE}

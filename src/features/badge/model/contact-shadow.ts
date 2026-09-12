@@ -1,6 +1,11 @@
 import * as THREE from "three";
+import type { BadgePose } from "@/features/badge/settings";
 import { shadowFrustum } from "@/features/studio/lib/lighting";
-import { KEY_DIRECTION } from "@/tuning";
+import { KEY_DIRECTION, STAGE_FLOOR_Y, type Vector3Tuple } from "@/tuning";
+
+// How far behind the badge's centre its rear surface sits, in unit radii. The
+// receiver a lying badge casts onto goes just behind it.
+const REAR_PLANE = 0.174;
 
 // A depth-only pass of the actual badge. No background surface or lighting is
 // rendered into this map. PCSS approximates area-source visibility at the receiver.
@@ -104,7 +109,7 @@ export class ContactShadow {
 			new THREE.PlaneGeometry(200, 200),
 			this.material,
 		);
-		this.plane.position.z = -0.174;
+		this.plane.position.z = -REAR_PLANE;
 		this.wall = new THREE.Mesh(
 			new THREE.PlaneGeometry(200, 200),
 			this.material,
@@ -115,19 +120,22 @@ export class ContactShadow {
 		scale: number,
 		direction = new THREE.Vector3(...KEY_DIRECTION).normalize(),
 		wallZ: number | null = null,
+		center: Vector3Tuple = [0, STAGE_FLOOR_Y + scale, 0],
 	) {
 		const lightDistance = Math.sqrt(61);
 		const position = direction.clone().multiplyScalar(lightDistance);
-		// Refit the orthographic box to the badge volume plus its projection
-		// onto the receiver (the studio floor, and the backdrop wall when set).
+		// Refit the orthographic box around wherever the badge ended up, plus its
+		// projection onto the receiver (the floor, and the backdrop wall when set).
+		// The camera keeps looking at the origin, so the box is offset in the same
+		// basis the frustum is measured in.
 		const half = scale * 1.1;
 		const frustum = shadowFrustum(
 			direction,
 			wallZ,
-			[-half, -half, -half],
-			[half, half, half],
+			[center[0] - half, center[1] - half, center[2] - half],
+			[center[0] + half, center[1] + half, center[2] + half],
 			lightDistance,
-			-scale,
+			STAGE_FLOOR_Y,
 		);
 		const camera = this.camera;
 		camera.left = frustum.left;
@@ -157,7 +165,12 @@ export class ContactShadow {
 		this.scene.add(this.sceneCasters);
 		this.dirty = true;
 	}
-	setPose(group: THREE.Group, windowScene: boolean) {
+	setPose(
+		group: THREE.Group,
+		pose: BadgePose,
+		center: Vector3Tuple,
+		windowScene: boolean,
+	) {
 		if (
 			!this.caster.quaternion.equals(group.quaternion) ||
 			!this.caster.position.equals(group.position)
@@ -166,9 +179,19 @@ export class ContactShadow {
 			this.caster.position.copy(group.position);
 			this.dirty = true;
 		}
-		// Every scene stands the badge on the floor, so the shadow lands there.
-		this.plane.rotation.x = -Math.PI / 2;
-		this.plane.position.set(0, -group.scale.x, 0);
+		if (pose === "standing") {
+			// Standing, the badge casts onto the floor it rests on.
+			this.plane.rotation.x = -Math.PI / 2;
+			this.plane.position.set(center[0], STAGE_FLOOR_Y, center[2]);
+		} else {
+			// Lying down, it casts onto the surface it lies on, just behind it.
+			this.plane.rotation.set(0, 0, 0);
+			this.plane.position.set(
+				center[0],
+				center[1],
+				center[2] - REAR_PLANE * group.scale.x,
+			);
+		}
 		this.wall.position.set(0, 0, -1.999);
 		this.wall.visible = windowScene;
 		this.material.uniforms.softness.value = windowScene ? 0.038 : 0.11;

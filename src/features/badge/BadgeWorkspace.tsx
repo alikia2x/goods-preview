@@ -27,8 +27,17 @@ export default function BadgeWorkspace() {
 		onEnvironmentError,
 	} = useStudioEnvironment(settings.lighting);
 
-	const pose = useMemo(() => badgePose(settings.scene), [settings.scene]);
-	const views = useMemo(() => badgeViews(), []);
+	// The badge reports where it ended up, so the camera is aimed at it rather
+	// than at the set's origin — it can be resting against the backdrop.
+	const { center } = workspace;
+	const pose = useMemo(
+		() => badgePose(center, settings.scene, settings.pose),
+		[center, settings.scene, settings.pose],
+	);
+	const views = useMemo(
+		() => badgeViews(center, settings.pose),
+		[center, settings.pose],
+	);
 	const productName = `覆膜吧唧 · ${FINISHES[settings.finish].label}`;
 
 	return (
@@ -72,7 +81,7 @@ export default function BadgeWorkspace() {
 						apiRef={workspace.apiRef}
 						onViewportReady={workspace.onViewportReady}
 						pose={pose}
-						poseKey={settings.scene}
+						poseKey={`${settings.scene}:${settings.pose}:${workspace.placed}`}
 						views={views}
 						minDistance={BADGE_MIN_DISTANCE}
 						maxDistance={BADGE_MAX_DISTANCE}
@@ -82,6 +91,7 @@ export default function BadgeWorkspace() {
 								settings={settings}
 								artwork={workspace.artwork}
 								shadowRef={workspace.shadowRef}
+								onPlaced={workspace.onPlaced}
 							/>
 						)}
 					</StudioCanvas>

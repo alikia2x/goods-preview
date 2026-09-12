@@ -156,6 +156,9 @@ export function useAcrylicWorkspace<S extends AcrylicSheetSettings>({
 		settings,
 		model,
 		frame: measured,
+		// Whether the artwork has been measured yet: the camera is seated once
+		// more when it has, so the first frame is not left on the placeholder.
+		settled: outline !== null,
 		loading,
 		exportState: workspaceExport,
 		updateSetting,
