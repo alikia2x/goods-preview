@@ -1,7 +1,7 @@
 import { RangeControl } from "@/components/workspace/RangeControl";
 import { SizePopover } from "@/components/workspace/SizePopover";
 
-export function KeychainSizePopover({
+export function PatternSizePopover({
 	size,
 	onSizeChange,
 	arrow,

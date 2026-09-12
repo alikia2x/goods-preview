@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type * as THREE from "three";
 import { useWorkspaceExportState } from "@/components/workspace/WorkspaceContext";
-import { DEFAULT_SETTINGS } from "@/features/badge/constants";
+import { PRODUCT_DEFAULTS } from "@/tuning";
 import type { BadgeShadowHandle } from "@/features/badge/model/BadgeModel";
 import { defaultArtwork } from "@/features/badge/model/artwork";
 import { deriveBadgeSettings } from "@/features/badge/settings";
@@ -19,12 +19,13 @@ export function useBadgeWorkspace() {
 		ready,
 		onViewportReady,
 		changeView,
+		readPose,
 	} = useWorkspaceViewport();
 	const shadowRef = useRef<BadgeShadowHandle | null>(null);
 	const uploadSequenceRef = useRef(0);
 
 	const { settings, updateSetting } = useSettings(
-		DEFAULT_SETTINGS,
+		PRODUCT_DEFAULTS.badge,
 		deriveBadgeSettings,
 	);
 	const [artwork, setArtwork] = useState<
@@ -95,7 +96,7 @@ export function useBadgeWorkspace() {
 				context?.drawImage(image, 0, 0, 160, 160);
 				setThumbnail(preview.toDataURL());
 				setArtworkName(file.name);
-				updateSetting("bleed", DEFAULT_SETTINGS.bleed);
+				updateSetting("bleed", PRODUCT_DEFAULTS.badge.bleed);
 				setError("");
 			} catch (cause) {
 				if (sequence === uploadSequenceRef.current) {
@@ -124,6 +125,7 @@ export function useBadgeWorkspace() {
 		updateSetting,
 		uploadArtwork,
 		changeView,
+		readPose,
 		onViewportReady,
 	};
 }

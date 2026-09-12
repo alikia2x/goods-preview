@@ -1,13 +1,16 @@
 import type { PerspectiveCamera } from "three";
+import { CAMERA } from "@/tuning";
 
 type Bounds = { left: number; top: number; width: number; height: number };
 type HostSize = { width: number; height: number };
 type ViewOffset = { offsetX: number; offsetY: number };
 
-// Distance at which a product of the given span exactly fills a square crop,
-// with the same 18% breathing room both products frame with.
+// Distance at which a product of the given span exactly fills a square crop, with
+// the same breathing room every product frames with.
 export function studioDistance(span: number, fov: number) {
-	return (span / 2 / Math.tan(((fov / 2) * Math.PI) / 180)) * 1.18;
+	return (
+		(span / 2 / Math.tan(((fov / 2) * Math.PI) / 180)) * CAMERA.framingFill
+	);
 }
 
 // Crop the unobstructed workspace region, independently of the rendering framework.

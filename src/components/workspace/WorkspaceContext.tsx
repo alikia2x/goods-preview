@@ -1,5 +1,6 @@
 import { createContext, type ReactNode, useContext, useMemo } from "react";
 import type { ExportControlsProps } from "@/components/workspace/ExportControls";
+import type { ViewPose } from "@/features/studio/components/StudioViewport";
 import type { SettingChange, StudioSettings } from "@/features/studio/settings";
 import type { useExportState } from "@/hooks/useExportState";
 
@@ -11,6 +12,9 @@ export type WorkspaceContextValue<S extends StudioSettings> = {
 	settings: S;
 	updateSetting: SettingChange<S>;
 	exportState: WorkspaceExportState;
+	// Where the camera is now. Read on demand so tuning tooling can capture a
+	// seat without the camera's every frame reaching React state.
+	readPose?: () => ViewPose | null;
 };
 
 // The value is stored untyped-by-product; `useWorkspace<S>` narrows it on read.
@@ -24,11 +28,12 @@ export function WorkspaceProvider<S extends StudioSettings>({
 	settings,
 	updateSetting,
 	exportState,
+	readPose,
 	children,
 }: WorkspaceContextValue<S> & { children: ReactNode }) {
 	const value = useMemo(
-		() => ({ settings, updateSetting, exportState }),
-		[settings, updateSetting, exportState],
+		() => ({ settings, updateSetting, exportState, readPose }),
+		[settings, updateSetting, exportState, readPose],
 	);
 	return (
 		<WorkspaceContext.Provider

@@ -4,24 +4,22 @@ import {
 	environmentIrradiance,
 	sampleEnvironment,
 } from "@/features/studio/lib/environment-sampling";
-import { RIG_RATIO } from "@/features/studio/lib/light-budget";
+import {
+	PHOTOGRAPHIC_INTENSITY,
+	REFERENCE_IRRADIANCE,
+	RIG_RATIO,
+} from "@/tuning";
 
 // The normal the presets are exposed for: the product faces the camera, so a
 // surface turned towards +Z is what the framing shows most of.
 const REFERENCE_NORMAL = new THREE.Vector3(0, 0, 1);
-// Irradiance a white surface facing that normal receives at light = 50, once the
-// environment and the emitters have split the budget between them. A capture is
-// exposed by what it delivers rather than by how concentrated its emitters are,
-// so swapping one for another changes the character of the light, not the
-// exposure.
-const REFERENCE_IRRADIANCE = 0.6;
 
 export const PHOTOGRAPHIC_ENVIRONMENTS = {
 	hdr: {
 		label: "实景 · 摄影棚",
 		file: "studio_small_09_512.exr",
 		keyDirection: new THREE.Vector3(),
-		intensity: 1.05,
+		intensity: PHOTOGRAPHIC_INTENSITY.hdr,
 		gain: 1,
 		rigGain: 1,
 		legacyGain: 1,
@@ -30,7 +28,7 @@ export const PHOTOGRAPHIC_ENVIRONMENTS = {
 		label: "实景 · 明暗影棚",
 		file: "studio_small_03_1k.exr",
 		keyDirection: new THREE.Vector3(),
-		intensity: 1,
+		intensity: PHOTOGRAPHIC_INTENSITY.studioContrast,
 		gain: 1,
 		rigGain: 1,
 		legacyGain: 1,
@@ -39,7 +37,7 @@ export const PHOTOGRAPHIC_ENVIRONMENTS = {
 		label: "实景 · 柔光影棚",
 		file: "photo_studio_01_512.exr",
 		keyDirection: new THREE.Vector3(),
-		intensity: 1,
+		intensity: PHOTOGRAPHIC_INTENSITY.studioSoft,
 		gain: 1,
 		rigGain: 1,
 		legacyGain: 1,

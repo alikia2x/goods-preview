@@ -17,6 +17,7 @@ import {
 } from "@/features/studio/components/StudioViewport";
 import type { LightingPreset } from "@/features/studio/lib/lighting-presets";
 import type { StudioSettings } from "@/features/studio/settings";
+import { CAMERA } from "@/tuning";
 
 // The single canvas pipeline: environments, camera, lighting, stage and the
 // product model. Both workspaces mount exactly this, differing only in props.
@@ -63,7 +64,7 @@ export function StudioCanvas({
 			<Canvas
 				shadows={{ type: THREE.PCFShadowMap }}
 				dpr={[1, 2]}
-				camera={{ fov: 35, near: 0.1, far: 200 }}
+				camera={{ fov: CAMERA.fov, near: CAMERA.near, far: CAMERA.far }}
 				gl={{
 					antialias: true,
 					alpha: true,

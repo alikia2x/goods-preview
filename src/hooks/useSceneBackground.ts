@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { SCENES, type SceneKind } from "@/features/studio/lib/scenes";
+import { SCENES, type SceneKind } from "@/tuning";
 
 // The active scene owns the app backdrop. It is deliberately not restored on
 // unmount: every workspace sets its own scene, so keeping the last colour until

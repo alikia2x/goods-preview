@@ -3,18 +3,18 @@ import { Button } from "@/components/ui/button";
 
 import { RangeControl } from "@/components/workspace/RangeControl";
 import { useWorkspace } from "@/components/workspace/WorkspaceContext";
-import type { KeychainSettings } from "@/features/keychain/settings";
+import type { StandeeSettings } from "@/features/acrylic/settings";
 
-export function AcrylicProductControls() {
-	const { settings, updateSetting } = useWorkspace<KeychainSettings>();
+// 立牌自己的底座与连接件。片的厚度与留边在共用的亚克力面板里。
+export function StandeeProductControls() {
+	const { settings, updateSetting } = useWorkspace<StandeeSettings>();
 	const range = (
 		key:
 			| "baseDiameter"
 			| "connectorWidth"
 			| "connectorHeight"
 			| "connectorX"
-			| "connectorY"
-			| "thickness",
+			| "connectorY",
 		label: string,
 		min: number,
 		max: number,
@@ -53,8 +53,6 @@ export function AcrylicProductControls() {
 			),
 		);
 	};
-	if (settings.productKind !== "standee")
-		return <div className="grid gap-3">{range("thickness", "厚度", 2, 5)}</div>;
 	return (
 		<div className="grid gap-6">
 			<div className="grid gap-2">

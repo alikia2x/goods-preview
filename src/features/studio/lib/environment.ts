@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { KEY_DIRECTION } from "@/features/studio/lib/lighting";
+import { KEY_DIRECTION } from "@/tuning";
 
 export type EnvironmentProfile = {
 	fill: number;

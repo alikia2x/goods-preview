@@ -17,6 +17,8 @@ export type StudioViews = Record<StudioView, ViewPose>;
 export type StudioHandle = {
 	capture: (edge: number, transparent: boolean) => Promise<Blob>;
 	view: (view: StudioView) => void;
+	// Where the camera is now, so dev tooling can read back a tuned seat.
+	pose: () => ViewPose;
 };
 
 // The one camera/controls implementation. Products supply only their poses and
@@ -85,6 +87,10 @@ export function StudioViewport({
 				});
 			},
 			view: (view) => move(viewsRef.current[view]),
+			pose: () => ({
+				position: [camera.position.x, camera.position.y, camera.position.z],
+				target: [controls.target.x, controls.target.y, controls.target.z],
+			}),
 		};
 		onViewportReady();
 		return () => {

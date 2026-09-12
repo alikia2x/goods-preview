@@ -1,4 +1,3 @@
-import type { KeychainSettings } from "@/features/keychain/settings";
 import * as THREE from "three";
 import { toCreasedNormals } from "three/addons/utils/BufferGeometryUtils.js";
 
@@ -223,6 +222,13 @@ export function traceOutline(
 	};
 }
 
+// A sheet is measured in millimetres against the artwork's long edge, and the
+// traced outline is normalised to two units, so the model thickness is that
+// ratio doubled.
+export function sheetThickness(thickness: number, size: number) {
+	return (thickness / size) * 2;
+}
+
 export function acrylicGeometry(outline: Outline, thickness: number) {
 	const shape = new THREE.Shape(outline.points);
 	const hole = new THREE.Path();
@@ -253,47 +259,4 @@ export function acrylicGeometry(outline: Outline, thickness: number) {
 	smooth.scale(0.01, 0.01, 0.01);
 	if (smooth !== geometry) geometry.dispose();
 	return smooth;
-}
-
-export function keychainFrame(
-	outline: Outline,
-	size: number,
-	hardware: "ring" | "clasp",
-	settings?: Pick<KeychainSettings, "productKind" | "baseDiameter">,
-) {
-	const scale = size / 60;
-	const bottom = Math.min(...outline.points.map((point) => point.y));
-	if (settings && settings.productKind !== "keychain") {
-		const top = Math.max(...outline.points.map((p) => p.y));
-		const left = Math.min(...outline.points.map((p) => p.x));
-		const right = Math.max(...outline.points.map((p) => p.x));
-		const base =
-			settings.productKind === "standee" ? settings.baseDiameter / 30 : 0;
-		const height = (top - bottom) * scale;
-		const baseX = (outline.connector?.x ?? 0) * scale;
-		const minX = Math.min(left * scale, baseX - base / 2);
-		const maxX = Math.max(right * scale, baseX + base / 2);
-		return {
-			center: [(minX + maxX) / 2, -1 + height / 2, 0] as [
-				number,
-				number,
-				number,
-			],
-			span: Math.max(maxX - minX, height, base) + 0.15,
-		};
-	}
-	const translation = -1 - bottom * scale;
-	const minX =
-		Math.min(...outline.points.map((point) => point.x), outline.hole.x - 0.47) *
-		scale;
-	const maxX =
-		Math.max(...outline.points.map((point) => point.x), outline.hole.x + 0.47) *
-		scale;
-	const maxY =
-		(outline.hole.y + (hardware === "ring" ? 1.54 : 1.48)) * scale +
-		translation;
-	return {
-		center: [(minX + maxX) / 2, (maxY - 1) / 2, 0] as [number, number, number],
-		span: Math.max(maxX - minX, maxY + 1),
-	};
 }

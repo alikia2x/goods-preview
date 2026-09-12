@@ -2,24 +2,25 @@ import type {
 	StudioViews,
 	ViewPose,
 } from "@/features/studio/components/StudioViewport";
-import type { SceneKind } from "@/features/studio/lib/scenes";
+import { BADGE_CAMERA, type SceneKind } from "@/tuning";
 
 const ORIGIN: [number, number, number] = [0, 0, 0];
 
-export const BADGE_MIN_DISTANCE = 2;
-export const BADGE_MAX_DISTANCE = 9;
+export const BADGE_MIN_DISTANCE = BADGE_CAMERA.minDistance;
+export const BADGE_MAX_DISTANCE = BADGE_CAMERA.maxDistance;
 
 export function badgeViews(): StudioViews {
+	const { views } = BADGE_CAMERA;
 	return {
-		front: { position: [0, 0, 4.9], target: ORIGIN },
-		back: { position: [0, 0, -4.9], target: ORIGIN },
-		angle: { position: [0.3, 0.5, 4.9], target: ORIGIN },
+		front: { position: views.front, target: ORIGIN },
+		back: { position: views.back, target: ORIGIN },
+		angle: { position: views.angle, target: ORIGIN },
 	};
 }
 
 // Each scene seats the badge differently, so the opening camera follows it.
 export function badgePose(scene: SceneKind): ViewPose {
-	const position: [number, number, number] =
-		scene === "table" ? [0.12, 0.4, 5.2] : [0.2, 0.55, 4.9];
+	const position =
+		scene === "table" ? BADGE_CAMERA.tableOpening : BADGE_CAMERA.opening;
 	return { position, target: ORIGIN };
 }

@@ -1,4 +1,4 @@
-import type { BadgeSettings, BadgeView } from "@/features/badge/settings";
+import type { BadgeView } from "@/features/badge/settings";
 import pkg from "../../../package.json";
 
 export { EXPORT_RESOLUTIONS } from "@/features/studio/lib/capture";
@@ -9,20 +9,6 @@ export {
 } from "@/features/studio/lib/image";
 
 export const PRODUCT_VERSION = pkg.version;
-
-export const DEFAULT_SETTINGS: BadgeSettings = {
-	finish: "glossy",
-	lighting: "hdr",
-	shadow: 26,
-	scene: "table",
-	light: 72,
-	lightAzimuth: 23,
-	lightElevation: 48,
-	gloss: 50,
-	size: 65,
-	bleed: 0,
-	transparentBackground: false,
-};
 
 export const BADGE_SIZES = [32, 44, 58, 65, 75] as const;
 

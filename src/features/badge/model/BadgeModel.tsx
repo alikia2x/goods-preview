@@ -14,11 +14,10 @@ import { ContactShadow } from "@/features/badge/model/contact-shadow";
 import { FINISHES, finishMaterial } from "@/features/badge/model/finishes";
 import type { BadgeSettings } from "@/features/badge/settings";
 import { lightDirection } from "@/features/studio/lib/lighting";
-import { sceneWallZ } from "@/features/studio/lib/scenes";
 import { poseProductGroup } from "@/features/studio/lib/stage";
+import { MODEL_SCALE, sceneWallZ } from "@/tuning";
 
 const METAL = { color: "#b8bdc2", metalness: 1, roughness: 0.27 };
-const FLAT_SCALE = 65;
 
 export type BadgeShadowHandle = {
 	render: () => void;
@@ -39,7 +38,7 @@ export function BadgeModel({
 	const gl = useThree((state) => state.gl);
 	const groupRef = useRef<THREE.Group>(null);
 	const [shadow, setShadow] = useState<ContactShadow | null>(null);
-	const scale = settings.size / FLAT_SCALE;
+	const scale = settings.size / MODEL_SCALE.badge;
 
 	const geometry = useMemo(() => badgeGeometry(), []);
 	useEffect(() => () => geometry.dispose(), [geometry]);

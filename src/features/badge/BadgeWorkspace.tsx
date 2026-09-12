@@ -36,6 +36,7 @@ export default function BadgeWorkspace() {
 			settings={settings}
 			updateSetting={updateSetting}
 			exportState={exportState}
+			readPose={workspace.readPose}
 		>
 			<ProductWorkspace
 				product="badge"

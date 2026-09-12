@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/popover";
 import { PillButton } from "@/components/workspace/PillButton";
 import { useWorkspaceSupport } from "@/components/workspace/WorkspaceSupport";
+import type { ProductKind } from "@/tuning";
 
 type MenuItem = {
 	id: string;
@@ -24,18 +25,16 @@ type MenuGroup = {
 	items: MenuItem[];
 };
 
+type ProductOption = MenuItem & { id: ProductKind };
+
 const PRODUCT_OPTIONS = [
 	{ id: "badge", label: "覆膜吧唧", to: "/workspace/badge" },
 	{ id: "keychain", label: "亚克力钥匙扣", to: "/workspace/keychain" },
 	{ id: "acrylic", label: "任意亚克力", to: "/workspace/acrylic" },
 	{ id: "standee", label: "亚克力立牌", to: "/workspace/standee" },
-] satisfies MenuItem[];
+] satisfies ProductOption[];
 
-export function ProductMenu({
-	product,
-}: {
-	product: "badge" | "keychain" | "acrylic" | "standee";
-}) {
+export function ProductMenu({ product }: { product: ProductKind }) {
 	const [open, setOpen] = useState(false);
 	const { openAbout, openTutorial } = useWorkspaceSupport();
 	const groups: MenuGroup[] = [

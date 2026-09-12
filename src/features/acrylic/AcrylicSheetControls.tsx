@@ -3,11 +3,12 @@ import { ArtworkUploadSection } from "@/components/workspace/ArtworkUploadSectio
 import { RangeControl } from "@/components/workspace/RangeControl";
 import { StudioControls } from "@/components/workspace/StudioControls";
 import { useWorkspace } from "@/components/workspace/WorkspaceContext";
-import type { KeychainSettings } from "@/features/keychain/settings";
+import type { AcrylicSheetSettings } from "@/features/acrylic/settings";
 
-// Everything the keychain panel adds beyond the shared studio controls. Settings
-// come from WorkspaceContext; only the artwork metadata is passed in.
-export function KeychainControls({
+// What every acrylic product configures: the artwork, the sheet it is cut from,
+// and the shared studio. Settings come from WorkspaceContext; only the artwork
+// metadata is passed in.
+export function AcrylicSheetControls({
 	thumbnail,
 	name,
 	loading,
@@ -18,7 +19,7 @@ export function KeychainControls({
 	loading: boolean;
 	onUpload: (file?: File) => Promise<void>;
 }) {
-	const { settings, updateSetting } = useWorkspace<KeychainSettings>();
+	const { settings, updateSetting } = useWorkspace<AcrylicSheetSettings>();
 	return (
 		<>
 			<ArtworkUploadSection

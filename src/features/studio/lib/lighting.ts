@@ -1,5 +1,4 @@
 import { MathUtils, Vector3 } from "three";
-export const KEY_DIRECTION = [-3, 4, 6] as const;
 
 // Azimuth: zero is above the badge, negative angles move toward its left.
 // Elevation: angle above the badge's XY plane; 90 degrees is straight on.
@@ -12,11 +11,6 @@ export function lightDirection(azimuth: number, elevation: number) {
 		Math.sin(e),
 	);
 }
-const base = new Vector3(...KEY_DIRECTION).normalize();
-export const ORIGINAL_LIGHT_ANGLES = Object.freeze({
-	azimuth: MathUtils.radToDeg(Math.atan2(base.x, base.y)),
-	elevation: MathUtils.radToDeg(Math.asin(base.z)),
-});
 export function lightAnglesFromPoint(
 	x: number,
 	y: number,

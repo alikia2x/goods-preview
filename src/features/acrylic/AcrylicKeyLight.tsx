@@ -14,7 +14,7 @@ import {
 	sampleEnvironment,
 	type EnvironmentLightSample,
 } from "@/features/studio/lib/environment-sampling";
-import { type SceneKind, sceneWallZ } from "@/features/studio/lib/scenes";
+import { type SceneKind, sceneWallZ } from "@/tuning";
 
 function SampleLight({
 	direction,
@@ -60,7 +60,7 @@ function SampleLight({
 	);
 }
 
-export function KeychainKeyLight({
+export function AcrylicKeyLight({
 	preset,
 	intensity,
 	azimuth,

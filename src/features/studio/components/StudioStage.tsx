@@ -1,14 +1,14 @@
 import { sampledDiffuseLighting } from "@/features/studio/lib/indirect-light";
-import { LEGACY_AMBIENT_IBL_SHARE } from "@/features/studio/lib/light-budget";
+import { AMBIENT_IBL_SHARE } from "@/tuning";
 import { useThree } from "@react-three/fiber";
 import { type RefObject, useEffect, useRef } from "react";
 import * as THREE from "three";
-import type { SceneKind } from "@/features/studio/lib/scenes";
+import type { SceneKind } from "@/tuning";
 import { SceneStage } from "@/features/studio/lib/stage";
 
 // The set's own lit surfaces were tuned against the split products used before
 // the two lighting passes were balanced, so they keep it.
-const stageAmbientShare = { value: LEGACY_AMBIENT_IBL_SHARE };
+const stageAmbientShare = { value: AMBIENT_IBL_SHARE };
 
 // The shared set geometry, owned by the studio. Products add their own shadow
 // receivers and key lights alongside it.
@@ -28,7 +28,7 @@ export function StudioStage({
 		const root = setRef.current;
 		if (!root) return;
 		const stage = new SceneStage();
-		stage.configure(kind, 1);
+		stage.configure(kind);
 		// Only the scenes that keep a lit surface need the diffuse pass rebalanced.
 		if (directLighting)
 			stage.group.traverse((object) => {

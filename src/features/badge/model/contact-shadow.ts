@@ -1,5 +1,6 @@
 import * as THREE from "three";
-import { KEY_DIRECTION, shadowFrustum } from "@/features/studio/lib/lighting";
+import { shadowFrustum } from "@/features/studio/lib/lighting";
+import { KEY_DIRECTION } from "@/tuning";
 
 // A depth-only pass of the actual badge. No background surface or lighting is
 // rendered into this map. PCSS approximates area-source visibility at the receiver.

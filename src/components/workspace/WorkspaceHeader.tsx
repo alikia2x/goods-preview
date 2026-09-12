@@ -1,13 +1,15 @@
 import type { ReactNode } from "react";
-import { useMobile } from "@/hooks/useMobile";
 import { PRODUCT_VERSION } from "@/features/badge/constants";
-import { PillButton } from "@/components/workspace/PillButton";
+import { PillButton, PillLabel } from "@/components/workspace/PillButton";
 import { ProductMenu } from "@/components/workspace/ProductMenu";
 import { ProductVariantPopover } from "@/components/workspace/ProductVariantPopover";
 import { useWorkspaceSupport } from "@/components/workspace/WorkspaceSupport";
+import { useMobile } from "@/hooks/useMobile";
+import type { ProductKind } from "@/tuning";
 
 // Shared top bar for every product workspace: menu + product-variant popover on
-// the left, size control (compact) or the about button on the right.
+// the left, size control (compact) or the about button on the right. A product
+// with nothing to configure shows its name as a label in the same slot.
 export function WorkspaceHeader({
 	product,
 	productName,
@@ -15,10 +17,10 @@ export function WorkspaceHeader({
 	variant,
 	sizeControl,
 }: {
-	product: "badge" | "keychain" | "acrylic" | "standee";
+	product: ProductKind;
 	productName: string;
-	variantAriaLabel: string;
-	variant: ReactNode;
+	variantAriaLabel?: string;
+	variant?: ReactNode;
 	sizeControl: ReactNode;
 }) {
 	const mobile = useMobile() === "mobile";
@@ -27,9 +29,16 @@ export function WorkspaceHeader({
 		<>
 			<div className="flex min-w-0 items-center gap-3 max-mobile:gap-1.5">
 				<ProductMenu product={product} />
-				<ProductVariantPopover label={productName} ariaLabel={variantAriaLabel}>
-					{variant}
-				</ProductVariantPopover>
+				{variant && variantAriaLabel ? (
+					<ProductVariantPopover
+						label={productName}
+						ariaLabel={variantAriaLabel}
+					>
+						{variant}
+					</ProductVariantPopover>
+				) : (
+					<PillLabel>{productName}</PillLabel>
+				)}
 			</div>
 			{mobile ? (
 				sizeControl

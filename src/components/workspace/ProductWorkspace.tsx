@@ -4,15 +4,17 @@ import { PreviewToolbar } from "@/components/workspace/PreviewToolbar";
 import { WorkspaceHeader } from "@/components/workspace/WorkspaceHeader";
 import { WorkspaceLayout } from "@/components/workspace/WorkspaceLayout";
 import { DebugPanel } from "@/features/studio/components/DebugPanel";
+import { TuningPanel } from "@/features/studio/components/TuningPanel";
 import type { StudioView } from "@/features/studio/components/StudioViewport";
 import { useMobile } from "@/hooks/useMobile";
 import { cn } from "@/lib/utils";
+import type { ProductKind } from "@/tuning";
 import layoutStyles from "@/styles/workspace.module.css";
 
 // The one workspace shell. A product supplies its canvas, its controls and its
 // status overlays; layout, header, footer, panel and export chrome are shared.
 // Settings and export state reach the panel through WorkspaceContext instead of
-// being threaded here.
+// being threaded here. A product with nothing to configure omits its variants.
 export function ProductWorkspace({
 	product,
 	productName,
@@ -27,10 +29,10 @@ export function ProductWorkspace({
 	overlays,
 	onViewChange,
 }: {
-	product: "badge" | "keychain" | "acrylic" | "standee";
+	product: ProductKind;
 	productName: string;
-	variantAriaLabel: string;
-	variantControls: ReactNode;
+	variantAriaLabel?: string;
+	variantControls?: ReactNode;
 	renderSizeControl: (placement: "header" | "footer") => ReactNode;
 	modelControls: ReactNode;
 	panelLabel: string;
@@ -69,7 +71,12 @@ export function ProductWorkspace({
 				}
 			/>
 			<AdjustmentPanel label={panelLabel}>{modelControls}</AdjustmentPanel>
-			{import.meta.env.DEV && <DebugPanel />}
+			{import.meta.env.DEV && (
+				<>
+					<DebugPanel />
+					<TuningPanel product={product} />
+				</>
+			)}
 		</main>
 	);
 }

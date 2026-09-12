@@ -4,10 +4,13 @@ import { neutralFloor } from "@/features/studio/lib/floor-material";
 import { createReflectionFloor } from "@/features/studio/lib/reflection-floor";
 import {
 	SCENES,
+	STAGE_FLOOR_Y,
+	STAGE_REFLECTION_OFFSET,
+	STAGE_SURFACE_OFFSET,
 	type SceneKind,
 	sceneWallBackground,
 	sceneWallZ,
-} from "@/features/studio/lib/scenes";
+} from "@/tuning";
 
 // A neutral scene renders its floor and wall as shadow catchers rather than lit
 // surfaces: the output is the declared background colour carrying the shadow
@@ -52,11 +55,10 @@ export class SceneStage {
 	background: THREE.Color | null = null;
 	private key = "";
 	private reflector: Reflector | null = null;
-	configure(kind: SceneKind, scale: number) {
-		const key = `${kind}:${scale}`;
-		if (key === this.key) return false;
+	configure(kind: SceneKind) {
+		if (kind === this.key) return false;
 		this.dispose();
-		this.key = key;
+		this.key = kind;
 		this.background = new THREE.Color(SCENES[kind].background);
 		if (kind === "black") {
 			const material = new THREE.MeshStandardMaterial({
@@ -68,9 +70,11 @@ export class SceneStage {
 			const top = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), material);
 			top.receiveShadow = true;
 			top.rotation.x = -Math.PI / 2;
-			top.position.y = -scale - 0.004;
+			top.position.y = STAGE_FLOOR_Y - STAGE_SURFACE_OFFSET;
 			this.group.add(top);
-			this.reflector = createReflectionFloor(-scale - 0.002);
+			this.reflector = createReflectionFloor(
+				STAGE_FLOOR_Y - STAGE_REFLECTION_OFFSET,
+			);
 			this.group.add(this.reflector);
 			return true;
 		}
@@ -109,7 +113,7 @@ export class SceneStage {
 		}
 		const floor = createBackdrop(this.background);
 		floor.rotation.x = -Math.PI / 2;
-		floor.position.y = -scale - 0.004;
+		floor.position.y = STAGE_FLOOR_Y - STAGE_SURFACE_OFFSET;
 		this.group.add(floor);
 		const wallZ = sceneWallZ(kind);
 		if (wallZ !== null) {

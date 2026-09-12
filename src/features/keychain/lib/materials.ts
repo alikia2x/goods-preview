@@ -18,7 +18,7 @@ export const KEYCHAIN_HARDWARE_COLORS: Record<
 	gold: {
 		label: "金色",
 		color: "#FFE252",
-		roughness: 0.055,
+		roughness: 0.1,
 		environmentIntensity: 1.35,
 	},
 };

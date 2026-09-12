@@ -1,5 +1,5 @@
 import { decodeImage, validateImageFile } from "@/features/studio/lib/image";
-import type { ArtworkMask } from "@/features/keychain/lib/geometry";
+import type { ArtworkMask } from "@/features/acrylic/lib/geometry";
 
 export type KeychainArtwork = {
 	canvas: HTMLCanvasElement;

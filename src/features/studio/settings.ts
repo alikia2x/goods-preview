@@ -1,11 +1,11 @@
 import { useCallback, useReducer } from "react";
-import { ORIGINAL_LIGHT_ANGLES } from "@/features/studio/lib/lighting";
 import type { LightingPreset } from "@/features/studio/lib/lighting-presets";
-import type { SceneKind } from "@/features/studio/lib/scenes";
+import type { SceneKind } from "@/tuning";
 
 // The settings every product workspace shares. Products extend this with their
 // own knobs; the shared studio controls and the export pipeline operate on this
-// base alone, so both products are driven identically.
+// base alone, so every product is driven identically. Values live in
+// `@/tuning/products`, one complete set per product.
 export type StudioSettings = {
 	scene: SceneKind;
 	lighting: LightingPreset;
@@ -16,19 +16,6 @@ export type StudioSettings = {
 	gloss: number;
 	size: number;
 	transparentBackground: boolean;
-};
-
-// Neutral values; each product ships its own tuned defaults on top of these.
-export const DEFAULT_STUDIO_SETTINGS: StudioSettings = {
-	scene: "table",
-	lighting: "hdr",
-	light: 50,
-	lightAzimuth: ORIGINAL_LIGHT_ANGLES.azimuth,
-	lightElevation: ORIGINAL_LIGHT_ANGLES.elevation,
-	shadow: 26,
-	gloss: 75,
-	size: 60,
-	transparentBackground: false,
 };
 
 export type SettingChange<S> = <K extends keyof S>(key: K, value: S[K]) => void;

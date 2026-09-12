@@ -8,7 +8,7 @@ import {
 	type LightingPreset,
 	prepareLightingPreset,
 } from "@/features/studio/lib/lighting-presets";
-import type { SceneKind } from "@/features/studio/lib/scenes";
+import type { SceneKind } from "@/tuning";
 
 // Kick environment preparation from inside the canvas so the WebGL renderer
 // is ready; the page keeps the result and shows status UI outside the canvas.

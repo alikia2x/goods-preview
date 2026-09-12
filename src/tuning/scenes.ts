@@ -1,4 +1,6 @@
-// Scene presets are shared by the imperative badge and declarative keychain studios.
+// The set every workspace can place a product on. A scene owns its backdrop
+// colour, the shade of the wall that rises from the floor, how far back that
+// wall stands, and whether the product is seated on the floor or stays flat.
 // "studio" (窗影影棚) is temporarily hidden from the picker — its window-caster
 // staging needs further tuning before it earns a place next to the others.
 export const SCENES = {

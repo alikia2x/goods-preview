@@ -12,7 +12,7 @@ import {
 	SCENE_KINDS,
 	SCENES,
 	type SceneKind,
-} from "@/features/studio/lib/scenes";
+} from "@/tuning";
 
 export function SceneControls({
 	value,

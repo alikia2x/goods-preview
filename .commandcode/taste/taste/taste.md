@@ -1,0 +1,14 @@
+# Taste
+- Communicates in Chinese and expects replies in Chinese. Confidence: 0.8
+- Wants tunable constants centralized into a set of unified, independently-named, single-purpose code files ("统一、独立、不与其他代码参和、正确命名的代码文件") — pure data/parameters kept separate from logic, not scattered or mixed into implementation files. Confidence: 0.9
+- Strongly dislikes config inheritance/spread chains for defaults; each product/entity should have its own complete, flat, independent defaults rather than deriving from or overriding a shared base ("不相互耦合或乱继承"). Confidence: 0.85
+- Wants dev-only parameters (values the end user must not change but developers frequently tweak, e.g. lighting ratios) exposed in the same unified parameter files as user-facing settings, so they are easy to find and edit. Confidence: 0.8
+- Prefers removing redundant near-duplicate options: once two configurations become visually indistinguishable after a change, keep only one instead of maintaining both. Confidence: 0.7
+- When refactoring shared code, expects already-tuned/approved behavior (e.g. one designated scene) to be left untouched, byte-for-byte, rather than being swept into the cleanup. Confidence: 0.7
+- Wants a human-in-the-loop, dev-time tuning system: adjust parameters live in dev across all aspects (camera/view, lighting, size/geometry, other settings) and save/tune them conveniently, then copy the current values back into code. Confidence: 0.85
+- Wants parameters exposed in a form that supports one-click copy/paste back into the codebase ("一键粘贴/修改默认参数"), i.e. editable default literals that can be pasted directly. Confidence: 0.85
+- Does not want elaborate verification: refuses heavy end-to-end/acceptance scripts, screenshot-diff comparisons, and browser/dev-server interactive validation — finish the code changes and stop. Confidence: 0.85
+- Prefers dev tuning state to be copy-only with no persistence or hidden state (no localStorage overrides), so dev behaves exactly like production. Confidence: 0.75
+- Pushes back on fixes that only partially resolve the reported symptom; expects the root cause to be identified and addressed rather than patched incrementally. Confidence: 0.7
+- For non-trivial/architectural work, wants a diagnosis and a consolidated plan (with options) to review before code is written, rather than the agent jumping straight into implementation. Confidence: 0.65
+- Pushes back on unexplained internal jargon or shorthand in explanations (e.g. reacting "8 盏方向光 这是什么鬼"); wants mechanisms explained concretely instead of referencing implementation details as if already known. Confidence: 0.6

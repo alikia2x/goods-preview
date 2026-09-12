@@ -1,31 +1,43 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useWorkspaceExportState } from "@/components/workspace/WorkspaceContext";
+import type { Frame } from "@/features/acrylic/lib/frame";
+import {
+	type Outline,
+	type OutlineMount,
+	traceOutline,
+} from "@/features/acrylic/lib/geometry";
+import type { AcrylicSheetSettings } from "@/features/acrylic/settings";
 import {
 	defaultKeychainArtwork,
 	type KeychainArtwork,
 	readKeychainArtwork,
 } from "@/features/keychain/lib/artwork";
-import { type Outline, traceOutline } from "@/features/keychain/lib/geometry";
-import {
-	DEFAULT_KEYCHAIN_SETTINGS,
-	type KeychainSettings,
-} from "@/features/keychain/settings";
 import { type SettingChange, useSettings } from "@/features/studio/settings";
 import { useExportController } from "@/features/studio/useExportController";
 import { useWorkspaceViewport } from "@/features/studio/useWorkspaceViewport";
 import { useSceneBackground } from "@/hooks/useSceneBackground";
 
-function constrainAcrylicSettings(next: KeychainSettings): KeychainSettings {
-	return {
-		...next,
-		connectorWidth: Math.min(70, Math.max(5, next.connectorWidth)),
-		baseDiameter: Math.max(next.baseDiameter, next.connectorWidth + 8),
-	};
-}
+// Framing before the artwork has been measured, so the opening camera has
+// somewhere to look.
+const UNMEASURED_FRAME: Frame = { center: [0, 0.6, 0], span: 3.6 };
 
-export function useKeychainWorkspace(
-	productKind: KeychainSettings["productKind"] = "keychain",
-) {
+// Everything the three acrylic products share: the artwork, the outline cut from
+// it, export, and the frame measured off that outline. What differs between them
+// is product identity, so it arrives as arguments here rather than as a field
+// inside the settings.
+export function useAcrylicWorkspace<S extends AcrylicSheetSettings>({
+	defaults,
+	derive,
+	mount,
+	frame,
+	filePrefix,
+}: {
+	defaults: S;
+	derive?: (next: S, key: keyof S) => S;
+	mount: (settings: S) => "keychain" | OutlineMount | null;
+	frame: (outline: Outline, settings: S) => Frame;
+	filePrefix: string;
+}) {
 	const {
 		framingRef,
 		backgroundRef,
@@ -33,22 +45,11 @@ export function useKeychainWorkspace(
 		ready,
 		onViewportReady,
 		changeView,
+		readPose,
 	} = useWorkspaceViewport();
 	const { settings, updateSetting: applySetting } = useSettings(
-		{
-			...DEFAULT_KEYCHAIN_SETTINGS,
-			productKind,
-			...(productKind === "standee"
-				? {
-						scene: "table" as const,
-						lighting: "studioContrast" as const,
-						lightAzimuth: -35,
-						lightElevation: 40,
-						shadow: 65,
-					}
-				: {}),
-		},
-		constrainAcrylicSettings,
+		defaults,
+		derive,
 	);
 	const [artwork, setArtwork] = useState<KeychainArtwork | null>(null);
 	const [outline, setOutline] = useState<Outline | null>(null);
@@ -63,8 +64,8 @@ export function useKeychainWorkspace(
 
 	const fileName = useCallback(
 		(resolution: number, transparent: boolean) =>
-			`${productKind}-${settings.scene}${transparent ? "-transparent" : ""}-${resolution}x${resolution}.png`,
-		[settings.scene, productKind],
+			`${filePrefix}-${settings.scene}${transparent ? "-transparent" : ""}-${resolution}x${resolution}.png`,
+		[settings.scene, filePrefix],
 	);
 
 	const exportState = useExportController({
@@ -75,7 +76,7 @@ export function useKeychainWorkspace(
 	});
 	const { setError } = exportState;
 
-	const updateSetting = useCallback<SettingChange<KeychainSettings>>(
+	const updateSetting = useCallback<SettingChange<S>>(
 		(key, value) => {
 			applySetting(key, value);
 			setError("");
@@ -103,40 +104,24 @@ export function useKeychainWorkspace(
 		};
 	}, [setError]);
 
+	// Tracing the outline rasterises the artwork and walks its boundary, so it
+	// must only run when something that shapes the cut changes — not while a light
+	// or shadow slider is being dragged. The key stands in for the descriptor: an
+	// equal key means an equivalent cut, while the descriptor itself is rebuilt
+	// every render and would re-trace on every frame.
+	const mountSpec = mount(settings);
+	const mountKey = JSON.stringify(mountSpec);
+	const borderRatio = settings.border / settings.size;
+	// biome-ignore lint/correctness/useExhaustiveDependencies: keyed on mountKey
 	useEffect(() => {
 		if (!artwork) return;
 		try {
-			setOutline(
-				traceOutline(
-					artwork.mask,
-					settings.border / settings.size,
-					productKind === "keychain"
-						? "keychain"
-						: productKind === "standee"
-							? {
-									width: settings.connectorWidth / settings.size,
-									height: settings.connectorHeight / settings.size,
-									x: settings.connectorX / 100,
-									gap: settings.connectorY / settings.size,
-								}
-							: null,
-				),
-			);
+			setOutline(traceOutline(artwork.mask, borderRatio, mountSpec));
 			setError("");
 		} catch (cause) {
 			setError(cause instanceof Error ? cause.message : "无法生成切边。");
 		}
-	}, [
-		artwork,
-		settings.border,
-		settings.size,
-		settings.connectorWidth,
-		settings.connectorHeight,
-		settings.connectorX,
-		settings.connectorY,
-		productKind,
-		setError,
-	]);
+	}, [artwork, borderRatio, mountKey, setError]);
 
 	const upload = useCallback(
 		async (file?: File) => {
@@ -162,10 +147,15 @@ export function useKeychainWorkspace(
 		() => (artwork && outline ? { artwork, outline } : null),
 		[artwork, outline],
 	);
+	const measured = useMemo(
+		() => (outline ? frame(outline, settings) : UNMEASURED_FRAME),
+		[outline, settings, frame],
+	);
 
 	return {
 		settings,
 		model,
+		frame: measured,
 		loading,
 		exportState: workspaceExport,
 		updateSetting,
@@ -176,5 +166,6 @@ export function useKeychainWorkspace(
 		backgroundObjects,
 		onViewportReady,
 		changeView,
+		readPose,
 	};
 }
