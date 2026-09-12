@@ -4,6 +4,7 @@ import { toCreasedNormals } from "three/addons/utils/BufferGeometryUtils.js";
 import { AcrylicMaterial } from "@/features/acrylic/AcrylicMaterial";
 import { createBaseReflection } from "@/features/acrylic/base-reflection";
 import { createOpticalShadow } from "@/features/acrylic/optical-shadow";
+import { smoothExtrudeGeometry } from "@/features/acrylic/lib/geometry";
 
 // 立牌的底座：a disc with a slot the sheet stands in, plus a local reflection
 // that supplies the artwork an environment map cannot contain.
@@ -52,10 +53,7 @@ export function StandeeBase({
 			bevelSegments: 4,
 			curveSegments: 96,
 		});
-		result.scale(100, 100, 100);
-		const geometry = toCreasedNormals(result, Math.PI / 3);
-		geometry.scale(0.01, 0.01, 0.01);
-		if (geometry !== result) result.dispose();
+		const geometry = smoothExtrudeGeometry(result);
 		return { geometry, reflection: createBaseReflection(shape) };
 	}, [baseDiameter, size, width, thickness, depth]);
 	useEffect(() => {

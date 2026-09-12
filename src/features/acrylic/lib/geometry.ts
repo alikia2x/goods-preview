@@ -229,6 +229,34 @@ export function sheetThickness(thickness: number, size: number) {
 	return (thickness / size) * 2;
 }
 
+// ExtrudeGeometry stores its planar lids in material group 0 and its bevels and
+// walls in group 1. Smooth the curved parts, but keep the lids exactly planar:
+// allowing their normals to blend with the bevel exposes the lid triangulation
+// in glossy reflections and in MeshPhysicalMaterial's refraction lookup.
+export function smoothExtrudeGeometry(geometry: THREE.BufferGeometry) {
+	// The utility hashes positions at 0.01 units. Work at a larger scale so
+	// distinct sub-millimeter bevel vertices do not get merged into one normal.
+	geometry.scale(100, 100, 100);
+	const smooth = toCreasedNormals(geometry, Math.PI / 3);
+	const cap = smooth.groups.find((group) => group.materialIndex === 0);
+	if (cap) {
+		smooth.computeBoundingBox();
+		const bounds = smooth.boundingBox;
+		if (bounds) {
+			const positions = smooth.getAttribute("position");
+			const normals = smooth.getAttribute("normal");
+			const middle = (bounds.min.z + bounds.max.z) / 2;
+			for (let index = cap.start; index < cap.start + cap.count; index++)
+				normals.setXYZ(index, 0, 0, positions.getZ(index) < middle ? -1 : 1);
+			normals.needsUpdate = true;
+		}
+	}
+	smooth.scale(0.01, 0.01, 0.01);
+	if (smooth !== geometry) geometry.dispose();
+	return smooth;
+}
+
+
 export function acrylicGeometry(outline: Outline, thickness: number) {
 	const shape = new THREE.Shape(outline.points);
 	const hole = new THREE.Path();
@@ -252,11 +280,5 @@ export function acrylicGeometry(outline: Outline, thickness: number) {
 		curveSegments: 40,
 	});
 	geometry.translate(0, 0, -thickness / 2 + bevel);
-	// The utility hashes positions at 0.01 units. Work at a larger scale so
-	// distinct sub-millimeter bevel vertices do not get merged into one normal.
-	geometry.scale(100, 100, 100);
-	const smooth = toCreasedNormals(geometry, Math.PI / 3);
-	smooth.scale(0.01, 0.01, 0.01);
-	if (smooth !== geometry) geometry.dispose();
-	return smooth;
+	return smoothExtrudeGeometry(geometry);
 }
