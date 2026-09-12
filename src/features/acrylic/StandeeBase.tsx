@@ -1,6 +1,5 @@
 import { useEffect, useMemo } from "react";
 import * as THREE from "three";
-import { toCreasedNormals } from "three/addons/utils/BufferGeometryUtils.js";
 import { AcrylicMaterial } from "@/features/acrylic/AcrylicMaterial";
 import { createBaseReflection } from "@/features/acrylic/base-reflection";
 import { createOpticalShadow } from "@/features/acrylic/optical-shadow";
