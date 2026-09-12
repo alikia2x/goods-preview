@@ -3,7 +3,7 @@ import type { KeychainSettings } from "@/features/keychain/settings";
 // 亚克力钥匙扣
 export const KEYCHAIN_DEFAULTS = {
 	scene: "standing",
-	lighting: "hdr",
+	lighting: "studioSmall09",
 	light: 50,
 	lightAzimuth: -26.57,
 	lightElevation: 30.8,

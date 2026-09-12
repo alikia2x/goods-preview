@@ -5,6 +5,7 @@ import {
 	CAMERA,
 	PRODUCT_DEFAULT_SOURCES,
 	PRODUCT_DEFAULTS,
+	PRODUCT_FRAMING_FILL,
 	type ProductKind,
 	REFERENCE_IRRADIANCE,
 	RIG_RATIO,
@@ -26,7 +27,7 @@ export function TuningPanel({ product }: { product: ProductKind }) {
 		["主光占比", RIG_RATIO],
 		["曝光基准", REFERENCE_IRRADIANCE],
 		["视场角", `${CAMERA.fov}°`],
-		["构图留白", CAMERA.framingFill],
+		["构图留白", PRODUCT_FRAMING_FILL[product]],
 	];
 
 	const copy = useCallback(async (label: string, text: string) => {

@@ -15,7 +15,9 @@ import {
 import { useBadgeWorkspace } from "@/features/badge/useBadgeWorkspace";
 import { StudioCanvas } from "@/features/studio/components/StudioCanvas";
 import { StudioStatus } from "@/features/studio/components/StudioStatus";
+import { studioDistance } from "@/features/studio/lib/framing";
 import { useStudioEnvironment } from "@/features/studio/useStudioEnvironment";
+import { CAMERA, PRODUCT_FRAMING_FILL } from "@/tuning";
 
 export default function BadgeWorkspace() {
 	const workspace = useBadgeWorkspace();
@@ -27,16 +29,36 @@ export default function BadgeWorkspace() {
 		onEnvironmentError,
 	} = useStudioEnvironment(settings.lighting);
 
-	// The badge reports where it ended up, so the camera is aimed at it rather
-	// than at the set's origin — it can be resting against the backdrop.
-	const { center } = workspace;
+	// The badge reports what it occupies, so the camera is framed on it rather
+	// than on the set's origin — it can be resting against the backdrop. The
+	// framing distance follows from that measurement, at every size.
+	const { frame, placementRevision } = workspace;
+	const distance = studioDistance(
+		frame.span,
+		CAMERA.fov,
+		PRODUCT_FRAMING_FILL.badge,
+	);
 	const pose = useMemo(
-		() => badgePose(center, settings.scene, settings.pose),
-		[center, settings.scene, settings.pose],
+		() => badgePose(frame.center, settings.scene, settings.pose, distance),
+		[frame.center, settings.scene, settings.pose, distance],
 	);
 	const views = useMemo(
-		() => badgeViews(center, settings.pose),
-		[center, settings.pose],
+		() => badgeViews(frame.center, distance, settings.pose),
+		[frame.center, distance, settings.pose],
+	);
+	// The direction control is expressed from the decorated face's point of
+	// view. Once that face lies upward, both axes of its horizontal presentation
+	// are reversed relative to the standing rig. Rotate the azimuth by 180° while
+	// preserving elevation for both lighting and the matching contact shadow.
+	const renderSettings = useMemo(
+		() =>
+			settings.scene === "table" && settings.pose === "flat"
+				? {
+						...settings,
+						lightAzimuth: ((settings.lightAzimuth + 360) % 360) - 180,
+					}
+				: settings,
+		[settings],
 	);
 	const productName = `覆膜吧唧 · ${FINISHES[settings.finish].label}`;
 
@@ -71,7 +93,7 @@ export default function BadgeWorkspace() {
 				framingRef={workspace.framingRef}
 				canvas={
 					<StudioCanvas
-						settings={settings}
+						settings={renderSettings}
 						environment={environment}
 						onEnvironmentReady={onEnvironmentReady}
 						onEnvironmentError={onEnvironmentError}
@@ -81,14 +103,14 @@ export default function BadgeWorkspace() {
 						apiRef={workspace.apiRef}
 						onViewportReady={workspace.onViewportReady}
 						pose={pose}
-						poseKey={`${settings.scene}:${settings.pose}:${workspace.placed}`}
+						poseKey={placementRevision}
 						views={views}
 						minDistance={BADGE_MIN_DISTANCE}
 						maxDistance={BADGE_MAX_DISTANCE}
 					>
 						{workspace.artwork && (
 							<BadgeModel
-								settings={settings}
+								settings={renderSettings}
 								artwork={workspace.artwork}
 								shadowRef={workspace.shadowRef}
 								onPlaced={workspace.onPlaced}

@@ -37,21 +37,25 @@ export function createReflectionFloor(y: number) {
 		}
 	};
 	const material = floor.material as THREE.ShaderMaterial;
+	floor.userData.exportRole = "reflection";
+	material.uniforms.exportMask = { value: false };
 	material.vertexShader = material.vertexShader
 		.replace("varying vec4 vUv;", "varying vec4 vUv; varying vec3 toEye;")
 		.replace(
 			"vUv = textureMatrix",
 			"toEye = cameraPosition - (modelMatrix * vec4(position, 1.0)).xyz; vUv = textureMatrix",
 		);
-	material.fragmentShader = `uniform sampler2D tDiffuse; varying vec4 vUv; varying vec3 toEye;
+	material.fragmentShader = `uniform bool exportMask; uniform sampler2D tDiffuse; varying vec4 vUv; varying vec3 toEye;
 	void main(){
-	 vec2 uv=vUv.xy/vUv.w; vec3 reflected=vec3(0.0); float sum=0.0;
+	 vec2 uv=vUv.xy/vUv.w; vec3 reflected=vec3(0.0); float sum=0.0; float coverage=0.0;
 	 for(int x=-2;x<=2;x++) for(int y=-2;y<=2;y++){
 		vec2 offset=vec2(float(x),float(y));float weight=exp(-dot(offset,offset)/2.0);
 		reflected+=texture2D(tDiffuse,uv+offset*1.5/256.0).rgb*weight;sum+=weight;
+		coverage+=texture2D(tDiffuse,uv+offset*1.5/256.0).a*weight;
 	 }
 	 float fresnel=.12+.3*pow(1.0-abs(normalize(toEye).y),3.0);
 	 gl_FragColor=vec4(vec3(.0025)+reflected/sum*fresnel,1.0);
+	 if(exportMask) { gl_FragColor=vec4(vec3(1.0),coverage/sum); return; }
 	 #include <tonemapping_fragment>
 	 #include <colorspace_fragment>
 	}`;

@@ -35,7 +35,7 @@ export const SYNTHETIC_ENVIRONMENT = {
 		peak: 1.8,
 		width: 0.22,
 		elongated: false,
-		intensity: 1.4,
+		intensity: 0.8,
 	},
 	glossy: {
 		label: "聚光 · 亮面",
@@ -43,14 +43,15 @@ export const SYNTHETIC_ENVIRONMENT = {
 		peak: 33,
 		width: 0.012,
 		elongated: true,
-		intensity: 1.4,
+		intensity: 0.8,
 	},
 } as const;
 
 // Exposure trim of the bundled panoramas, applied on top of the normalisation
 // each capture computes from its own irradiance at load.
 export const PHOTOGRAPHIC_INTENSITY = {
-	hdr: 1.05,
-	studioContrast: 1,
-	studioSoft: 1,
+	studioSmall09: 1.4,
+	studioSmall03: 0.8,
+	photoStudio01: 1,
+	artistWorkshop: 1
 } as const;

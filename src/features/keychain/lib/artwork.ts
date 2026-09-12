@@ -8,6 +8,10 @@ export type KeychainArtwork = {
 	thumbnail: string;
 };
 
+// The artwork texture can stay larger, but the cut outline needs enough pixels
+// of its own to avoid turning smooth diagonals into visible stair steps.
+const OUTLINE_MASK_SIZE = 512;
+
 export function prepareArtwork(
 	source: HTMLCanvasElement | HTMLImageElement,
 	name: string,
@@ -56,7 +60,7 @@ export function prepareArtwork(
 			canvas.width,
 			canvas.height,
 		);
-	const scale = 256 / Math.max(canvas.width, canvas.height);
+	const scale = OUTLINE_MASK_SIZE / Math.max(canvas.width, canvas.height);
 	scan.width = Math.max(1, Math.round(canvas.width * scale));
 	scan.height = Math.max(1, Math.round(canvas.height * scale));
 	ctx.drawImage(canvas, 0, 0, scan.width, scan.height);

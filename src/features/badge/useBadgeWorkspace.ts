@@ -1,21 +1,32 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type * as THREE from "three";
+import { useWorkspaceArtwork } from "@/components/workspace/WorkspaceArtwork";
 import { useWorkspaceExportState } from "@/components/workspace/WorkspaceContext";
-import { PRODUCT_DEFAULTS, type Vector3Tuple } from "@/tuning";
+import { PRODUCT_DEFAULTS } from "@/tuning";
 import type { BadgeShadowHandle } from "@/features/badge/model/BadgeModel";
 import { defaultArtwork } from "@/features/badge/model/artwork";
 import { deriveBadgeSettings } from "@/features/badge/settings";
+import type { Frame } from "@/features/studio/lib/framing";
 import { decodeImage, validateImageFile } from "@/features/studio/lib/image";
 import { useSettings } from "@/features/studio/settings";
 import { useExportController } from "@/features/studio/useExportController";
 import { useWorkspaceViewport } from "@/features/studio/useWorkspaceViewport";
 import { useSceneBackground } from "@/hooks/useSceneBackground";
 
-// Where the badge sits before the model has measured itself. The model reports
-// its real centre on the first layout pass, before anything is painted.
-const UNPLACED: Vector3Tuple = [0, 0, 0];
+// Framing before the model has measured itself, so the opening camera has
+// somewhere to look. The model reports what the badge occupies on the first
+// layout pass, before anything is painted.
+const UNMEASURED_FRAME: Frame = { center: [0, 0, 0], span: 2 };
+
+function badgeThumbnail(image: HTMLImageElement) {
+	const preview = document.createElement("canvas");
+	preview.width = preview.height = 160;
+	preview.getContext("2d")?.drawImage(image, 0, 0, 160, 160);
+	return preview.toDataURL();
+}
 
 export function useBadgeWorkspace() {
+	const { artworkFile, rememberArtwork } = useWorkspaceArtwork();
 	const {
 		framingRef,
 		backgroundRef,
@@ -27,17 +38,25 @@ export function useBadgeWorkspace() {
 	} = useWorkspaceViewport();
 	const shadowRef = useRef<BadgeShadowHandle | null>(null);
 	const uploadSequenceRef = useRef(0);
-	const [center, setCenter] = useState<Vector3Tuple>(UNPLACED);
-	// Set once the model has measured itself, which is when the camera can finally
-	// be aimed at the badge instead of at the placeholder.
-	const [placed, setPlaced] = useState(false);
-	const onPlaced = useCallback((next: Vector3Tuple) => {
-		setCenter((current) =>
-			current[0] === next[0] && current[1] === next[1] && current[2] === next[2]
-				? current
-				: next,
-		);
-		setPlaced(true);
+	const appliedArtworkFileRef = useRef<File | null>(null);
+	const [placement, setPlacement] = useState({
+		frame: UNMEASURED_FRAME,
+		revision: 0,
+	});
+	// Publish a revision only after the model has completed placement and measured
+	// its new bounds. The camera can then use the matching centre and span instead
+	// of racing a scene, pose or size setting change with the layout pass.
+	const onPlaced = useCallback((next: Frame) => {
+		setPlacement((current) => ({
+			frame:
+				current.frame.center[0] === next.center[0] &&
+				current.frame.center[1] === next.center[1] &&
+				current.frame.center[2] === next.center[2] &&
+				current.frame.span === next.span
+					? current.frame
+					: next,
+			revision: current.revision + 1,
+		}));
 	}, []);
 
 	const { settings, updateSetting } = useSettings(
@@ -50,7 +69,7 @@ export function useBadgeWorkspace() {
 	const [thumbnail, setThumbnail] = useState("");
 	const [artworkName, setArtworkName] = useState("默认图案");
 
-	// The set and the contact-shadow backdrop are what a transparent export hides.
+	// Identify scenery separately from the product for export coverage passes.
 	const backgroundObjects = useCallback(() => {
 		const objects: THREE.Object3D[] = [];
 		if (backgroundRef.current) objects.push(backgroundRef.current);
@@ -88,10 +107,37 @@ export function useBadgeWorkspace() {
 	useSceneBackground(settings.scene);
 
 	useEffect(() => {
-		const fallback = defaultArtwork();
-		setArtwork(fallback);
-		setThumbnail(fallback.toDataURL());
-	}, []);
+		if (!artworkFile) {
+			const fallback = defaultArtwork();
+			setArtwork(fallback);
+			setThumbnail(fallback.toDataURL());
+			setArtworkName("默认图案");
+			return;
+		}
+		if (appliedArtworkFileRef.current === artworkFile) return;
+		const sequence = ++uploadSequenceRef.current;
+		void decodeImage(artworkFile).then(
+			(image) => {
+				if (sequence !== uploadSequenceRef.current) return;
+				appliedArtworkFileRef.current = artworkFile;
+				setArtwork(image);
+				setThumbnail(badgeThumbnail(image));
+				setArtworkName(artworkFile.name);
+				setError("");
+			},
+			(cause) => {
+				if (sequence !== uploadSequenceRef.current) return;
+				const fallback = defaultArtwork();
+				setArtwork(fallback);
+				setThumbnail(fallback.toDataURL());
+				setArtworkName("默认图案");
+				setError(cause instanceof Error ? cause.message : "无法读取这张图片。");
+			},
+		);
+		return () => {
+			if (sequence === uploadSequenceRef.current) uploadSequenceRef.current++;
+		};
+	}, [artworkFile, setError]);
 
 	const uploadArtwork = useCallback(
 		async (file?: File) => {
@@ -105,14 +151,12 @@ export function useBadgeWorkspace() {
 			try {
 				const image = await decodeImage(file);
 				if (sequence !== uploadSequenceRef.current) return;
+				appliedArtworkFileRef.current = file;
 				setArtwork(image);
-				const preview = document.createElement("canvas");
-				preview.width = preview.height = 160;
-				const context = preview.getContext("2d");
-				context?.drawImage(image, 0, 0, 160, 160);
-				setThumbnail(preview.toDataURL());
+				setThumbnail(badgeThumbnail(image));
 				setArtworkName(file.name);
 				updateSetting("bleed", PRODUCT_DEFAULTS.badge.bleed);
+				rememberArtwork(file);
 				setError("");
 			} catch (cause) {
 				if (sequence === uploadSequenceRef.current) {
@@ -124,7 +168,7 @@ export function useBadgeWorkspace() {
 				}
 			}
 		},
-		[setError, updateSetting],
+		[rememberArtwork, setError, updateSetting],
 	);
 
 	return {
@@ -137,8 +181,8 @@ export function useBadgeWorkspace() {
 		artwork,
 		thumbnail,
 		artworkName,
-		center,
-		placed,
+		frame: placement.frame,
+		placementRevision: placement.revision,
 		onPlaced,
 		exportState: workspaceExport,
 		updateSetting,

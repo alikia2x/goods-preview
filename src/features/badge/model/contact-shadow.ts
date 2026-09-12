@@ -1,11 +1,6 @@
 import * as THREE from "three";
-import type { BadgePose } from "@/features/badge/settings";
 import { shadowFrustum } from "@/features/studio/lib/lighting";
 import { KEY_DIRECTION, STAGE_FLOOR_Y, type Vector3Tuple } from "@/tuning";
-
-// How far behind the badge's centre its rear surface sits, in unit radii. The
-// receiver a lying badge casts onto goes just behind it.
-const REAR_PLANE = 0.174;
 
 // A depth-only pass of the actual badge. No background surface or lighting is
 // rendered into this map. PCSS approximates area-source visibility at the receiver.
@@ -109,12 +104,13 @@ export class ContactShadow {
 			new THREE.PlaneGeometry(200, 200),
 			this.material,
 		);
-		this.plane.position.z = -REAR_PLANE;
 		this.wall = new THREE.Mesh(
 			new THREE.PlaneGeometry(200, 200),
 			this.material,
 		);
 		this.wall.visible = false;
+		this.plane.userData.exportRole = "shadow";
+		this.wall.userData.exportRole = "shadow";
 	}
 	update(
 		scale: number,
@@ -165,12 +161,7 @@ export class ContactShadow {
 		this.scene.add(this.sceneCasters);
 		this.dirty = true;
 	}
-	setPose(
-		group: THREE.Group,
-		pose: BadgePose,
-		center: Vector3Tuple,
-		windowScene: boolean,
-	) {
+	setPose(group: THREE.Group, center: Vector3Tuple, windowScene: boolean) {
 		if (
 			!this.caster.quaternion.equals(group.quaternion) ||
 			!this.caster.position.equals(group.position)
@@ -179,19 +170,9 @@ export class ContactShadow {
 			this.caster.position.copy(group.position);
 			this.dirty = true;
 		}
-		if (pose === "standing") {
-			// Standing, the badge casts onto the floor it rests on.
-			this.plane.rotation.x = -Math.PI / 2;
-			this.plane.position.set(center[0], STAGE_FLOOR_Y, center[2]);
-		} else {
-			// Lying down, it casts onto the surface it lies on, just behind it.
-			this.plane.rotation.set(0, 0, 0);
-			this.plane.position.set(
-				center[0],
-				center[1],
-				center[2] - REAR_PLANE * group.scale.x,
-			);
-		}
+		// Both supported poses rest on the horizontal set surface.
+		this.plane.rotation.set(-Math.PI / 2, 0, 0);
+		this.plane.position.set(center[0], STAGE_FLOOR_Y, center[2]);
 		this.wall.position.set(0, 0, -1.999);
 		this.wall.visible = windowScene;
 		this.material.uniforms.softness.value = windowScene ? 0.038 : 0.11;

@@ -5,6 +5,8 @@ import type * as THREE from "three";
 export type DebugSnapshot = {
 	fps: number;
 	frameMs: number;
+	/** The live renderer pixel ratio, which adaptive resolution moves. */
+	dpr: number;
 	drawCalls: number;
 	triangles: number;
 	geometries: number;
@@ -16,6 +18,7 @@ export type DebugSnapshot = {
 export const debugSnapshot: DebugSnapshot = {
 	fps: 0,
 	frameMs: 0,
+	dpr: 0,
 	drawCalls: 0,
 	triangles: 0,
 	geometries: 0,
@@ -62,6 +65,7 @@ export function tickDebug(renderer: THREE.WebGLRenderer) {
 	if (elapsed < INTERVAL_MS) return;
 	debugSnapshot.fps = (frames / elapsed) * 1000;
 	debugSnapshot.frameMs = elapsed / frames;
+	debugSnapshot.dpr = renderer.getPixelRatio();
 	frames = 0;
 	lastUpdate = now;
 	const info = renderer.info;

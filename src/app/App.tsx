@@ -1,7 +1,9 @@
 import { lazy, Suspense, useEffect } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import { LoadingOverlay } from "@/components/workspace/LoadingOverlay";
+import { WorkspaceArtworkProvider } from "@/components/workspace/WorkspaceArtwork";
 import { WorkspaceSupportProvider } from "@/components/workspace/WorkspaceSupport";
+import { usePageMetadata } from "@/hooks/usePageMetadata";
 
 const BadgeWorkspace = lazy(() => import("@/features/badge/BadgeWorkspace"));
 const KeychainWorkspace = lazy(
@@ -36,54 +38,62 @@ function useWorkspacePrefetch() {
 	}, []);
 }
 
+function DocumentMetadata() {
+	usePageMetadata();
+	return null;
+}
+
 export default function App() {
 	useWorkspacePrefetch();
 	return (
 		<BrowserRouter>
-			<WorkspaceSupportProvider>
-				<Routes>
-					<Route
-						path="/"
-						element={<Navigate to="/workspace/badge" replace />}
-					/>
-					<Route
-						path="/workspace/badge"
-						element={
-							<Suspense fallback={WORKSPACE_FALLBACK}>
-								<BadgeWorkspace />
-							</Suspense>
-						}
-					/>
-					<Route
-						path="/workspace/keychain"
-						element={
-							<Suspense fallback={WORKSPACE_FALLBACK}>
-								<KeychainWorkspace />
-							</Suspense>
-						}
-					/>
-					<Route
-						path="/workspace/acrylic"
-						element={
-							<Suspense fallback={WORKSPACE_FALLBACK}>
-								<AcrylicWorkspace />
-							</Suspense>
-						}
-					/>
-					<Route
-						path="/workspace/standee"
-						element={
-							<Suspense fallback={WORKSPACE_FALLBACK}>
-								<StandeeWorkspace />
-							</Suspense>
-						}
-					/>
-					<Route
-						path="*"
-						element={<Navigate to="/workspace/badge" replace />}
-					/>
-				</Routes>
-			</WorkspaceSupportProvider>
+			<DocumentMetadata />
+			<WorkspaceArtworkProvider>
+				<WorkspaceSupportProvider>
+					<Routes>
+						<Route
+							path="/"
+							element={<Navigate to="/workspace/badge" replace />}
+						/>
+						<Route
+							path="/workspace/badge"
+							element={
+								<Suspense fallback={WORKSPACE_FALLBACK}>
+									<BadgeWorkspace />
+								</Suspense>
+							}
+						/>
+						<Route
+							path="/workspace/keychain"
+							element={
+								<Suspense fallback={WORKSPACE_FALLBACK}>
+									<KeychainWorkspace />
+								</Suspense>
+							}
+						/>
+						<Route
+							path="/workspace/acrylic"
+							element={
+								<Suspense fallback={WORKSPACE_FALLBACK}>
+									<AcrylicWorkspace />
+								</Suspense>
+							}
+						/>
+						<Route
+							path="/workspace/standee"
+							element={
+								<Suspense fallback={WORKSPACE_FALLBACK}>
+									<StandeeWorkspace />
+								</Suspense>
+							}
+						/>
+						<Route
+							path="*"
+							element={<Navigate to="/workspace/badge" replace />}
+						/>
+					</Routes>
+				</WorkspaceSupportProvider>
+			</WorkspaceArtworkProvider>
 		</BrowserRouter>
 	);
 }

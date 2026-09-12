@@ -51,6 +51,7 @@ export function AcrylicSheet({
 				depthPacking: THREE.RGBADepthPacking,
 				map: texture,
 				alphaTest: 0.15,
+				alphaToCoverage: true,
 				side: THREE.DoubleSide,
 			}),
 		[texture],
@@ -98,6 +99,7 @@ export function AcrylicSheet({
 					onBeforeCompile={patchDiffuse}
 					map={texture}
 					alphaTest={0.08}
+					alphaToCoverage
 					side={THREE.DoubleSide}
 					roughness={0.9}
 					metalness={0}

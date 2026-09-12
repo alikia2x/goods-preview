@@ -4,7 +4,7 @@
 // "studio" (窗影影棚) is temporarily hidden from the picker — its window-caster
 // staging needs further tuning before it earns a place next to the others.
 export const SCENES = {
-	table: { label: "日光台面", background: "#f3f3f1", standing: true },
+	table: { label: "平坦台面", background: "#f3f3f1", standing: true },
 	studio: { label: "窗影影棚", background: "#f0f1ef", standing: true },
 	standing: { label: "立放展示", background: "#f1f1ef", standing: true },
 	black: { label: "黑色反射台", background: "#08090b", standing: true },

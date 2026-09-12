@@ -3,7 +3,7 @@ import { toCreasedNormals } from "three/addons/utils/BufferGeometryUtils.js";
 
 function simplifyPath(
 	points: THREE.Vector2[],
-	tolerance = 0.65,
+	tolerance = 1.1,
 ): THREE.Vector2[] {
 	if (points.length < 3) return points;
 	const first = points[0],
@@ -34,6 +34,117 @@ function simplifyPath(
 				...simplifyPath(points.slice(0, index + 1), tolerance).slice(0, -1),
 				...simplifyPath(points.slice(index), tolerance),
 			];
+}
+
+// A naive circular dilation touches every source pixel for every pixel in its
+// radius. That is fine for a small preview mask, but becomes impractical as the
+// mask is made sharper. An exact squared Euclidean distance transform keeps the
+// higher-resolution outline linear in the number of raster pixels instead.
+function distanceTransform1D(
+	source: Float64Array,
+	target: Float64Array,
+	length: number,
+	sourceOffset: number,
+	sourceStride: number,
+	targetOffset: number,
+	targetStride: number,
+	envelope: Int32Array,
+	intersections: Float64Array,
+) {
+	const sourceAt = (index: number) =>
+		source[sourceOffset + index * sourceStride];
+	let first = -1;
+	for (let index = 0; index < length; index++)
+		if (Number.isFinite(sourceAt(index))) {
+			first = index;
+			break;
+		}
+	if (first < 0) {
+		for (let index = 0; index < length; index++)
+			target[targetOffset + index * targetStride] = Number.POSITIVE_INFINITY;
+		return;
+	}
+
+	let last = 0;
+	envelope[0] = first;
+	intersections[0] = Number.NEGATIVE_INFINITY;
+	intersections[1] = Number.POSITIVE_INFINITY;
+	for (let index = first + 1; index < length; index++) {
+		const value = sourceAt(index);
+		if (!Number.isFinite(value)) continue;
+		let intersection = Number.POSITIVE_INFINITY;
+		while (last >= 0) {
+			const previous = envelope[last];
+			intersection =
+				(value + index * index - (sourceAt(previous) + previous * previous)) /
+				(2 * (index - previous));
+			if (intersection > intersections[last]) break;
+			last--;
+		}
+		last++;
+		envelope[last] = index;
+		intersections[last] = intersection;
+		intersections[last + 1] = Number.POSITIVE_INFINITY;
+	}
+
+	last = 0;
+	for (let index = 0; index < length; index++) {
+		while (intersections[last + 1] < index) last++;
+		const nearest = envelope[last];
+		const delta = index - nearest;
+		target[targetOffset + index * targetStride] =
+			delta * delta + sourceAt(nearest);
+	}
+}
+
+function dilateAlpha(
+	alpha: Uint8Array,
+	width: number,
+	height: number,
+	paddedWidth: number,
+	paddedHeight: number,
+	pad: number,
+	radius: number,
+) {
+	const size = paddedWidth * paddedHeight;
+	const distances = new Float64Array(size);
+	distances.fill(Number.POSITIVE_INFINITY);
+	for (let y = 0; y < height; y++)
+		for (let x = 0; x < width; x++)
+			if (alpha[y * width + x] >= 32)
+				distances[(y + pad) * paddedWidth + x + pad] = 0;
+	const horizontal = new Float64Array(size);
+	const envelope = new Int32Array(Math.max(paddedWidth, paddedHeight));
+	const intersections = new Float64Array(envelope.length + 1);
+	for (let y = 0; y < paddedHeight; y++)
+		distanceTransform1D(
+			distances,
+			horizontal,
+			paddedWidth,
+			y * paddedWidth,
+			1,
+			y * paddedWidth,
+			1,
+			envelope,
+			intersections,
+		);
+	for (let x = 0; x < paddedWidth; x++)
+		distanceTransform1D(
+			horizontal,
+			distances,
+			paddedHeight,
+			x,
+			paddedWidth,
+			x,
+			paddedWidth,
+			envelope,
+			intersections,
+		);
+	const filled = new Uint8Array(size);
+	const squaredRadius = radius * radius;
+	for (let index = 0; index < size; index++)
+		if (distances[index] <= squaredRadius) filled[index] = 1;
+	return filled;
 }
 
 export type ArtworkMask = { width: number; height: number; alpha: Uint8Array };
@@ -75,7 +186,6 @@ export function traceOutline(
 	const pad = radius + lugRadius + Math.ceil(3 * resolutionScale) + 3 + extra;
 	const w = width + pad * 2,
 		h = height + pad * 2;
-	const filled = new Uint8Array(w * h);
 	let top = height,
 		anchor = width / 2,
 		count = 0;
@@ -87,16 +197,9 @@ export function traceOutline(
 				top = y;
 				anchor = x;
 			}
-			for (let dy = -radius; dy <= radius; dy++) {
-				const span = Math.floor(Math.sqrt(radius * radius - dy * dy));
-				filled.fill(
-					1,
-					(y + pad + dy) * w + x + pad - span,
-					(y + pad + dy) * w + x + pad + span + 1,
-				);
-			}
 		}
 	if (!count) throw new Error("图片完全透明，请选择有可见图案的图片。");
+	const filled = dilateAlpha(alpha, width, height, w, h, pad, radius);
 	// Prefer the topmost opaque pixel nearest the horizontal center for a stable tab.
 	for (let x = 0; x < width; x++)
 		if (
@@ -255,7 +358,6 @@ export function smoothExtrudeGeometry(geometry: THREE.BufferGeometry) {
 	if (smooth !== geometry) geometry.dispose();
 	return smooth;
 }
-
 
 export function acrylicGeometry(outline: Outline, thickness: number) {
 	const shape = new THREE.Shape(outline.points);

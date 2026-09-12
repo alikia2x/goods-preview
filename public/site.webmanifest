@@ -1,0 +1,26 @@
+{
+	"name": "Goods Preview",
+	"short_name": "Goods Preview",
+	"description": "在浏览器里预览覆膜吧唧、亚克力钥匙扣、任意亚克力与亚克力立牌的 3D 立体效果，调整尺寸、厚度、光照与材质，并导出高分辨率 PNG。",
+	"lang": "zh-CN",
+	"start_url": "/",
+	"scope": "/",
+	"icons": [
+		{
+			"src": "/android-chrome-192x192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "/android-chrome-512x512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any maskable"
+		}
+	],
+	"theme_color": "#ffffff",
+	"background_color": "#ffffff",
+	"display": "standalone",
+	"categories": ["design", "graphics", "utilities"]
+}

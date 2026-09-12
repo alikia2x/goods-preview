@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { applyOutputFraming } from "@/features/studio/lib/framing";
+import { captureTransparent } from "@/features/studio/lib/transparent-capture";
 
 export const EXPORT_RESOLUTIONS = ["1024", "2048", "4096"] as const;
 
@@ -29,34 +30,30 @@ export async function captureSquare({
 		framing.getBoundingClientRect(),
 		camera.view,
 	);
-	const ratio = renderer.getPixelRatio(),
-		alpha = renderer.getClearAlpha(),
-		background = scene.background;
-	const visibility = backgroundObjects.map((object) => object.visible);
+	const ratio = renderer.getPixelRatio();
 	let pending: Promise<Blob>;
 	try {
-		if (transparent) {
-			scene.background = null;
-			renderer.setClearAlpha(0);
-			for (const object of backgroundObjects) object.visible = false;
-		}
 		renderer.setPixelRatio(1);
 		renderer.setSize(edge, edge, false);
+		// Refresh planar reflections before the final full-scene transmission pass.
 		renderer.render(scene, outputCamera);
+		renderer.render(scene, outputCamera);
+		const canvas = transparent
+			? captureTransparent(renderer, scene, outputCamera, backgroundObjects)
+			: renderer.domElement;
 		pending = new Promise<Blob>((resolve, reject) =>
-			renderer.domElement.toBlob(
+			canvas.toBlob(
 				(blob) => (blob ? resolve(blob) : reject(new Error("导出失败。"))),
 				"image/png",
 			),
 		);
 	} finally {
-		scene.background = background;
-		renderer.setClearAlpha(alpha);
-		backgroundObjects.forEach((object, index) => {
-			object.visible = visibility[index];
-		});
 		renderer.setPixelRatio(ratio);
 		renderer.setSize(dimensions.x, dimensions.y, false);
+		// The coverage pass refreshed reflector textures with masks. Rebuild those
+		// before transmission samples them in the restored preview.
+		if (transparent) renderer.render(scene, camera);
+		renderer.render(scene, camera);
 	}
 	return pending;
 }

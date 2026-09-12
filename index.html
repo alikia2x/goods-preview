@@ -1,12 +1,108 @@
 <!doctype html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Goods Preview</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Goods Preview — 实时 3D 制品预览工具</title>
+		<meta
+			name="description"
+			content="在浏览器里预览覆膜吧唧、亚克力钥匙扣、任意亚克力与亚克力立牌的 3D 立体效果，调整尺寸、厚度、光照与材质，并导出高分辨率 PNG。"
+		>
+		<meta
+			name="keywords"
+			content="3D 预览, 制品预览, 吧唧, 徽章, 亚克力, 亚克力钥匙扣, 亚克力立牌, 周边打样, 切边预览, PNG 导出"
+		>
+		<meta name="author" content="星寒 / alikia2x">
+		<meta name="robots" content="index, follow, max-image-preview:large">
+		<meta name="theme-color" content="#ffffff">
+		<meta name="application-name" content="Goods Preview">
+		<meta name="mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-title" content="Goods Preview">
+		<link rel="canonical" href="https://goods-preview.a2x.im/">
+		<link rel="icon" href="/favicon.ico" sizes="any">
+		<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+		<link rel="manifest" href="/site.webmanifest">
+		<meta property="og:type" content="website">
+		<meta property="og:site_name" content="Goods Preview">
+		<meta property="og:locale" content="zh_CN">
+		<meta property="og:url" content="https://goods-preview.a2x.im/">
+		<meta property="og:title" content="Goods Preview — 实时 3D 制品预览工具">
+		<meta
+			property="og:description"
+			content="在浏览器里预览覆膜吧唧、亚克力钥匙扣、任意亚克力与亚克力立牌的 3D 立体效果，调整尺寸、厚度、光照与材质，并导出高分辨率 PNG。"
+		>
+		<meta
+			property="og:image"
+			content="https://goods-preview.a2x.im/og-image.png"
+		>
+		<meta property="og:image:type" content="image/png">
+		<meta property="og:image:width" content="1200">
+		<meta property="og:image:height" content="630">
+		<meta
+			property="og:image:alt"
+			content="Goods Preview——实时 3D 制品预览网页工具"
+		>
+		<meta name="twitter:card" content="summary_large_image">
+		<meta name="twitter:title" content="Goods Preview — 实时 3D 制品预览工具">
+		<meta
+			name="twitter:description"
+			content="在浏览器里预览覆膜吧唧、亚克力钥匙扣、任意亚克力与亚克力立牌的 3D 立体效果，调整尺寸、厚度、光照与材质，并导出高分辨率 PNG。"
+		>
+		<meta
+			name="twitter:image"
+			content="https://goods-preview.a2x.im/og-image.png"
+		>
+		<meta
+			name="twitter:image:alt"
+			content="Goods Preview——实时 3D 制品预览网页工具"
+		>
+		<script type="application/ld+json">
+			{
+				"@context": "https://schema.org",
+				"@type": "WebApplication",
+				"name": "Goods Preview",
+				"url": "https://goods-preview.a2x.im/",
+				"description": "在浏览器里预览覆膜吧唧、亚克力钥匙扣、任意亚克力与亚克力立牌的 3D 立体效果，调整尺寸、厚度、光照与材质，并导出高分辨率 PNG。",
+				"inLanguage": "zh-CN",
+				"applicationCategory": "DesignApplication",
+				"operatingSystem": "Web",
+				"isAccessibleForFree": true,
+				"browserRequirements": "需要支持 WebGL 的现代浏览器。",
+				"image": "https://goods-preview.a2x.im/og-image.png",
+				"author": {
+					"@type": "Person",
+					"name": "星寒",
+					"alternateName": "alikia2x",
+					"url": "https://github.com/alikia2x"
+				},
+				"featureList": [
+					"覆膜吧唧、亚克力钥匙扣、任意亚克力与亚克力立牌的实时 3D 预览",
+					"上传图案自动生成亚克力切边与透明留边",
+					"场景、光照方向与强度、阴影、光泽实时调节",
+					"导出 1024 / 2048 / 4096 的 PNG，支持透明背景"
+				]
+			}
+		</script>
+	</head>
+	<body>
+		<div id="root"></div>
+		<noscript>
+			<h1>Goods Preview</h1>
+			<p>
+				在浏览器里预览覆膜吧唧、亚克力钥匙扣、任意亚克力与亚克力立牌的 3D
+				立体效果，调整尺寸、厚度、光照与材质，并导出高分辨率 PNG。本工具需要启用
+				JavaScript。
+			</p>
+			<ul>
+				<li><a href="/workspace/badge">覆膜吧唧</a></li>
+				<li><a href="/workspace/keychain">亚克力钥匙扣</a></li>
+				<li><a href="/workspace/acrylic">任意亚克力</a></li>
+				<li><a href="/workspace/standee">亚克力立牌</a></li>
+			</ul>
+		</noscript>
+		<script type="module" src="/src/main.tsx"></script>
+	</body>
 </html>

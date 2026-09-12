@@ -47,6 +47,7 @@ export function StudioViewport({
 }) {
 	const { camera, gl, scene, size } = useThree();
 	const orbit = useRef<OrbitControls | null>(null);
+	const moveRef = useRef<((next: ViewPose) => void) | null>(null);
 	const poseRef = useRef(pose);
 	poseRef.current = pose;
 	const viewsRef = useRef(views);
@@ -55,13 +56,9 @@ export function StudioViewport({
 	backgroundObjectsRef.current = backgroundObjects;
 
 	useEffect(() => {
-		// poseKey is intentionally not read: changing it re-seats the camera.
-		void poseKey;
 		if (!(camera instanceof THREE.PerspectiveCamera)) return;
 		const controls = new OrbitControls(camera, gl.domElement);
 		orbit.current = controls;
-		controls.minDistance = minDistance;
-		controls.maxDistance = maxDistance;
 		controls.enableDamping = true;
 		const move = (next: ViewPose) => {
 			// Consume pending damping before jumping the camera.
@@ -71,6 +68,7 @@ export function StudioViewport({
 			controls.update();
 			controls.enableDamping = true;
 		};
+		moveRef.current = move;
 		move(poseRef.current);
 		apiRef.current = {
 			capture: async (edge, transparent) => {
@@ -96,19 +94,26 @@ export function StudioViewport({
 		return () => {
 			controls.dispose();
 			orbit.current = null;
+			moveRef.current = null;
 			apiRef.current = null;
 		};
-	}, [
-		camera,
-		gl,
-		scene,
-		apiRef,
-		framingRef,
-		onViewportReady,
-		poseKey,
-		minDistance,
-		maxDistance,
-	]);
+	}, [camera, gl, scene, apiRef, framingRef, onViewportReady]);
+
+	useEffect(() => {
+		const controls = orbit.current;
+		if (!controls) return;
+		controls.minDistance = minDistance;
+		controls.maxDistance = maxDistance;
+		controls.update();
+	}, [minDistance, maxDistance]);
+
+	useEffect(() => {
+		// Products decide which measured changes should re-seat the camera. Keeping
+		// this separate from the controls lifecycle preserves one continuous orbit
+		// session while still applying the latest pose after measurement settles.
+		void poseKey;
+		moveRef.current?.(poseRef.current);
+	}, [poseKey]);
 
 	useEffect(() => {
 		const framing = framingRef.current;

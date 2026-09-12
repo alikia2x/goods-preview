@@ -72,7 +72,8 @@ export function StandeeProductControls() {
 					</div>
 					<Button
 						variant="ghost"
-						className="relative h-28! w-full! rounded-xl! touch-none overflow-hidden border border-panel-subtle/30 !p-0"
+						className="relative h-28! w-full! rounded-xl! touch-none overflow-hidden border
+						 border-panel-subtle/30 p-0! hover:bg-muted/30"
 						aria-label="拖动调整连接件位置；方向键调整"
 						onPointerDown={(event) => {
 							event.preventDefault();

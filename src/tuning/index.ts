@@ -9,6 +9,7 @@ import { STANDEE_DEFAULTS } from "@/tuning/products/standee";
 export * from "@/tuning/camera";
 export * from "@/tuning/geometry";
 export * from "@/tuning/lighting";
+export * from "@/tuning/quality";
 export * from "@/tuning/scenes";
 
 // One complete, flat set of defaults per product. Key order is what the dev

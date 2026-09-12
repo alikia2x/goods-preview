@@ -1,7 +1,6 @@
 import type { Outline } from "@/features/acrylic/lib/geometry";
-import { MODEL_SCALE, STAGE_FLOOR_Y, type Vector3Tuple } from "@/tuning";
-
-export type Frame = { center: Vector3Tuple; span: number };
+import type { Frame } from "@/features/studio/lib/framing";
+import { MODEL_SCALE, STAGE_FLOOR_Y } from "@/tuning";
 
 // Framing follows what actually stands on the set, so each product contributes
 // the parts it has: a base under the sheet, hardware hanging above it.

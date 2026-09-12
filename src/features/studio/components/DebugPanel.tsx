@@ -37,6 +37,10 @@ export function DebugPanel() {
 				<strong>{format(snapshot.frameMs, 2)} ms</strong>
 			</p>
 			<p className={styles.debugRow}>
+				<span>DPR</span>
+				<strong>{format(snapshot.dpr, 2)}</strong>
+			</p>
+			<p className={styles.debugRow}>
 				<span>Draw calls</span>
 				<strong>{snapshot.drawCalls}</strong>
 			</p>

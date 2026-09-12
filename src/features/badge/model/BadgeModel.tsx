@@ -13,9 +13,10 @@ import { badgeGeometry } from "@/features/badge/model/badgeGeometry";
 import { ContactShadow } from "@/features/badge/model/contact-shadow";
 import { FINISHES, finishMaterial } from "@/features/badge/model/finishes";
 import type { BadgeSettings } from "@/features/badge/settings";
+import type { Frame } from "@/features/studio/lib/framing";
 import { lightDirection } from "@/features/studio/lib/lighting";
 import { placeBadge } from "@/features/badge/model/placement";
-import { MODEL_SCALE, type Vector3Tuple, sceneWallZ } from "@/tuning";
+import { MODEL_SCALE, sceneWallZ } from "@/tuning";
 
 const METAL = { color: "#b8bdc2", metalness: 1, roughness: 0.27 };
 
@@ -35,13 +36,15 @@ export function BadgeModel({
 	settings: BadgeSettings;
 	artwork: HTMLImageElement | HTMLCanvasElement;
 	shadowRef: RefObject<BadgeShadowHandle | null>;
-	/** Reports where the badge sits, for the workspace to aim the camera at. */
-	onPlaced: (center: Vector3Tuple) => void;
+	/** Reports what the badge occupies, for the workspace to frame the camera on. */
+	onPlaced: (frame: Frame) => void;
 }) {
 	const gl = useThree((state) => state.gl);
 	const groupRef = useRef<THREE.Group>(null);
 	const [shadow, setShadow] = useState<ContactShadow | null>(null);
 	const scale = settings.size / MODEL_SCALE.badge;
+	const scene = settings.scene;
+	const pose = settings.pose;
 
 	const geometry = useMemo(() => badgeGeometry(), []);
 	useEffect(() => () => geometry.dispose(), [geometry]);
@@ -75,27 +78,29 @@ export function BadgeModel({
 
 	// Seat the badge first, so the shadow below can be fitted around where it
 	// actually ended up.
-	const center = useRef<Vector3Tuple>([0, 0, 0]);
+	const measured = useRef<Frame>({ center: [0, 0, 0], span: 0 });
 	useLayoutEffect(() => {
 		const group = groupRef.current;
 		if (!group) return;
-		center.current = placeBadge(group, settings, scale);
-		onPlaced(center.current);
-	}, [settings, scale, onPlaced]);
+		measured.current = placeBadge(group, { scene, pose }, scale);
+		onPlaced(measured.current);
+	}, [scene, pose, scale, onPlaced]);
 
 	useLayoutEffect(() => {
+		// The pose is a transform key: placement has already updated the group, and
+		// the shadow clone now needs to copy that transform.
+		void settings.pose;
 		if (!shadow) return;
 		const direction = lightDirection(
 			settings.lightAzimuth,
 			settings.lightElevation,
 		);
 		const wallZ = sceneWallZ(settings.scene);
-		shadow.update(scale, direction, wallZ, center.current);
+		shadow.update(scale, direction, wallZ, measured.current.center);
 		if (groupRef.current)
 			shadow.setPose(
 				groupRef.current,
-				settings.pose,
-				center.current,
+				measured.current.center,
 				settings.scene === "studio",
 			);
 		shadow.material.uniforms.strength.value = settings.shadow / 100;

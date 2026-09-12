@@ -93,7 +93,7 @@ export function AcrylicKeyLight({
 			alive = false;
 		};
 	}, [preset]);
-	const gain = lightEnergy(preset, intensity, scene);
+	const gain = lightEnergy(preset, intensity);
 	const lights = useMemo(() => {
 		const direction = lightDirection(azimuth, elevation);
 		if (!isPhotographicPreset(preset) || !samples.length)

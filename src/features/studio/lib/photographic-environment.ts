@@ -15,33 +15,38 @@ import {
 const REFERENCE_NORMAL = new THREE.Vector3(0, 0, 1);
 
 export const PHOTOGRAPHIC_ENVIRONMENTS = {
-	hdr: {
+	studioSmall09: {
 		label: "实景 · 摄影棚",
 		file: "studio_small_09_512.exr",
 		keyDirection: new THREE.Vector3(),
-		intensity: PHOTOGRAPHIC_INTENSITY.hdr,
+		intensity: PHOTOGRAPHIC_INTENSITY.studioSmall09,
 		gain: 1,
 		rigGain: 1,
-		legacyGain: 1,
 	},
-	studioContrast: {
-		label: "实景 · 明暗影棚",
-		file: "studio_small_03_1k.exr",
+	studioSmall03: {
+		label: "实景 · 蓝调影棚",
+		file: "studio_small_03_512.exr",
 		keyDirection: new THREE.Vector3(),
-		intensity: PHOTOGRAPHIC_INTENSITY.studioContrast,
+		intensity: PHOTOGRAPHIC_INTENSITY.studioSmall03,
 		gain: 1,
 		rigGain: 1,
-		legacyGain: 1,
 	},
-	studioSoft: {
-		label: "实景 · 柔光影棚",
+	photoStudio01: {
+		label: "实景 · 明亮工作室",
 		file: "photo_studio_01_512.exr",
 		keyDirection: new THREE.Vector3(),
-		intensity: PHOTOGRAPHIC_INTENSITY.studioSoft,
+		intensity: PHOTOGRAPHIC_INTENSITY.photoStudio01,
 		gain: 1,
 		rigGain: 1,
-		legacyGain: 1,
 	},
+	artistWorkshop: {
+		label: "实景 · 画室窗边",
+		file: "artist_workshop_512.exr",
+		keyDirection: new THREE.Vector3(),
+		intensity: PHOTOGRAPHIC_INTENSITY.artistWorkshop,
+		gain: 1,
+		rigGain: 1,
+	}
 } satisfies Record<
 	string,
 	{
@@ -53,7 +58,6 @@ export const PHOTOGRAPHIC_ENVIRONMENTS = {
 		// the sampled emitters, and the pre-calibration normalisation.
 		gain: number;
 		rigGain: number;
-		legacyGain: number;
 	}
 >;
 export type PhotographicPreset = keyof typeof PHOTOGRAPHIC_ENVIRONMENTS;
@@ -62,7 +66,7 @@ export function isPhotographicPreset(
 ): value is PhotographicPreset {
 	return value in PHOTOGRAPHIC_ENVIRONMENTS;
 }
-export const PHOTOGRAPHIC_STUDIO = PHOTOGRAPHIC_ENVIRONMENTS.hdr;
+export const PHOTOGRAPHIC_STUDIO = PHOTOGRAPHIC_ENVIRONMENTS.studioSmall09;
 const sources = new Map<PhotographicPreset, Promise<THREE.DataTexture>>();
 const pmremCache = new WeakMap<
 	THREE.WebGLRenderer,
@@ -70,7 +74,7 @@ const pmremCache = new WeakMap<
 >();
 
 export function loadPhotographicEnvironment(
-	preset: PhotographicPreset = "hdr",
+	preset: PhotographicPreset = "studioSmall09",
 ) {
 	let pending = sources.get(preset);
 	if (!pending) {
@@ -107,9 +111,6 @@ export function loadPhotographicEnvironment(
 					0,
 				);
 				entry.rigGain = response > 0 ? (RIG_RATIO * irradiance) / response : 0;
-				// Kept only for the black scene, which was tuned against it.
-				entry.legacyGain =
-					Math.PI / samples.reduce((total, sample) => total + sample.energy, 0);
 				return source;
 			})
 			.catch((error) => {
@@ -122,7 +123,7 @@ export function loadPhotographicEnvironment(
 }
 export function preparePhotographicStudio(
 	renderer: THREE.WebGLRenderer,
-	preset: PhotographicPreset = "hdr",
+	preset: PhotographicPreset = "studioSmall09",
 ) {
 	let cache = pmremCache.get(renderer);
 	if (!cache) {

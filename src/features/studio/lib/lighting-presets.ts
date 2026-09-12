@@ -5,7 +5,7 @@ import {
 	isPhotographicPreset,
 	preparePhotographicStudio,
 } from "@/features/studio/lib/photographic-environment";
-import { KEY_DIRECTION, SYNTHETIC_ENVIRONMENT, type SceneKind } from "@/tuning";
+import { KEY_DIRECTION, SYNTHETIC_ENVIRONMENT } from "@/tuning";
 
 // Lighting presets are environment maps, independent of surface finish.
 // Any product can offer the same choices; matte and glossy keep the badge's
@@ -19,14 +19,12 @@ export const LIGHTING_PRESETS = {
 		keyDirection: new Vector3(...KEY_DIRECTION).normalize(),
 		gain: 1,
 		rigGain: 1,
-		legacyGain: 1,
 	},
 	glossy: {
 		...SYNTHETIC_ENVIRONMENT.glossy,
 		keyDirection: new Vector3(...KEY_DIRECTION).normalize(),
 		gain: 1,
 		rigGain: 1,
-		legacyGain: 1,
 	},
 	...PHOTOGRAPHIC_ENVIRONMENTS,
 } as const;
@@ -39,19 +37,14 @@ export function isLightingPreset(value: string): value is LightingPreset {
 	return value in LIGHTING_PRESETS;
 }
 
-// Scale the lighting rig; 50% is the neutral studio setup. The black scene is
-// left exactly as it was tuned, so it keeps the pre-calibration normalisation
-// and drops the synthetic presets' lift.
+// Scale the lighting rig; 50% is the neutral studio setup.
 function presetEnergy(
 	preset: LightingPreset,
 	lightPercent: number,
-	scene?: SceneKind,
 ) {
 	const entry = LIGHTING_PRESETS[preset];
-	const gain = scene === "black" ? entry.legacyGain : entry.gain;
-	return (
-		2 ** ((lightPercent - 50) / 50) * gain * (scene === "black" ? 1 / 1.4 : 1)
-	);
+	const gain = entry.gain;
+	return 2 ** ((lightPercent - 50) / 50) * gain;
 }
 
 // The environment map is what a product is lit by; the sampled emitters add
@@ -59,18 +52,16 @@ function presetEnergy(
 export function environmentEnergy(
 	preset: LightingPreset,
 	lightPercent: number,
-	scene?: SceneKind,
 ) {
-	return presetEnergy(preset, lightPercent, scene);
+	return presetEnergy(preset, lightPercent);
 }
 
 export function lightEnergy(
 	preset: LightingPreset,
 	lightPercent: number,
-	scene?: SceneKind,
 ) {
-	const energy = presetEnergy(preset, lightPercent, scene);
-	return scene === "black" ? energy : energy * LIGHTING_PRESETS[preset].rigGain;
+	const energy = presetEnergy(preset, lightPercent);
+	return energy * LIGHTING_PRESETS[preset].rigGain;
 }
 
 // PMREM targets are tied to the GL context that produced them, so cache per

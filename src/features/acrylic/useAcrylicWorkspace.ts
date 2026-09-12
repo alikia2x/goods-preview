@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useWorkspaceArtwork } from "@/components/workspace/WorkspaceArtwork";
 import { useWorkspaceExportState } from "@/components/workspace/WorkspaceContext";
-import type { Frame } from "@/features/acrylic/lib/frame";
+import type { Frame } from "@/features/studio/lib/framing";
 import {
 	type Outline,
 	type OutlineMount,
@@ -38,6 +39,7 @@ export function useAcrylicWorkspace<S extends AcrylicSheetSettings>({
 	frame: (outline: Outline, settings: S) => Frame;
 	filePrefix: string;
 }) {
+	const { artworkFile, rememberArtwork } = useWorkspaceArtwork();
 	const {
 		framingRef,
 		backgroundRef,
@@ -55,8 +57,9 @@ export function useAcrylicWorkspace<S extends AcrylicSheetSettings>({
 	const [outline, setOutline] = useState<Outline | null>(null);
 	const [loading, setLoading] = useState(false);
 	const sequence = useRef(0);
+	const appliedArtworkFile = useRef<File | null>(null);
 
-	// The set is what a transparent export hides.
+	// Export keeps this set in the beauty pass, then isolates its shadow receivers.
 	const backgroundObjects = useCallback(() => {
 		const object = backgroundRef.current;
 		return object ? [object] : [];
@@ -94,15 +97,42 @@ export function useAcrylicWorkspace<S extends AcrylicSheetSettings>({
 	useSceneBackground(settings.scene);
 
 	useEffect(() => {
-		try {
-			setArtwork(defaultKeychainArtwork());
-		} catch (cause) {
-			setError(cause instanceof Error ? cause.message : "无法加载图案。");
+		if (!artworkFile) {
+			try {
+				setArtwork(defaultKeychainArtwork());
+			} catch (cause) {
+				setError(cause instanceof Error ? cause.message : "无法加载图案。");
+			}
+			return;
 		}
+		if (appliedArtworkFile.current === artworkFile) return;
+		const token = ++sequence.current;
+		setLoading(true);
+		void readKeychainArtwork(artworkFile)
+			.then(
+				(next) => {
+					if (token !== sequence.current) return;
+					appliedArtworkFile.current = artworkFile;
+					setArtwork(next);
+					setError("");
+				},
+				(cause) => {
+					if (token !== sequence.current) return;
+					try {
+						setArtwork(defaultKeychainArtwork());
+					} catch {
+						// Keep the original conversion error below; it is more actionable.
+					}
+					setError(cause instanceof Error ? cause.message : "无法读取图片。");
+				},
+			)
+			.finally(() => {
+				if (token === sequence.current) setLoading(false);
+			});
 		return () => {
-			sequence.current++;
+			if (token === sequence.current) sequence.current++;
 		};
-	}, [setError]);
+	}, [artworkFile, setError]);
 
 	// Tracing the outline rasterises the artwork and walks its boundary, so it
 	// must only run when something that shapes the cut changes — not while a light
@@ -132,7 +162,9 @@ export function useAcrylicWorkspace<S extends AcrylicSheetSettings>({
 			try {
 				const next = await readKeychainArtwork(file);
 				if (token !== sequence.current) return;
+				appliedArtworkFile.current = file;
 				setArtwork(next);
+				rememberArtwork(file);
 			} catch (cause) {
 				if (token === sequence.current)
 					setError(cause instanceof Error ? cause.message : "无法读取图片。");
@@ -140,7 +172,7 @@ export function useAcrylicWorkspace<S extends AcrylicSheetSettings>({
 				if (token === sequence.current) setLoading(false);
 			}
 		},
-		[setError],
+		[rememberArtwork, setError],
 	);
 
 	const model = useMemo(

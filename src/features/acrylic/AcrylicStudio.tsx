@@ -3,7 +3,6 @@ import { ProductWorkspace } from "@/components/workspace/ProductWorkspace";
 import { WorkspaceProvider } from "@/components/workspace/WorkspaceContext";
 import { AcrylicKeyLight } from "@/features/acrylic/AcrylicKeyLight";
 import { AcrylicSheetControls } from "@/features/acrylic/AcrylicSheetControls";
-import type { Frame } from "@/features/acrylic/lib/frame";
 import type { Outline, OutlineMount } from "@/features/acrylic/lib/geometry";
 import { PatternSizePopover } from "@/features/acrylic/PatternSizePopover";
 import type { AcrylicSheetSettings } from "@/features/acrylic/settings";
@@ -17,9 +16,14 @@ import {
 import type { KeychainArtwork } from "@/features/keychain/lib/artwork";
 import { StudioCanvas } from "@/features/studio/components/StudioCanvas";
 import { StudioStatus } from "@/features/studio/components/StudioStatus";
-import { studioDistance } from "@/features/studio/lib/framing";
+import { studioDistance, type Frame } from "@/features/studio/lib/framing";
 import { useStudioEnvironment } from "@/features/studio/useStudioEnvironment";
-import { CAMERA, type ProductKind, type Vector3Tuple } from "@/tuning";
+import {
+	CAMERA,
+	PRODUCT_FRAMING_FILL,
+	type ProductKind,
+	type Vector3Tuple,
+} from "@/tuning";
 
 // The one studio the three acrylic products share. Each product supplies its
 // identity, its defaults, the parts that make it that product, and how it is
@@ -69,7 +73,11 @@ export function AcrylicStudio<S extends AcrylicSheetSettings>({
 		onEnvironmentError,
 	} = useStudioEnvironment(settings.lighting);
 
-	const distance = studioDistance(measured.span, CAMERA.fov);
+	const distance = studioDistance(
+		measured.span,
+		CAMERA.fov,
+		PRODUCT_FRAMING_FILL[product],
+	);
 	const pose = useMemo(
 		() => acrylicPose(opening, measured.center, distance),
 		[opening, measured.center, distance],

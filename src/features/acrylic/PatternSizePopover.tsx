@@ -19,7 +19,8 @@ export function PatternSizePopover({
 				value={size}
 				min={30}
 				max={250}
-				display={`${size / 10} cm`}
+				commitOnly
+				display={(value) => `${value / 10} cm`}
 				onChange={onSizeChange}
 			/>
 		</SizePopover>

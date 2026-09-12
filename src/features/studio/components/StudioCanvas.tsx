@@ -1,6 +1,7 @@
 import { Canvas } from "@react-three/fiber";
-import type { ReactNode, RefObject } from "react";
+import { type ReactNode, type RefObject, useState } from "react";
 import * as THREE from "three";
+import { AdaptiveResolution } from "@/features/studio/components/AdaptiveResolution";
 import { DebugCollector } from "@/features/studio/components/DebugPanel";
 import { PreviewErrorBoundary } from "@/features/studio/components/PreviewErrorBoundary";
 import {
@@ -15,9 +16,10 @@ import {
 	type StudioViews,
 	type ViewPose,
 } from "@/features/studio/components/StudioViewport";
+import { openingPixelRatio } from "@/features/studio/lib/adaptive-resolution";
 import type { LightingPreset } from "@/features/studio/lib/lighting-presets";
 import type { StudioSettings } from "@/features/studio/settings";
-import { CAMERA } from "@/tuning";
+import { ADAPTIVE_RESOLUTION, CAMERA } from "@/tuning";
 
 // The single canvas pipeline: environments, camera, lighting, stage and the
 // product model. Both workspaces mount exactly this, differing only in props.
@@ -59,11 +61,16 @@ export function StudioCanvas({
 	sceneObjects?: ReactNode;
 	children: ReactNode;
 }) {
+	// The opening ratio is the ceiling: adapting only trades detail away. The
+	// value lives here rather than in r3f's store because `configure` re-asserts
+	// the `dpr` prop on every render of this component.
+	const [opening] = useState(() => openingPixelRatio(ADAPTIVE_RESOLUTION));
+	const [dpr, setDpr] = useState(opening);
 	return (
 		<PreviewErrorBoundary>
 			<Canvas
 				shadows={{ type: THREE.PCFShadowMap }}
-				dpr={[1, 2]}
+				dpr={dpr}
 				camera={{ fov: CAMERA.fov, near: CAMERA.near, far: CAMERA.far }}
 				gl={{
 					antialias: true,
@@ -81,6 +88,7 @@ export function StudioCanvas({
 					</div>
 				}
 			>
+				<AdaptiveResolution opening={opening} onDprChange={setDpr} />
 				<EnvironmentLoader
 					preset={settings.lighting}
 					onEnvironmentReady={onEnvironmentReady}
@@ -103,7 +111,6 @@ export function StudioCanvas({
 					intensity={settings.light}
 					azimuth={settings.lightAzimuth}
 					elevation={settings.lightElevation}
-					scene={settings.scene}
 				/>
 				<StudioStage
 					kind={settings.scene}

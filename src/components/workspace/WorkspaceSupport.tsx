@@ -129,8 +129,8 @@ export function WorkspaceSupportProvider({
 			<SupportDialog
 				open={tutorialOpen}
 				onOpenChange={setTutorialVisibility}
-				title="上手教程"
-				description="从图像到 PNG，只需完成这四步。"
+				title="使用教程"
+				description=""
 				actionLabel="开始使用"
 			>
 				<ol className="m-0 grid list-none gap-3 p-0">

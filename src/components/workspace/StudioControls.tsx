@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { LightDirectionControls } from "@/components/workspace/LightDirectionControls";
 import { LightingControls } from "@/components/workspace/LightingControls";
 import { RangeControl } from "@/components/workspace/RangeControl";
@@ -9,8 +10,10 @@ import type { StudioSettings } from "@/features/studio/settings";
 // label of the gloss slider; settings come from the surrounding workspace.
 export function StudioControls<S extends StudioSettings>({
 	glossLabel,
+	afterScene,
 }: {
 	glossLabel: string;
+	afterScene?: ReactNode;
 }) {
 	const { settings, updateSetting } = useWorkspace<S>();
 	return (
@@ -19,6 +22,7 @@ export function StudioControls<S extends StudioSettings>({
 				value={settings.scene}
 				onChange={(value) => updateSetting("scene", value)}
 			/>
+			{afterScene}
 			<LightingControls
 				value={settings.lighting}
 				onChange={(value) => updateSetting("lighting", value)}

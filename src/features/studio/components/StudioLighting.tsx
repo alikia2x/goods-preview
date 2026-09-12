@@ -8,7 +8,6 @@ import {
 	type LightingPreset,
 	prepareLightingPreset,
 } from "@/features/studio/lib/lighting-presets";
-import type { SceneKind } from "@/tuning";
 
 // Kick environment preparation from inside the canvas so the WebGL renderer
 // is ready; the page keeps the result and shows status UI outside the canvas.
@@ -50,18 +49,16 @@ export function StudioLighting({
 	intensity,
 	azimuth,
 	elevation,
-	scene: sceneKind,
 }: {
 	environment: THREE.WebGLRenderTarget | null;
 	preset: LightingPreset;
 	intensity: number;
 	azimuth: number;
 	elevation: number;
-	scene: SceneKind;
 }) {
 	const { scene } = useThree();
 	const direction = lightDirection(azimuth, elevation);
-	const energy = environmentEnergy(preset, intensity, sceneKind);
+	const energy = environmentEnergy(preset, intensity);
 
 	useEffect(() => {
 		scene.environment = environment ? environment.texture : null;

@@ -17,10 +17,15 @@ export function deriveBadgeSettings(
 	next: BadgeSettings,
 	key: keyof BadgeSettings,
 ): BadgeSettings {
+	// A lying badge needs a horizontal surface. Keep the hidden control from
+	// leaving a flat pose active after the user switches to another scene.
+	if (next.scene !== "table" && next.pose !== "standing") {
+		next = { ...next, pose: "standing" };
+	}
 	if (key !== "finish") return next;
 	return {
 		...next,
-		lighting: "hdr",
+		lighting: "studioSmall09",
 		gloss: FINISHES[next.finish].defaultGloss,
 	};
 }
