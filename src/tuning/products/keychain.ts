@@ -11,6 +11,7 @@ export const KEYCHAIN_DEFAULTS = {
 	gloss: 85,
 	size: 60,
 	transparentBackground: false,
+	positionOffsetZ: 0,
 	thickness: 3,
 	border: 2,
 	windowStrength: 100,

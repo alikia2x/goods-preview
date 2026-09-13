@@ -10,10 +10,12 @@ import { VIEW_OPTIONS } from "@/features/badge/constants";
 import type { BadgeView } from "@/features/badge/settings";
 import { OptionButtonGroup } from "@/components/workspace/OptionButtonGroup";
 import { PillButton } from "@/components/workspace/PillButton";
+import { PositionOffsetControls } from "@/components/workspace/PositionOffsetControls";
 
 type PreviewToolbarProps = {
 	children: ReactNode;
 	onViewChange: (view: BadgeView) => void;
+	showPositionControls?: boolean;
 };
 
 const VIEW_VALUES = VIEW_OPTIONS.map((option) => option.value);
@@ -24,6 +26,7 @@ const VIEW_LABELS = new Map(
 export function PreviewToolbar({
 	children,
 	onViewChange,
+	showPositionControls = false,
 }: PreviewToolbarProps) {
 	return (
 		<>
@@ -48,6 +51,7 @@ export function PreviewToolbar({
 					>
 						<RotateCcw /> 重置视角
 					</Button>
+					{showPositionControls && <PositionOffsetControls />}
 				</PopoverContent>
 			</Popover>
 		</>

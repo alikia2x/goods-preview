@@ -1,4 +1,4 @@
-import { ImagePlus, SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
 	Popover,
@@ -23,8 +23,8 @@ export function ArtworkControls({
 			items={[
 				{
 					thumbnail,
-					label: "面图",
-					ariaLabel: "面图",
+					label: "制品图像",
+					ariaLabel: "制品图像",
 					onUpload: (file) => void onUpload(file),
 					overlay: (
 						<Popover>
@@ -54,12 +54,6 @@ export function ArtworkControls({
 					),
 				},
 			]}
-			status={
-				<>
-					<ImagePlus />
-					<span>面图</span>
-				</>
-			}
 		/>
 	);
 }

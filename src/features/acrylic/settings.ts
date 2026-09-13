@@ -1,9 +1,9 @@
-import type { StudioSettings } from "@/features/studio/settings";
+import type { ProductPositionSettings } from "@/features/studio/settings";
 
 // The sheet every acrylic product is cut from: how thick it is, how much clear
 // margin is left around the artwork, and how far the 彩窗 image may colour the
 // pixels the artwork leaves clear.
-export type AcrylicSheetSettings = StudioSettings & {
+export type AcrylicSheetSettings = ProductPositionSettings & {
 	thickness: number;
 	border: number;
 	windowStrength: number;

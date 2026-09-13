@@ -70,7 +70,10 @@ export function ProductWorkspace({
 				}
 				footer={
 					!mobile && (
-						<PreviewToolbar onViewChange={onViewChange}>
+						<PreviewToolbar
+							onViewChange={onViewChange}
+							showPositionControls={product !== "badge"}
+						>
 							{renderSizeControl("footer")}
 						</PreviewToolbar>
 					)

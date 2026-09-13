@@ -35,6 +35,7 @@ export default function AcrylicWorkspace() {
 					gloss={settings.gloss}
 					windowStrength={settings.windowStrength}
 					scene={settings.scene}
+					positionOffsetZ={settings.positionOffsetZ}
 					pose={settings.pose}
 				/>
 			)}

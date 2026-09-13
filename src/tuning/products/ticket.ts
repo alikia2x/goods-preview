@@ -9,6 +9,7 @@ export const TICKET_DEFAULTS: TicketSettings = {
 	gloss: 75,
 	size: 150,
 	transparentBackground: false,
+	positionOffsetZ: 0,
 	finish: "laser",
 	bleed: 0,
 	pose: "flat",

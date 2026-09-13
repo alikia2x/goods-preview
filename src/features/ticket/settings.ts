@@ -1,7 +1,7 @@
-import type { StudioSettings } from "@/features/studio/settings";
+import type { ProductPositionSettings } from "@/features/studio/settings";
 // Only what a person can change. The coating's render parameters live in
 // `@/tuning/products/ticket` and are read by the material instead.
-export type TicketSettings = StudioSettings & {
+export type TicketSettings = ProductPositionSettings & {
 	finish: "laser" | "glitter" | "silver";
 	bleed: number;
 	pose: "standing" | "flat";

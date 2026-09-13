@@ -18,6 +18,13 @@ export type StudioSettings = {
 	transparentBackground: boolean;
 };
 
+// Products other than the badge can be moved within the upright display set.
+// Values are physical millimetres; each model converts them to its own authored
+// world scale when it is rendered.
+export type ProductPositionSettings = StudioSettings & {
+	positionOffsetZ: number;
+};
+
 export type SettingChange<S> = <K extends keyof S>(key: K, value: S[K]) => void;
 
 // One setting change, keyed so the value type follows the key.
@@ -50,8 +57,14 @@ export function useSettings<S extends StudioSettings>(
 		[],
 	);
 	const replaceSettings = useCallback(
-		(next: S) => dispatch({ type: "replace", settings: next }),
-		[],
+		(next: S) =>
+			dispatch({
+				type: "replace",
+				// History created before a setting was introduced may not contain it.
+				// Keep the current product defaults as the compatibility base.
+				settings: { ...defaults, ...next },
+			}),
+		[defaults],
 	);
 	return { settings, updateSetting, replaceSettings };
 }

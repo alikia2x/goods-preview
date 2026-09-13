@@ -43,7 +43,7 @@ export function SupportDialog({
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className={styles.content()} showCloseButton={false}>
-				<DialogHeader className="gap-2 pr-10">
+				<DialogHeader className="gap-2">
 					<DialogTitle className={styles.title()}>{title}</DialogTitle>
 					{description !== undefined && (
 						<DialogDescription className={styles.description()}>

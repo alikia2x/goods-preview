@@ -26,6 +26,7 @@ export function KeychainModel({
 			gloss={settings.gloss}
 			windowStrength={settings.windowStrength}
 			scene={settings.scene}
+			positionOffsetZ={settings.positionOffsetZ}
 		>
 			<KeychainHardware
 				hole={outline.hole}

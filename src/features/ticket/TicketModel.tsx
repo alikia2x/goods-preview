@@ -52,6 +52,8 @@ export function TicketModel({
 	useEffect(() => () => backTexture?.dispose(), [backTexture]);
 	useEffect(() => () => material.dispose(), [material]);
 	useEffect(() => () => backMaterial?.dispose(), [backMaterial]);
+	const depthOffset =
+		settings.scene === "standing" ? settings.positionOffsetZ / 30 : 0;
 	useLayoutEffect(() => {
 		onPlaced({
 			center: [
@@ -68,7 +70,7 @@ export function TicketModel({
 			position={[
 				0,
 				STAGE_FLOOR_Y + (settings.pose === "flat" ? 0.006 : height / 2),
-				0,
+				depthOffset,
 			]}
 		>
 			<mesh castShadow receiveShadow>

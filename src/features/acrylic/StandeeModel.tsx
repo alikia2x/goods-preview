@@ -30,6 +30,7 @@ export function StandeeModel({
 			gloss={settings.gloss}
 			windowStrength={settings.windowStrength}
 			scene={settings.scene}
+			positionOffsetZ={settings.positionOffsetZ}
 		>
 			<StandeeBase
 				baseDiameter={settings.baseDiameter}

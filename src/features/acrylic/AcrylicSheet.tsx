@@ -32,6 +32,7 @@ export function AcrylicSheet({
 	gloss,
 	windowStrength,
 	scene,
+	positionOffsetZ = 0,
 	pose = "standing",
 	children,
 }: {
@@ -44,6 +45,8 @@ export function AcrylicSheet({
 	gloss: number;
 	windowStrength: number;
 	scene: SceneKind;
+	/** Upright-scene placement in physical millimetres. */
+	positionOffsetZ?: number;
 	pose?: AcrylicPose;
 	children?: ReactNode;
 }) {
@@ -122,8 +125,10 @@ export function AcrylicSheet({
 		? STAGE_FLOOR_Y + (depth * scale) / 2
 		: STAGE_FLOOR_Y - bottom * scale;
 	const windowSurfaceZ = depth / 2 + 0.001;
+	const depthOffset =
+		scene === "standing" ? positionOffsetZ / MODEL_SCALE.sheet : 0;
 	return (
-		<group position={[0, seatY, 0]} scale={scale}>
+		<group position={[0, seatY, depthOffset]} scale={scale}>
 			<group rotation={flat ? [-Math.PI / 2, 0, 0] : [0, 0, 0]}>
 				<mesh
 					castShadow
