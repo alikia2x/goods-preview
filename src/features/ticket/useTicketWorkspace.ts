@@ -4,6 +4,8 @@ import { useWorkspaceArtwork } from "@/components/workspace/WorkspaceArtwork";
 import { useWorkspaceExportState } from "@/components/workspace/WorkspaceContext";
 import { PRODUCT_DEFAULTS } from "@/tuning";
 import { defaultArtwork } from "@/features/badge/model/artwork";
+import { useWorkspaceHistorySession } from "@/features/history/useWorkspaceHistorySession";
+import { deriveTicketSettings } from "@/features/ticket/settings";
 import type { Frame } from "@/features/studio/lib/framing";
 import {
 	decodeImage,
@@ -30,9 +32,13 @@ export function useTicketWorkspace() {
 		onViewportReady,
 		changeView,
 		readPose,
+		restorePose,
+		subscribePose,
 	} = useWorkspaceViewport();
 	const uploadSequenceRef = useRef(0);
 	const appliedArtworkFileRef = useRef<File | null>(null);
+	const restorePlacementRevisionRef = useRef<number | null>(null);
+	const handledRestorationKeyRef = useRef(0);
 	const [placement, setPlacement] = useState({
 		frame: UNMEASURED_FRAME,
 		revision: 0,
@@ -53,7 +59,19 @@ export function useTicketWorkspace() {
 		}));
 	}, []);
 
-	const { settings, updateSetting } = useSettings(PRODUCT_DEFAULTS.ticket);
+	const { settings, updateSetting, replaceSettings } = useSettings(
+		PRODUCT_DEFAULTS.ticket,
+		deriveTicketSettings,
+	);
+	const history = useWorkspaceHistorySession({
+		product: "ticket",
+		artworkFile,
+		settings,
+		replaceSettings,
+		ready,
+		readPose,
+		subscribePose,
+	});
 	const [artwork, setArtwork] = useState<
 		HTMLImageElement | HTMLCanvasElement | null
 	>(null);
@@ -77,6 +95,7 @@ export function useTicketWorkspace() {
 		apiRef,
 		fileName,
 		transparentBackground: settings.transparentBackground,
+		onComplete: history.resolveAfterSave,
 	});
 	const { setError } = exportState;
 
@@ -88,6 +107,23 @@ export function useTicketWorkspace() {
 	});
 
 	useSceneBackground(settings.scene);
+
+	useEffect(() => {
+		if (
+			!history.restorationKey ||
+			handledRestorationKeyRef.current === history.restorationKey
+		)
+			return;
+		handledRestorationKeyRef.current = history.restorationKey;
+		restorePlacementRevisionRef.current = placement.revision + 1;
+	}, [history.restorationKey, placement.revision]);
+
+	useEffect(() => {
+		const restoreAt = restorePlacementRevisionRef.current;
+		if (!ready || restoreAt === null || placement.revision < restoreAt) return;
+		restorePlacementRevisionRef.current = null;
+		restorePose(history.takeRestoredCamera());
+	}, [history.takeRestoredCamera, placement.revision, ready, restorePose]);
 
 	useEffect(() => {
 		if (!artworkFile) {

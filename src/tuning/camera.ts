@@ -54,7 +54,10 @@ export const ACRYLIC_CAMERA: {
 	minDistance: number;
 	maxDistance: number;
 	views: ViewPositions;
+	/** A lying sheet uses top- and underside-facing view presets. */
+	flatViews: ViewPositions;
 	opening: Record<"keychain" | "acrylic" | "standee", Vector3Tuple>;
+	flatOpening: Vector3Tuple;
 } = {
 	minDistance: 3,
 	maxDistance: 60,
@@ -63,11 +66,17 @@ export const ACRYLIC_CAMERA: {
 		back: [0, 0.03, -1],
 		angle: [0.25, 0.1, 1],
 	},
+	flatViews: {
+		front: [0, 0.9948, 0.1015],
+		back: [0, -0.9948, -0.1015],
+		angle: [0.1595, 0.7177, 0.6778],
+	},
 	opening: {
 		keychain: [0.07, 0.05, 1],
 		acrylic: [0.07, 0.05, 1],
 		standee: [0.25, 0.1, 1],
 	},
+	flatOpening: [0.15, 1, 0.35],
 };
 
 // How much breathing room each product is framed with, as a multiple of the size

@@ -8,27 +8,36 @@ import {
 } from "@/features/keychain/lib/hardware";
 import { KEYCHAIN_HARDWARE_COLORS } from "@/features/keychain/lib/materials";
 import type { KeychainHardwareColor } from "@/features/keychain/settings";
+import { MODEL_SCALE } from "@/tuning";
 
 export function KeychainHardware({
 	hole,
 	kind,
+	size,
 	thickness,
 	color,
 }: {
 	hole: Vector2;
 	kind: "ring" | "clasp";
+	/** The sheet's long edge in millimetres. */
+	size: number;
+	/** The sheet's thickness in millimetres. */
 	thickness: number;
 	color: KeychainHardwareColor;
 }) {
+	// The sheet is scaled by size / MODEL_SCALE.sheet, so the hardware carries the
+	// reciprocal: a chain is the same size on every article it hangs from.
+	const fixed = MODEL_SCALE.sheet / size;
+	const sheetDepth = (thickness / MODEL_SCALE.sheet) * 2;
 	const geometries = useMemo(
 		() => ({
 			link: ovalLinkGeometry(),
-			jump: ovalLinkGeometry(Math.max(0.075, thickness / 2 + 0.026)),
+			jump: ovalLinkGeometry(Math.max(0.075, sheetDepth / 2 + 0.026)),
 			ring: splitRingGeometry(),
 			body: claspBodyGeometry(),
 			gate: claspGateGeometry(),
 		}),
-		[thickness],
+		[sheetDepth],
 	);
 	useEffect(
 		() => () => {
@@ -44,7 +53,7 @@ export function KeychainHardware({
 		envMapIntensity: material.environmentIntensity,
 	};
 	return (
-		<group position={[hole.x, hole.y, 0]}>
+		<group position={[hole.x, hole.y, 0]} scale={fixed}>
 			{[0, 1, 2, 3].map((index) => (
 				<mesh
 					key={index}

@@ -1,5 +1,5 @@
 import { AcrylicSheet } from "@/features/acrylic/AcrylicSheet";
-import { type Outline, sheetThickness } from "@/features/acrylic/lib/geometry";
+import type { Outline } from "@/features/acrylic/lib/geometry";
 import type { KeychainArtwork } from "@/features/keychain/lib/artwork";
 import { KeychainHardware } from "@/features/keychain/model/KeychainHardware";
 import type { KeychainSettings } from "@/features/keychain/settings";
@@ -26,7 +26,8 @@ export function KeychainModel({
 			<KeychainHardware
 				hole={outline.hole}
 				kind={settings.hardware}
-				thickness={sheetThickness(settings.thickness, settings.size)}
+				size={settings.size}
+				thickness={settings.thickness}
 				color={settings.hardwareColor}
 			/>
 		</AcrylicSheet>

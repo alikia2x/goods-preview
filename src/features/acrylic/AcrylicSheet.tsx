@@ -7,6 +7,7 @@ import {
 	sheetThickness,
 } from "@/features/acrylic/lib/geometry";
 import { createOpticalShadow } from "@/features/acrylic/optical-shadow";
+import type { AcrylicPose } from "@/features/acrylic/settings";
 import type { KeychainArtwork } from "@/features/keychain/lib/artwork";
 import { sampledDiffuseLighting } from "@/features/studio/lib/indirect-light";
 import { ambientIblShare } from "@/features/studio/lib/light-budget";
@@ -21,6 +22,7 @@ export function AcrylicSheet({
 	thickness,
 	gloss,
 	scene,
+	pose = "standing",
 	children,
 }: {
 	artwork: KeychainArtwork;
@@ -29,6 +31,7 @@ export function AcrylicSheet({
 	thickness: number;
 	gloss: number;
 	scene: SceneKind;
+	pose?: AcrylicPose;
 	children?: ReactNode;
 }) {
 	const scale = size / MODEL_SCALE.sheet;
@@ -77,35 +80,48 @@ export function AcrylicSheet({
 		[],
 	);
 	const bottom = Math.min(...outline.points.map((point) => point.y));
+	const flat = pose === "flat";
+	// Standing, the sheet rests on its lowest cut point. Flat, it lies on the
+	// face opposite the print, so the seating comes from the half-thickness
+	// beneath it.
+	const seatY = flat
+		? STAGE_FLOOR_Y + (depth * scale) / 2
+		: STAGE_FLOOR_Y - bottom * scale;
 	return (
-		<group position={[0, STAGE_FLOOR_Y - bottom * scale, 0]} scale={scale}>
-			<mesh
-				castShadow
-				customDepthMaterial={opticalShadow}
-				geometry={geometry}
-				dispose={null}
-			>
-				<AcrylicMaterial attach="material-0" thickness={depth} gloss={gloss} />
-				<AcrylicMaterial
-					attach="material-1"
-					thickness={depth}
-					gloss={gloss}
-					edge
-				/>
-			</mesh>
-			<mesh castShadow receiveShadow customDepthMaterial={depthMaterial}>
-				<planeGeometry args={[outline.width, outline.height]} />
-				<meshStandardMaterial
-					onBeforeCompile={patchDiffuse}
-					map={texture}
-					alphaTest={0.08}
-					alphaToCoverage
-					side={THREE.DoubleSide}
-					roughness={0.9}
-					metalness={0}
-				/>
-			</mesh>
-			{children}
+		<group position={[0, seatY, 0]} scale={scale}>
+			<group rotation={flat ? [-Math.PI / 2, 0, 0] : [0, 0, 0]}>
+				<mesh
+					castShadow
+					customDepthMaterial={opticalShadow}
+					geometry={geometry}
+					dispose={null}
+				>
+					<AcrylicMaterial
+						attach="material-0"
+						thickness={depth}
+						gloss={gloss}
+					/>
+					<AcrylicMaterial
+						attach="material-1"
+						thickness={depth}
+						gloss={gloss}
+						edge
+					/>
+				</mesh>
+				<mesh castShadow receiveShadow customDepthMaterial={depthMaterial}>
+					<planeGeometry args={[outline.width, outline.height]} />
+					<meshStandardMaterial
+						onBeforeCompile={patchDiffuse}
+						map={texture}
+						alphaTest={0.08}
+						alphaToCoverage
+						side={THREE.DoubleSide}
+						roughness={0.9}
+						metalness={0}
+					/>
+				</mesh>
+				{children}
+			</group>
 		</group>
 	);
 }

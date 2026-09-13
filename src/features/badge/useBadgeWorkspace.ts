@@ -5,6 +5,7 @@ import { useWorkspaceExportState } from "@/components/workspace/WorkspaceContext
 import { PRODUCT_DEFAULTS } from "@/tuning";
 import type { BadgeShadowHandle } from "@/features/badge/model/BadgeModel";
 import { defaultArtwork } from "@/features/badge/model/artwork";
+import { useWorkspaceHistorySession } from "@/features/history/useWorkspaceHistorySession";
 import { deriveBadgeSettings } from "@/features/badge/settings";
 import type { Frame } from "@/features/studio/lib/framing";
 import {
@@ -32,10 +33,14 @@ export function useBadgeWorkspace() {
 		onViewportReady,
 		changeView,
 		readPose,
+		restorePose,
+		subscribePose,
 	} = useWorkspaceViewport();
 	const shadowRef = useRef<BadgeShadowHandle | null>(null);
 	const uploadSequenceRef = useRef(0);
 	const appliedArtworkFileRef = useRef<File | null>(null);
+	const restorePlacementRevisionRef = useRef<number | null>(null);
+	const handledRestorationKeyRef = useRef(0);
 	const [placement, setPlacement] = useState({
 		frame: UNMEASURED_FRAME,
 		revision: 0,
@@ -56,10 +61,19 @@ export function useBadgeWorkspace() {
 		}));
 	}, []);
 
-	const { settings, updateSetting } = useSettings(
+	const { settings, updateSetting, replaceSettings } = useSettings(
 		PRODUCT_DEFAULTS.badge,
 		deriveBadgeSettings,
 	);
+	const history = useWorkspaceHistorySession({
+		product: "badge",
+		artworkFile,
+		settings,
+		replaceSettings,
+		ready,
+		readPose,
+		subscribePose,
+	});
 	const [artwork, setArtwork] = useState<
 		HTMLImageElement | HTMLCanvasElement | null
 	>(null);
@@ -91,6 +105,7 @@ export function useBadgeWorkspace() {
 		fileName,
 		transparentBackground: settings.transparentBackground,
 		beforeCapture,
+		onComplete: history.resolveAfterSave,
 	});
 	const { setError } = exportState;
 
@@ -102,6 +117,23 @@ export function useBadgeWorkspace() {
 	});
 
 	useSceneBackground(settings.scene);
+
+	useEffect(() => {
+		if (
+			!history.restorationKey ||
+			handledRestorationKeyRef.current === history.restorationKey
+		)
+			return;
+		handledRestorationKeyRef.current = history.restorationKey;
+		restorePlacementRevisionRef.current = placement.revision + 1;
+	}, [history.restorationKey, placement.revision]);
+
+	useEffect(() => {
+		const restoreAt = restorePlacementRevisionRef.current;
+		if (!ready || restoreAt === null || placement.revision < restoreAt) return;
+		restorePlacementRevisionRef.current = null;
+		restorePose(history.takeRestoredCamera());
+	}, [history.takeRestoredCamera, placement.revision, ready, restorePose]);
 
 	useEffect(() => {
 		if (!artworkFile) {

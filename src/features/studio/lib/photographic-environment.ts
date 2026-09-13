@@ -46,7 +46,7 @@ export const PHOTOGRAPHIC_ENVIRONMENTS = {
 		intensity: PHOTOGRAPHIC_INTENSITY.artistWorkshop,
 		gain: 1,
 		rigGain: 1,
-	}
+	},
 } satisfies Record<
 	string,
 	{

@@ -22,6 +22,12 @@ export function useWorkspaceViewport() {
 	const readPose = useCallback((): ViewPose | null => {
 		return apiRef.current?.pose() ?? null;
 	}, []);
+	const restorePose = useCallback((pose: ViewPose | null) => {
+		if (pose) apiRef.current?.setPose(pose);
+	}, []);
+	const subscribePose = useCallback((listener: (pose: ViewPose) => void) => {
+		return apiRef.current?.subscribePose(listener) ?? (() => {});
+	}, []);
 
 	return {
 		framingRef,
@@ -31,5 +37,7 @@ export function useWorkspaceViewport() {
 		onViewportReady,
 		changeView,
 		readPose,
+		restorePose,
+		subscribePose,
 	};
 }

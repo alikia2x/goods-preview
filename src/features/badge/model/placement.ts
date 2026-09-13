@@ -26,7 +26,7 @@ export function placeBadge(
 	group.position.set(0, 0, 0);
 	group.rotation.set(0, 0, 0);
 	group.scale.setScalar(scale);
-	if (settings.pose === "flat" && settings.scene === "table") {
+	if (settings.pose === "flat") {
 		group.rotation.x = -Math.PI / 2;
 		group.updateMatrixWorld(true);
 		const flat = new THREE.Box3().setFromObject(group);

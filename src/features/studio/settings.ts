@@ -25,6 +25,8 @@ type SettingAction<S> = {
 	[K in keyof S]: { key: K; value: S[K] };
 }[keyof S];
 
+type ReplaceSettingsAction<S> = { type: "replace"; settings: S };
+
 // One settings reducer for every product. `derive` is an optional pure rule that
 // reacts to a change (for example the badge's finish also selects a lighting
 // preset and gloss) and must be a stable module-level function.
@@ -33,7 +35,8 @@ export function useSettings<S extends StudioSettings>(
 	derive?: (next: S, key: keyof S) => S,
 ) {
 	const reducer = useCallback(
-		(state: S, action: SettingAction<S>) => {
+		(state: S, action: SettingAction<S> | ReplaceSettingsAction<S>) => {
+			if ("type" in action) return action.settings;
 			const next = { ...state, [action.key]: action.value };
 			return derive ? derive(next, action.key) : next;
 		},
@@ -46,5 +49,9 @@ export function useSettings<S extends StudioSettings>(
 		(key, value) => dispatch({ key, value } as SettingAction<S>),
 		[],
 	);
-	return { settings, updateSetting };
+	const replaceSettings = useCallback(
+		(next: S) => dispatch({ type: "replace", settings: next }),
+		[],
+	);
+	return { settings, updateSetting, replaceSettings };
 }

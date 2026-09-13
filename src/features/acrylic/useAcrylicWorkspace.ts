@@ -7,12 +7,16 @@ import {
 	type OutlineMount,
 	traceOutline,
 } from "@/features/acrylic/lib/geometry";
-import type { AcrylicSheetSettings } from "@/features/acrylic/settings";
+import type {
+	AcrylicPose,
+	AcrylicSheetSettings,
+} from "@/features/acrylic/settings";
 import {
 	defaultKeychainArtwork,
 	type KeychainArtwork,
 	readKeychainArtwork,
 } from "@/features/keychain/lib/artwork";
+import { useWorkspaceHistorySession } from "@/features/history/useWorkspaceHistorySession";
 import { type SettingChange, useSettings } from "@/features/studio/settings";
 import { useExportController } from "@/features/studio/useExportController";
 import { useWorkspaceViewport } from "@/features/studio/useWorkspaceViewport";
@@ -32,12 +36,14 @@ export function useAcrylicWorkspace<S extends AcrylicSheetSettings>({
 	mount,
 	frame,
 	filePrefix,
+	poseOf,
 }: {
 	defaults: S;
 	derive?: (next: S, key: keyof S) => S;
 	mount: (settings: S) => "keychain" | OutlineMount | null;
 	frame: (outline: Outline, settings: S) => Frame;
 	filePrefix: string;
+	poseOf?: (settings: S) => AcrylicPose;
 }) {
 	const { artworkFile, rememberArtwork } = useWorkspaceArtwork();
 	const {
@@ -48,16 +54,30 @@ export function useAcrylicWorkspace<S extends AcrylicSheetSettings>({
 		onViewportReady,
 		changeView,
 		readPose,
+		restorePose,
+		subscribePose,
 	} = useWorkspaceViewport();
-	const { settings, updateSetting: applySetting } = useSettings(
-		defaults,
-		derive,
-	);
+	const {
+		settings,
+		updateSetting: applySetting,
+		replaceSettings,
+	} = useSettings(defaults, derive);
+	const history = useWorkspaceHistorySession({
+		product: filePrefix as "keychain" | "acrylic" | "standee",
+		artworkFile,
+		settings,
+		replaceSettings,
+		ready,
+		readPose,
+		subscribePose,
+	});
 	const [artwork, setArtwork] = useState<KeychainArtwork | null>(null);
 	const [outline, setOutline] = useState<Outline | null>(null);
 	const [loading, setLoading] = useState(false);
 	const sequence = useRef(0);
 	const appliedArtworkFile = useRef<File | null>(null);
+	const restoreOutlineRef = useRef<Outline | null>(null);
+	const handledRestorationKeyRef = useRef(0);
 
 	// Export keeps this set in the beauty pass, then isolates its shadow receivers.
 	const backgroundObjects = useCallback(() => {
@@ -76,6 +96,7 @@ export function useAcrylicWorkspace<S extends AcrylicSheetSettings>({
 		fileName,
 		transparentBackground: settings.transparentBackground,
 		blocked: loading,
+		onComplete: history.resolveAfterSave,
 	});
 	const { setError } = exportState;
 
@@ -95,6 +116,23 @@ export function useAcrylicWorkspace<S extends AcrylicSheetSettings>({
 	});
 
 	useSceneBackground(settings.scene);
+
+	useEffect(() => {
+		if (
+			!history.restorationKey ||
+			handledRestorationKeyRef.current === history.restorationKey
+		)
+			return;
+		handledRestorationKeyRef.current = history.restorationKey;
+		restoreOutlineRef.current = outline;
+	}, [history.restorationKey, outline]);
+
+	useEffect(() => {
+		if (!ready || outline === null || outline === restoreOutlineRef.current)
+			return;
+		restoreOutlineRef.current = outline;
+		restorePose(history.takeRestoredCamera());
+	}, [history.takeRestoredCamera, outline, ready, restorePose]);
 
 	useEffect(() => {
 		if (!artworkFile) {
@@ -183,6 +221,8 @@ export function useAcrylicWorkspace<S extends AcrylicSheetSettings>({
 		() => (outline ? frame(outline, settings) : UNMEASURED_FRAME),
 		[outline, settings, frame],
 	);
+	// Only the products that expose a pose read one; the rest stay upright.
+	const flat = poseOf ? poseOf(settings) === "flat" : false;
 
 	return {
 		settings,
@@ -191,6 +231,7 @@ export function useAcrylicWorkspace<S extends AcrylicSheetSettings>({
 		// Whether the artwork has been measured yet: the camera is seated once
 		// more when it has, so the first frame is not left on the placeholder.
 		settled: outline !== null,
+		flat,
 		loading,
 		exportState: workspaceExport,
 		updateSetting,

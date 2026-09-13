@@ -12,12 +12,14 @@ export function useExportController({
 	transparentBackground,
 	blocked = false,
 	beforeCapture,
+	onComplete,
 }: {
 	apiRef: RefObject<StudioHandle | null>;
 	fileName: (resolution: number, transparent: boolean) => string;
 	transparentBackground: boolean;
 	blocked?: boolean;
 	beforeCapture?: () => void;
+	onComplete?: () => void;
 }) {
 	const exportArtwork = useCallback(
 		async (resolution: number, transparent: boolean) => {
@@ -26,8 +28,9 @@ export function useExportController({
 			beforeCapture?.();
 			const blob = await api.capture(resolution, transparent);
 			downloadPng(blob, fileName(resolution, transparent));
+			onComplete?.();
 		},
-		[apiRef, fileName, beforeCapture],
+		[apiRef, fileName, beforeCapture, onComplete],
 	);
 	return useExportState({ exportArtwork, transparentBackground, blocked });
 }

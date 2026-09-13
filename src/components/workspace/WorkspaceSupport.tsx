@@ -8,17 +8,9 @@ import {
 	useState,
 	useSyncExternalStore,
 } from "react";
-import { tv } from "tailwind-variants";
-import { Button } from "@/components/ui/button";
-import {
-	Dialog,
-	DialogClose,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
+import { SupportDialog } from "@/components/workspace/SupportDialog";
 import { PRODUCT_VERSION } from "@/features/badge/constants";
+import { TutorialStep, TutorialSteps } from "@/features/tutorial";
 
 const TUTORIAL_STORAGE_KEY = "goods-preview.tutorial-seen";
 const COARSE_POINTER_QUERY = "(pointer: coarse)";
@@ -31,50 +23,6 @@ function subscribeToCoarsePointer(listener: () => void) {
 
 function getCoarsePointerSnapshot() {
 	return window.matchMedia(COARSE_POINTER_QUERY).matches;
-}
-
-const supportDialog = tv({
-	slots: {
-		content:
-			"gap-6 rounded-4xl bg-panel p-7 text-panel-foreground shadow-[0_24px_80px_#00000040] max-mobile:p-6",
-		title: "text-[28px] font-[650] text-white",
-		description: "text-sm leading-6 text-panel-dim",
-		action: "h-11 rounded-full bg-white text-panel hover:bg-inverse-hover",
-	},
-});
-
-function SupportDialog({
-	open,
-	onOpenChange,
-	title,
-	description,
-	actionLabel,
-	children,
-}: {
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
-	title: string;
-	description: ReactNode;
-	actionLabel: string;
-	children: ReactNode;
-}) {
-	const styles = supportDialog();
-	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className={styles.content()} showCloseButton={false}>
-				<DialogHeader className="gap-2 pr-10">
-					<DialogTitle className={styles.title()}>{title}</DialogTitle>
-					<DialogDescription className={styles.description()}>
-						{description}
-					</DialogDescription>
-				</DialogHeader>
-				{children}
-				<DialogClose asChild>
-					<Button className={styles.action()}>{actionLabel}</Button>
-				</DialogClose>
-			</DialogContent>
-		</Dialog>
-	);
 }
 
 type WorkspaceSupport = {
@@ -130,40 +78,27 @@ export function WorkspaceSupportProvider({
 				open={tutorialOpen}
 				onOpenChange={setTutorialVisibility}
 				title="使用教程"
-				description=""
+				description="你可以点击左上角菜单回顾此教程，并查看针对每个制品的教程说明。"
 				actionLabel="开始使用"
 			>
-				<ol className="m-0 grid list-none gap-3 p-0">
-					{[
-						["01", "选择制品", "从左上角菜单切换制品。"],
-						["02", "上传图像", "在调整面板中替换内容图像。"],
-						[
-							"03",
-							"调整预览",
-							`设置场景、光照和材质参数。${
-								coarsePointer
-									? "使用双指缩放/平移，滑动旋转。"
-									: "使用鼠标按住左键拖拽旋转，右键拖拽平移，滚轮缩放。"
-							}`,
-						],
-						["04", "导出 PNG", "选择尺寸后保存 PNG 文件。"],
-					].map(([index, title, description]) => (
-						<li
-							key={index}
-							className="grid grid-cols-[28px_1fr] gap-3 rounded-2xl bg-white/6 p-3.5"
-						>
-							<span className="self-center pt-0.5 text-2xl tabular-nums font-medium text-brand">
-								{index}
-							</span>
-							<span className="grid gap-0.5">
-								<span className="text-sm font-medium text-white">{title}</span>
-								<span className="text-xs leading-5 text-panel-dim">
-									{description}
-								</span>
-							</span>
-						</li>
-					))}
-				</ol>
+				<TutorialSteps>
+					<TutorialStep title="选择制品">从左上角菜单切换制品。</TutorialStep>
+					<TutorialStep title="上传图像">
+						在调整面板中替换内容图像。
+					</TutorialStep>
+					<TutorialStep title="调整工艺">
+						点击左上角的制品名称按钮，可以调整具体的工艺或尺寸参数。
+					</TutorialStep>
+					<TutorialStep title="调整预览">
+						设置场景、光照和材质参数。
+						{coarsePointer
+							? "使用双指缩放/平移，滑动旋转。"
+							: "使用鼠标按住左键拖拽旋转，右键拖拽平移，滚轮缩放。"}
+					</TutorialStep>
+					<TutorialStep title="导出 PNG">
+						选择尺寸后保存 PNG 文件。
+					</TutorialStep>
+				</TutorialSteps>
 			</SupportDialog>
 			<SupportDialog
 				open={aboutOpen}

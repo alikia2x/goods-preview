@@ -13,8 +13,8 @@ export const ACRYLIC_MAX_DISTANCE = ACRYLIC_CAMERA.maxDistance;
 export function acrylicViews(
 	center: Vector3Tuple,
 	distance: number,
+	views = ACRYLIC_CAMERA.views,
 ): StudioViews {
-	const { views } = ACRYLIC_CAMERA;
 	return {
 		front: {
 			position: cameraSeat(center, distance, views.front),
@@ -29,6 +29,15 @@ export function acrylicViews(
 			target: center,
 		},
 	};
+}
+
+// A lying sheet is seen from above rather than edge-on, so its seats look down
+// at the footprint it occupies.
+export function acrylicFlatViews(
+	center: Vector3Tuple,
+	distance: number,
+): StudioViews {
+	return acrylicViews(center, distance, ACRYLIC_CAMERA.flatViews);
 }
 
 export function acrylicPose(

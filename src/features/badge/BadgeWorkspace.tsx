@@ -52,7 +52,7 @@ export default function BadgeWorkspace() {
 	// preserving elevation for both lighting and the matching contact shadow.
 	const renderSettings = useMemo(
 		() =>
-			settings.scene === "table" && settings.pose === "flat"
+			settings.pose === "flat"
 				? {
 						...settings,
 						lightAzimuth: ((settings.lightAzimuth + 360) % 360) - 180,

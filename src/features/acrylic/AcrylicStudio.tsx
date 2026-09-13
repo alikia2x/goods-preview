@@ -5,11 +5,15 @@ import { AcrylicKeyLight } from "@/features/acrylic/AcrylicKeyLight";
 import { AcrylicSheetControls } from "@/features/acrylic/AcrylicSheetControls";
 import type { Outline, OutlineMount } from "@/features/acrylic/lib/geometry";
 import { PatternSizePopover } from "@/features/acrylic/PatternSizePopover";
-import type { AcrylicSheetSettings } from "@/features/acrylic/settings";
+import type {
+	AcrylicPose,
+	AcrylicSheetSettings,
+} from "@/features/acrylic/settings";
 import { useAcrylicWorkspace } from "@/features/acrylic/useAcrylicWorkspace";
 import {
 	ACRYLIC_MAX_DISTANCE,
 	ACRYLIC_MIN_DISTANCE,
+	acrylicFlatViews,
 	acrylicPose,
 	acrylicViews,
 } from "@/features/acrylic/views";
@@ -19,6 +23,7 @@ import { StudioStatus } from "@/features/studio/components/StudioStatus";
 import { studioDistance, type Frame } from "@/features/studio/lib/framing";
 import { useStudioEnvironment } from "@/features/studio/useStudioEnvironment";
 import {
+	ACRYLIC_CAMERA,
 	CAMERA,
 	PRODUCT_FRAMING_FILL,
 	type ProductKind,
@@ -39,6 +44,8 @@ export function AcrylicStudio<S extends AcrylicSheetSettings>({
 	variantControls,
 	variantContentClassName,
 	renderModel,
+	poseOf,
+	poseControls,
 }: {
 	product: ProductKind;
 	defaults: S;
@@ -53,6 +60,9 @@ export function AcrylicStudio<S extends AcrylicSheetSettings>({
 		model: { artwork: KeychainArtwork; outline: Outline },
 		settings: S,
 	) => ReactNode;
+	/** Reads the product's pose; products without one stay upright. */
+	poseOf?: (settings: S) => AcrylicPose;
+	poseControls?: ReactNode;
 }) {
 	const workspace = useAcrylicWorkspace({
 		defaults,
@@ -60,6 +70,7 @@ export function AcrylicStudio<S extends AcrylicSheetSettings>({
 		mount,
 		frame,
 		filePrefix: product,
+		poseOf,
 	});
 	const {
 		settings,
@@ -80,13 +91,22 @@ export function AcrylicStudio<S extends AcrylicSheetSettings>({
 		CAMERA.fov,
 		PRODUCT_FRAMING_FILL[product],
 	);
+	const flat = workspace.flat;
 	const pose = useMemo(
-		() => acrylicPose(opening, measured.center, distance),
-		[opening, measured.center, distance],
+		() =>
+			acrylicPose(
+				flat ? ACRYLIC_CAMERA.flatOpening : opening,
+				measured.center,
+				distance,
+			),
+		[flat, opening, measured.center, distance],
 	);
 	const views = useMemo(
-		() => acrylicViews(measured.center, distance),
-		[measured.center, distance],
+		() =>
+			flat
+				? acrylicFlatViews(measured.center, distance)
+				: acrylicViews(measured.center, distance),
+		[flat, measured.center, distance],
 	);
 	const name = productName(settings);
 	// The camera is seated when the workspace mounts and once more when the artwork
@@ -121,6 +141,8 @@ export function AcrylicStudio<S extends AcrylicSheetSettings>({
 						name={model?.artwork.name ?? ""}
 						loading={workspace.loading}
 						onUpload={workspace.upload}
+						poseControls={poseControls}
+						product={product}
 					/>
 				}
 				panelLabel={`调整${name}`}
@@ -137,7 +159,7 @@ export function AcrylicStudio<S extends AcrylicSheetSettings>({
 						apiRef={workspace.apiRef}
 						onViewportReady={workspace.onViewportReady}
 						pose={pose}
-						poseKey={`${product}:${workspace.settled}`}
+						poseKey={`${product}:${workspace.settled}:${flat ? "flat" : "standing"}`}
 						views={views}
 						minDistance={ACRYLIC_MIN_DISTANCE}
 						maxDistance={ACRYLIC_MAX_DISTANCE}

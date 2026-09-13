@@ -38,10 +38,7 @@ export function isLightingPreset(value: string): value is LightingPreset {
 }
 
 // Scale the lighting rig; 50% is the neutral studio setup.
-function presetEnergy(
-	preset: LightingPreset,
-	lightPercent: number,
-) {
+function presetEnergy(preset: LightingPreset, lightPercent: number) {
 	const entry = LIGHTING_PRESETS[preset];
 	const gain = entry.gain;
 	return 2 ** ((lightPercent - 50) / 50) * gain;
@@ -56,10 +53,7 @@ export function environmentEnergy(
 	return presetEnergy(preset, lightPercent);
 }
 
-export function lightEnergy(
-	preset: LightingPreset,
-	lightPercent: number,
-) {
+export function lightEnergy(preset: LightingPreset, lightPercent: number) {
 	const energy = presetEnergy(preset, lightPercent);
 	return energy * LIGHTING_PRESETS[preset].rigGain;
 }

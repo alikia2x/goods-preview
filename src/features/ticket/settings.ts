@@ -10,3 +10,12 @@ export const TICKET_FINISHES = {
 	glitter: "闪粉覆膜",
 	silver: "镭射银",
 };
+
+// The 立放展示 scene always presents the ticket upright, so a flat pose cannot
+// survive a switch to it.
+export function deriveTicketSettings(next: TicketSettings): TicketSettings {
+	if (next.scene === "standing" && next.pose !== "standing") {
+		return { ...next, pose: "standing" };
+	}
+	return next;
+}

@@ -53,5 +53,5 @@ export const PHOTOGRAPHIC_INTENSITY = {
 	studioSmall09: 1.4,
 	studioSmall03: 0.8,
 	photoStudio01: 1,
-	artistWorkshop: 1
+	artistWorkshop: 1,
 } as const;

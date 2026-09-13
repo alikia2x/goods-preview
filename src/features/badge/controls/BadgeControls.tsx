@@ -24,16 +24,12 @@ export function BadgeControls({
 				artworkName={artworkName}
 				onUpload={onUpload}
 			/>
-			<StudioControls
-				glossLabel="覆膜反光"
-				afterScene={
-					settings.scene === "table" ? (
-						<AdjustmentSection title="姿态">
-							<PoseControls />
-						</AdjustmentSection>
-					) : null
-				}
-			/>
+			{settings.scene !== "standing" && (
+				<AdjustmentSection title="姿态">
+					<PoseControls />
+				</AdjustmentSection>
+			)}
+			<StudioControls glossLabel="覆膜反光" />
 		</>
 	);
 }

@@ -3,9 +3,11 @@ import {
 	type ReactNode,
 	useCallback,
 	useContext,
+	useEffect,
 	useMemo,
 	useState,
 } from "react";
+import { useWorkspaceHistory } from "@/features/history/WorkspaceHistory";
 
 type WorkspaceArtworkValue = {
 	artworkFile: File | null;
@@ -24,6 +26,18 @@ export function WorkspaceArtworkProvider({
 	children: ReactNode;
 }) {
 	const [artworkFile, setArtworkFile] = useState<File | null>(null);
+	const { startupEntry } = useWorkspaceHistory();
+
+	useEffect(() => {
+		if (!startupEntry) return;
+		setArtworkFile(
+			new File([startupEntry.artwork], startupEntry.artworkName, {
+				type: startupEntry.artwork.type,
+				lastModified: startupEntry.artworkLastModified,
+			}),
+		);
+	}, [startupEntry]);
+
 	const rememberArtwork = useCallback((file: File) => setArtworkFile(file), []);
 	const value = useMemo(
 		() => ({ artworkFile, rememberArtwork }),

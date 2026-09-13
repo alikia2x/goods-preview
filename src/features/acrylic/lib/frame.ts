@@ -1,4 +1,5 @@
-import type { Outline } from "@/features/acrylic/lib/geometry";
+import { sheetThickness, type Outline } from "@/features/acrylic/lib/geometry";
+import type { AcrylicPose } from "@/features/acrylic/settings";
 import type { Frame } from "@/features/studio/lib/framing";
 import { MODEL_SCALE, STAGE_FLOOR_Y } from "@/tuning";
 
@@ -25,10 +26,27 @@ function seat(minX: number, maxX: number, height: number, widest = 0): Frame {
 	};
 }
 
-// 任意亚克力 — the sheet alone, framed around the artwork it was cut to.
-export function acrylicFrame(outline: Outline, size: number): Frame {
+// 任意亚克力 — the sheet alone, framed around the artwork it was cut to. Lying
+// flat, the footprint it occupies is the outline spread across the floor.
+export function acrylicFrame(
+	outline: Outline,
+	size: number,
+	thickness: number,
+	pose: AcrylicPose = "standing",
+): Frame {
 	const scale = size / MODEL_SCALE.sheet;
 	const { left, right, bottom, top } = bounds(outline);
+	if (pose === "flat") {
+		return {
+			center: [
+				((left + right) / 2) * scale,
+				STAGE_FLOOR_Y + (sheetThickness(thickness, size) * scale) / 2,
+				0,
+			],
+			span:
+				Math.max((right - left) * scale, (top - bottom) * scale) + FRAME_MARGIN,
+		};
+	}
 	return seat(left * scale, right * scale, (top - bottom) * scale);
 }
 
@@ -51,7 +69,8 @@ export function standeeFrame(
 }
 
 // 亚克力钥匙扣 — the lug and hardware hang above the sheet, so the frame reaches
-// past the hole rather than stopping at the artwork.
+// past the hole rather than stopping at the artwork. The hardware keeps a fixed
+// physical size, so its reach past the hole does not grow with the sheet.
 export function keychainFrame(
 	outline: Outline,
 	size: number,
@@ -60,11 +79,11 @@ export function keychainFrame(
 	const scale = size / MODEL_SCALE.sheet;
 	const { left, right, bottom } = bounds(outline);
 	const translation = STAGE_FLOOR_Y - bottom * scale;
-	const minX = Math.min(left, outline.hole.x - 0.47) * scale;
-	const maxX = Math.max(right, outline.hole.x + 0.47) * scale;
-	const maxY =
-		(outline.hole.y + (hardware === "ring" ? 1.54 : 1.48)) * scale +
-		translation;
+	const holeX = outline.hole.x * scale;
+	const holeY = outline.hole.y * scale + translation;
+	const minX = Math.min(left * scale, holeX - 0.47);
+	const maxX = Math.max(right * scale, holeX + 0.47);
+	const maxY = holeY + (hardware === "ring" ? 1.54 : 1.48);
 	return {
 		center: [(minX + maxX) / 2, (maxY + STAGE_FLOOR_Y) / 2, 0],
 		span: Math.max(maxX - minX, maxY - STAGE_FLOOR_Y),

@@ -112,3 +112,14 @@ body {
 #root {
 	min-height: 100vh;
 }
+
+/* Scrollable popovers and dialogs retain wheel/touch scrolling without taking
+   a gutter from their compact layouts. */
+.scrollbar-hidden {
+	-ms-overflow-style: none;
+	scrollbar-width: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+	display: none;
+}

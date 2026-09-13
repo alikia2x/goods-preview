@@ -38,14 +38,16 @@ export function TicketControls({
 				uploadLabel="上传票面图案"
 				onUpload={onUpload}
 			/>
-			<AdjustmentSection title="姿态">
-				<OptionButtonGroup
-					options={["standing", "flat"] as const}
-					value={settings.pose}
-					onChange={(value) => updateSetting("pose", value)}
-					renderLabel={(value) => (value === "flat" ? "躺倒" : "立放")}
-				/>
-			</AdjustmentSection>
+			{settings.scene !== "standing" && (
+				<AdjustmentSection title="姿态">
+					<OptionButtonGroup
+						options={["standing", "flat"] as const}
+						value={settings.pose}
+						onChange={(value) => updateSetting("pose", value)}
+						renderLabel={(value) => (value === "flat" ? "躺倒" : "立放")}
+					/>
+				</AdjustmentSection>
+			)}
 			<StudioControls glossLabel="覆膜反光" hideGloss />
 		</>
 	);

@@ -19,6 +19,8 @@ export type StudioHandle = {
 	view: (view: StudioView) => void;
 	// Where the camera is now, so dev tooling can read back a tuned seat.
 	pose: () => ViewPose;
+	setPose: (pose: ViewPose) => void;
+	subscribePose: (listener: (pose: ViewPose) => void) => () => void;
 };
 
 // The one camera/controls implementation. Products supply only their poses and
@@ -85,10 +87,17 @@ export function StudioViewport({
 				});
 			},
 			view: (view) => move(viewsRef.current[view]),
+			setPose: move,
 			pose: () => ({
 				position: [camera.position.x, camera.position.y, camera.position.z],
 				target: [controls.target.x, controls.target.y, controls.target.z],
 			}),
+			subscribePose: (listener) => {
+				const onChange = () =>
+					listener(apiRef.current?.pose() ?? poseRef.current);
+				controls.addEventListener("change", onChange);
+				return () => controls.removeEventListener("change", onChange);
+			},
 		};
 		onViewportReady();
 		return () => {
