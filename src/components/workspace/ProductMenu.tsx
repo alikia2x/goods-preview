@@ -28,11 +28,11 @@ type MenuGroup = {
 type ProductOption = MenuItem & { id: ProductKind };
 
 const PRODUCT_OPTIONS = [
-	{ id: "ticket", label: "镭射票", to: "/workspace/ticket" },
 	{ id: "badge", label: "覆膜吧唧", to: "/workspace/badge" },
 	{ id: "keychain", label: "亚克力钥匙扣", to: "/workspace/keychain" },
-	{ id: "acrylic", label: "任意亚克力", to: "/workspace/acrylic" },
 	{ id: "standee", label: "亚克力立牌", to: "/workspace/standee" },
+	{ id: "acrylic", label: "任意亚克力", to: "/workspace/acrylic" },
+	{ id: "ticket", label: "镭射票", to: "/workspace/ticket" },
 ] satisfies ProductOption[];
 
 export function ProductMenu({ product }: { product: ProductKind }) {
