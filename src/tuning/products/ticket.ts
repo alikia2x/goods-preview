@@ -1,0 +1,25 @@
+import type { TicketSettings } from "@/features/ticket/settings";
+export const TICKET_DEFAULTS: TicketSettings = {
+	scene: "table",
+	lighting: "studioSmall09",
+	light: 50,
+	lightAzimuth: -26.57,
+	lightElevation: 30.8,
+	shadow: 26,
+	gloss: 75,
+	size: 150,
+	transparentBackground: false,
+	finish: "laser",
+	pose: "flat",
+	foilScale: 10,
+	foilThreshold: 89,
+	foilBrightness: 90,
+	foilDistortion: 40,
+	foilMotion: 240,
+	foilSpectrum: 50,
+	glitterDensity: 400,
+	glitterSize: 50,
+	glitterSharpness: 200,
+	// Angular sparkle frequency; larger values change active grains faster.
+	glitterMotion: 100,
+};

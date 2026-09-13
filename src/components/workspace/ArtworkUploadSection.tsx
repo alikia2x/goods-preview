@@ -30,7 +30,7 @@ export function ArtworkUploadSection({
 				<div className="relative h-[100px] w-[100px] max-mobile:size-20">
 					<Button
 						variant="ghost"
-						className="relative h-[100px] w-[100px] overflow-hidden rounded-[10px]! bg-placeholder! p-0 max-mobile:size-20! [&_img]:size-full [&_img]:object-cover"
+						className="relative h-[100px] w-[100px] overflow-hidden rounded-[10px]! bg-placeholder! p-0 max-mobile:size-20! [&_img]:size-full [&_img]:object-contain"
 						aria-label={changeLabel}
 						onClick={() => input.current?.click()}
 					>

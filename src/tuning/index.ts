@@ -1,3 +1,4 @@
+import { TICKET_DEFAULTS } from "@/tuning/products/ticket";
 import { ACRYLIC_DEFAULTS } from "@/tuning/products/acrylic";
 import { BADGE_DEFAULTS } from "@/tuning/products/badge";
 import { KEYCHAIN_DEFAULTS } from "@/tuning/products/keychain";
@@ -16,6 +17,7 @@ export * from "@/tuning/scenes";
 // panel copies back, so it mirrors the file above.
 export const PRODUCT_DEFAULTS = {
 	badge: BADGE_DEFAULTS,
+	ticket: TICKET_DEFAULTS,
 	keychain: KEYCHAIN_DEFAULTS,
 	acrylic: ACRYLIC_DEFAULTS,
 	standee: STANDEE_DEFAULTS,
@@ -28,6 +30,11 @@ export const PRODUCT_DEFAULT_SOURCES: Record<
 	ProductKind,
 	{ constant: string; file: string; type: string }
 > = {
+	ticket: {
+		constant: "TICKET_DEFAULTS",
+		file: "src/tuning/products/ticket.ts",
+		type: "TicketSettings",
+	},
 	badge: {
 		constant: "BADGE_DEFAULTS",
 		file: "src/tuning/products/badge.ts",

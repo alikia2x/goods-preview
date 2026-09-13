@@ -11,6 +11,11 @@ const BADGE_PAGE: PageMetadata = {
 
 export const PAGE_METADATA: Record<string, PageMetadata> = {
 	"/workspace/badge": BADGE_PAGE,
+	"/workspace/ticket": {
+		title: "镭射票 3D 预览 — Goods Preview",
+		description:
+			"上传图案，按长边设置镭射票尺寸，预览镭射覆膜、闪粉覆膜与透明图案镭射银并导出高清 PNG。",
+	},
 	"/workspace/keychain": {
 		title: "亚克力钥匙扣 3D 预览 — Goods Preview",
 		description:

@@ -11,8 +11,10 @@ import type { StudioSettings } from "@/features/studio/settings";
 export function StudioControls<S extends StudioSettings>({
 	glossLabel,
 	afterScene,
+	hideGloss = false,
 }: {
 	glossLabel: string;
+	hideGloss?: boolean;
 	afterScene?: ReactNode;
 }) {
 	const { settings, updateSetting } = useWorkspace<S>();
@@ -36,11 +38,13 @@ export function StudioControls<S extends StudioSettings>({
 				value={settings.light}
 				onChange={(value) => updateSetting("light", value)}
 			/>
-			<RangeControl
-				label={glossLabel}
-				value={settings.gloss}
-				onChange={(value) => updateSetting("gloss", value)}
-			/>
+			{!hideGloss && (
+				<RangeControl
+					label={glossLabel}
+					value={settings.gloss}
+					onChange={(value) => updateSetting("gloss", value)}
+				/>
+			)}
 			<RangeControl
 				label="阴影强度"
 				value={settings.shadow}

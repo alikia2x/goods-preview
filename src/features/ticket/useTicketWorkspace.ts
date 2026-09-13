@@ -3,9 +3,7 @@ import type * as THREE from "three";
 import { useWorkspaceArtwork } from "@/components/workspace/WorkspaceArtwork";
 import { useWorkspaceExportState } from "@/components/workspace/WorkspaceContext";
 import { PRODUCT_DEFAULTS } from "@/tuning";
-import type { BadgeShadowHandle } from "@/features/badge/model/BadgeModel";
 import { defaultArtwork } from "@/features/badge/model/artwork";
-import { deriveBadgeSettings } from "@/features/badge/settings";
 import type { Frame } from "@/features/studio/lib/framing";
 import {
 	decodeImage,
@@ -18,11 +16,11 @@ import { useWorkspaceViewport } from "@/features/studio/useWorkspaceViewport";
 import { useSceneBackground } from "@/hooks/useSceneBackground";
 
 // Framing before the model has measured itself, so the opening camera has
-// somewhere to look. The model reports what the badge occupies on the first
+// somewhere to look. The model reports what the ticket occupies on the first
 // layout pass, before anything is painted.
 const UNMEASURED_FRAME: Frame = { center: [0, 0, 0], span: 2 };
 
-export function useBadgeWorkspace() {
+export function useTicketWorkspace() {
 	const { artworkFile, rememberArtwork } = useWorkspaceArtwork();
 	const {
 		framingRef,
@@ -33,7 +31,6 @@ export function useBadgeWorkspace() {
 		changeView,
 		readPose,
 	} = useWorkspaceViewport();
-	const shadowRef = useRef<BadgeShadowHandle | null>(null);
 	const uploadSequenceRef = useRef(0);
 	const appliedArtworkFileRef = useRef<File | null>(null);
 	const [placement, setPlacement] = useState({
@@ -56,10 +53,7 @@ export function useBadgeWorkspace() {
 		}));
 	}, []);
 
-	const { settings, updateSetting } = useSettings(
-		PRODUCT_DEFAULTS.badge,
-		deriveBadgeSettings,
-	);
+	const { settings, updateSetting } = useSettings(PRODUCT_DEFAULTS.ticket);
 	const [artwork, setArtwork] = useState<
 		HTMLImageElement | HTMLCanvasElement | null
 	>(null);
@@ -70,19 +64,12 @@ export function useBadgeWorkspace() {
 	const backgroundObjects = useCallback(() => {
 		const objects: THREE.Object3D[] = [];
 		if (backgroundRef.current) objects.push(backgroundRef.current);
-		const surface = shadowRef.current?.surface;
-		if (surface) objects.push(surface);
 		return objects;
 	}, [backgroundRef]);
 
-	const beforeCapture = useCallback(() => {
-		// Refresh the depth pass so the captured frame matches the viewport.
-		shadowRef.current?.render();
-	}, []);
-
 	const fileName = useCallback(
 		(resolution: number, transparent: boolean) =>
-			`${settings.finish}-badge-${settings.scene}${transparent ? "-transparent" : ""}-${resolution}x${resolution}.png`,
+			`${settings.finish}-ticket-${settings.scene}${transparent ? "-transparent" : ""}-${resolution}x${resolution}.png`,
 		[settings.finish, settings.scene],
 	);
 
@@ -90,7 +77,6 @@ export function useBadgeWorkspace() {
 		apiRef,
 		fileName,
 		transparentBackground: settings.transparentBackground,
-		beforeCapture,
 	});
 	const { setError } = exportState;
 
@@ -152,7 +138,6 @@ export function useBadgeWorkspace() {
 				setArtwork(image);
 				setThumbnail(imageThumbnail(image));
 				setArtworkName(file.name);
-				updateSetting("bleed", PRODUCT_DEFAULTS.badge.bleed);
 				rememberArtwork(file);
 				setError("");
 			} catch (cause) {
@@ -165,13 +150,12 @@ export function useBadgeWorkspace() {
 				}
 			}
 		},
-		[rememberArtwork, setError, updateSetting],
+		[rememberArtwork, setError],
 	);
 
 	return {
 		framingRef,
 		backgroundRef,
-		shadowRef,
 		apiRef,
 		backgroundObjects,
 		settings,

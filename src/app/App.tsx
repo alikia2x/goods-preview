@@ -5,6 +5,7 @@ import { WorkspaceArtworkProvider } from "@/components/workspace/WorkspaceArtwor
 import { WorkspaceSupportProvider } from "@/components/workspace/WorkspaceSupport";
 import { usePageMetadata } from "@/hooks/usePageMetadata";
 
+const TicketWorkspace = lazy(() => import("@/features/ticket/TicketWorkspace"));
 const BadgeWorkspace = lazy(() => import("@/features/badge/BadgeWorkspace"));
 const KeychainWorkspace = lazy(
 	() => import("@/features/keychain/KeychainWorkspace"),
@@ -51,6 +52,14 @@ export default function App() {
 			<WorkspaceArtworkProvider>
 				<WorkspaceSupportProvider>
 					<Routes>
+						<Route
+							path="/workspace/ticket"
+							element={
+								<Suspense fallback={WORKSPACE_FALLBACK}>
+									<TicketWorkspace />
+								</Suspense>
+							}
+						/>
 						<Route
 							path="/"
 							element={<Navigate to="/workspace/badge" replace />}

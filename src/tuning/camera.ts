@@ -74,6 +74,7 @@ export const ACRYLIC_CAMERA: {
 // it measured. The acrylic products share one; the badge was tuned to sit looser.
 export const PRODUCT_FRAMING_FILL = {
 	badge: BADGE_CAMERA.framingFill,
+	ticket: CAMERA.framingFill,
 	keychain: CAMERA.framingFill,
 	acrylic: CAMERA.framingFill,
 	standee: CAMERA.framingFill,
