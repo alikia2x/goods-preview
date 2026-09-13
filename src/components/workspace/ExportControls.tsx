@@ -1,4 +1,4 @@
-import { Download } from "lucide-react";
+import { Camera, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
 	Select,
@@ -16,8 +16,10 @@ export type ExportControlsProps = {
 	error: string;
 	resolution: string;
 	transparentBackground: boolean;
+	cropMaskVisible: boolean;
 	onResolutionChange: (value: string) => void;
 	onTransparentBackgroundChange: (value: boolean) => void;
+	onCropMaskVisibleChange: (value: boolean) => void;
 	onExport: () => Promise<void>;
 	showDownload?: boolean;
 };
@@ -28,8 +30,10 @@ export function ExportControls({
 	error,
 	resolution,
 	transparentBackground,
+	cropMaskVisible,
 	onResolutionChange,
 	onTransparentBackgroundChange,
+	onCropMaskVisibleChange,
 	onExport,
 	showDownload = true,
 }: ExportControlsProps) {
@@ -67,14 +71,26 @@ export function ExportControls({
 				</Select>
 			</div>
 			{showDownload && (
-				<Button
-					className="h-[50px] w-full gap-3.5 rounded-full! bg-white text-[15px] text-panel! hover:bg-inverse-hover max-mobile:h-11"
-					disabled={!ready || busy}
-					onClick={() => void onExport()}
-				>
-					<Download />
-					{busy ? "正在导出…" : "保存为 PNG"}
-				</Button>
+				<div className="flex gap-2.5">
+					<Button
+						className="size-[50px]! rounded-full! border-white/15 text-white hover:bg-white/10 hover:text-white aria-pressed:bg-white/15"
+						variant="outline"
+						size="icon"
+						aria-label={cropMaskVisible ? "关闭取景框遮罩" : "开启取景框遮罩"}
+						aria-pressed={cropMaskVisible}
+						onClick={() => onCropMaskVisibleChange(!cropMaskVisible)}
+					>
+						<Camera />
+					</Button>
+					<Button
+						className="h-[50px] min-w-0 flex-1 gap-3.5 rounded-full! bg-white text-[15px] text-panel! hover:bg-inverse-hover"
+						disabled={!ready || busy}
+						onClick={() => void onExport()}
+					>
+						<Download />
+						{busy ? "正在导出…" : "保存为 PNG"}
+					</Button>
+				</div>
 			)}
 		</div>
 	);

@@ -8,6 +8,7 @@ export function WorkspaceLayout({
 	canvasHostRef,
 	canvas,
 	overlays,
+	cropMaskVisible,
 	header,
 	footer,
 }: {
@@ -16,6 +17,7 @@ export function WorkspaceLayout({
 	canvasHostRef?: RefObject<HTMLDivElement | null>;
 	canvas?: ReactNode;
 	overlays?: ReactNode;
+	cropMaskVisible: boolean;
 	header: ReactNode;
 	footer?: ReactNode;
 }) {
@@ -32,6 +34,9 @@ export function WorkspaceLayout({
 				className={cn(layoutStyles.preview, "pointer-events-none")}
 				aria-label={ariaLabel}
 			>
+				{cropMaskVisible && (
+					<div className={layoutStyles.cropMask} aria-hidden="true" />
+				)}
 				{overlays}
 				<header
 					className={cn(

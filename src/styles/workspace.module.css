@@ -8,7 +8,24 @@
 	position: fixed;
 	inset: 0
 		calc(var(--panel-width) + var(--workspace-inset) + var(--panel-gap) / 2) 0 0;
+	container-type: size;
 	pointer-events: none;
+}
+
+.cropMask {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	z-index: 0;
+}
+
+.cropMask::before {
+	width: min(100cqw, 100cqh);
+	aspect-ratio: 1;
+	box-shadow: 0 0 0 100vmax rgb(0 0 0 / 48%);
+	outline: 1px solid rgb(255 255 255 / 45%);
+	content: "";
 }
 
 .canvasHost {

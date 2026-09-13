@@ -3,6 +3,7 @@ import { AdjustmentPanel } from "@/components/workspace/AdjustmentPanel";
 import { PreviewToolbar } from "@/components/workspace/PreviewToolbar";
 import { WorkspaceHeader } from "@/components/workspace/WorkspaceHeader";
 import { WorkspaceLayout } from "@/components/workspace/WorkspaceLayout";
+import { useWorkspace } from "@/components/workspace/WorkspaceContext";
 import { DebugPanel } from "@/features/studio/components/DebugPanel";
 import { TuningPanel } from "@/features/studio/components/TuningPanel";
 import type { StudioView } from "@/features/studio/components/StudioViewport";
@@ -43,6 +44,7 @@ export function ProductWorkspace({
 	onViewChange: (view: StudioView) => void;
 }) {
 	const mobile = useMobile() === "mobile";
+	const { exportState } = useWorkspace();
 	return (
 		<main
 			className={cn(layoutStyles.workspace, "h-dvh bg-transparent text-panel")}
@@ -53,6 +55,7 @@ export function ProductWorkspace({
 				canvasHostRef={canvasHostRef}
 				canvas={canvas}
 				overlays={overlays}
+				cropMaskVisible={exportState.cropMaskVisible}
 				header={
 					<WorkspaceHeader
 						product={product}

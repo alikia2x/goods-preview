@@ -1,4 +1,10 @@
-import { createContext, type ReactNode, useContext, useMemo } from "react";
+import {
+	createContext,
+	type ReactNode,
+	useContext,
+	useMemo,
+	useState,
+} from "react";
 import type { ExportControlsProps } from "@/components/workspace/ExportControls";
 import type { ViewPose } from "@/features/studio/components/StudioViewport";
 import type { SettingChange, StudioSettings } from "@/features/studio/settings";
@@ -64,6 +70,7 @@ export function useWorkspaceExportState({
 	updateSetting: (key: "transparentBackground", value: boolean) => void;
 }): WorkspaceExportState {
 	const { resolution, setResolution, busy, error, exportArtwork } = exportState;
+	const [cropMaskVisible, setCropMaskVisible] = useState(false);
 	const onTransparentBackgroundChange = useMemo(
 		() => (value: boolean) => updateSetting("transparentBackground", value),
 		[updateSetting],
@@ -75,8 +82,10 @@ export function useWorkspaceExportState({
 			error,
 			resolution,
 			transparentBackground,
+			cropMaskVisible,
 			onResolutionChange: setResolution,
 			onTransparentBackgroundChange,
+			onCropMaskVisibleChange: setCropMaskVisible,
 			onExport: exportArtwork,
 		}),
 		[
@@ -85,6 +94,7 @@ export function useWorkspaceExportState({
 			error,
 			resolution,
 			transparentBackground,
+			cropMaskVisible,
 			setResolution,
 			onTransparentBackgroundChange,
 			exportArtwork,

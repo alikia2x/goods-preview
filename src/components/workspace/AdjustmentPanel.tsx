@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp, Download } from "lucide-react";
+import { Camera, ChevronDown, ChevronUp, Download } from "lucide-react";
 import { type ReactNode, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ExportControls } from "@/components/workspace/ExportControls";
@@ -38,6 +38,24 @@ export function AdjustmentPanel({
 				</h1>
 				{mobile ? (
 					<div className="flex gap-2">
+						<Button
+							className="size-12! rounded-full! aria-pressed:bg-muted aria-pressed:text-foreground"
+							variant="ghost"
+							size="icon"
+							aria-label={
+								exportState.cropMaskVisible
+									? "关闭取景框遮罩"
+									: "开启取景框遮罩"
+							}
+							aria-pressed={exportState.cropMaskVisible}
+							onClick={() =>
+								exportState.onCropMaskVisibleChange(
+									!exportState.cropMaskVisible,
+								)
+							}
+						>
+							<Camera />
+						</Button>
 						<Button
 							className="size-12! rounded-full!"
 							variant="ghost"
