@@ -15,12 +15,14 @@ export function WorkspaceHeader({
 	productName,
 	variantAriaLabel,
 	variant,
+	variantContentClassName,
 	sizeControl,
 }: {
 	product: ProductKind;
 	productName: string;
 	variantAriaLabel?: string;
 	variant?: ReactNode;
+	variantContentClassName?: string;
 	sizeControl: ReactNode;
 }) {
 	const mobile = useMobile() === "mobile";
@@ -33,6 +35,7 @@ export function WorkspaceHeader({
 					<ProductVariantPopover
 						label={productName}
 						ariaLabel={variantAriaLabel}
+						contentClassName={variantContentClassName}
 					>
 						{variant}
 					</ProductVariantPopover>

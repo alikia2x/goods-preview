@@ -5,14 +5,17 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { PillButton } from "@/components/workspace/PillButton";
+import { cn } from "@/lib/utils";
 
 export function ProductVariantPopover({
 	label,
 	ariaLabel,
+	contentClassName,
 	children,
 }: {
 	label: string;
 	ariaLabel: string;
+	contentClassName?: string;
 	children: ReactNode;
 }) {
 	return (
@@ -22,7 +25,10 @@ export function ProductVariantPopover({
 			</PopoverTrigger>
 			<PopoverContent
 				align="start"
-				className="max-h-[var(--radix-popover-content-available-height)] overflow-y-auto"
+				className={cn(
+					"max-h-(--radix-popover-content-available-height) overflow-y-auto",
+					contentClassName,
+				)}
 			>
 				{children}
 			</PopoverContent>

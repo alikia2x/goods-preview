@@ -21,6 +21,7 @@ export function ProductWorkspace({
 	productName,
 	variantAriaLabel,
 	variantControls,
+	variantContentClassName,
 	renderSizeControl,
 	modelControls,
 	panelLabel,
@@ -34,6 +35,7 @@ export function ProductWorkspace({
 	productName: string;
 	variantAriaLabel?: string;
 	variantControls?: ReactNode;
+	variantContentClassName?: string;
 	renderSizeControl: (placement: "header" | "footer") => ReactNode;
 	modelControls: ReactNode;
 	panelLabel: string;
@@ -62,6 +64,7 @@ export function ProductWorkspace({
 						productName={productName}
 						variantAriaLabel={variantAriaLabel}
 						variant={variantControls}
+						variantContentClassName={variantContentClassName}
 						sizeControl={renderSizeControl("header")}
 					/>
 				}

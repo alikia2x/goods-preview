@@ -1,17 +1,9 @@
 import type { StudioSettings } from "@/features/studio/settings";
+// Only what a person can change. The coating's render parameters live in
+// `@/tuning/products/ticket` and are read by the material instead.
 export type TicketSettings = StudioSettings & {
 	finish: "laser" | "glitter" | "silver";
 	pose: "standing" | "flat";
-	foilScale: number;
-	foilThreshold: number;
-	foilBrightness: number;
-	foilDistortion: number;
-	foilMotion: number;
-	foilSpectrum: number;
-	glitterDensity: number;
-	glitterSize: number;
-	glitterSharpness: number;
-	glitterMotion: number;
 };
 export const TICKET_FINISHES = {
 	laser: "镭射覆膜",

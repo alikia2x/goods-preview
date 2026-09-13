@@ -73,7 +73,7 @@ export function ExportControls({
 			{showDownload && (
 				<div className="flex gap-2.5">
 					<Button
-						className="size-[50px]! rounded-full! border-white/15 text-white hover:bg-white/10 hover:text-white aria-pressed:bg-white/15"
+						className="size-12.5! rounded-full! border-white/15 text-white hover:bg-white/10 hover:text-white aria-pressed:bg-white/15"
 						variant="outline"
 						size="icon"
 						aria-label={cropMaskVisible ? "关闭取景框遮罩" : "开启取景框遮罩"}
@@ -83,7 +83,7 @@ export function ExportControls({
 						<Camera />
 					</Button>
 					<Button
-						className="h-[50px] min-w-0 flex-1 gap-3.5 rounded-full! bg-white text-[15px] text-panel! hover:bg-inverse-hover"
+						className="h-12.5 min-w-0 flex-1 gap-3.5 rounded-full! bg-white text-[15px] text-panel! hover:bg-inverse-hover"
 						disabled={!ready || busy}
 						onClick={() => void onExport()}
 					>

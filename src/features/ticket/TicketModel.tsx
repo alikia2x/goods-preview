@@ -30,8 +30,8 @@ export function TicketModel({
 		return texture;
 	}, [artwork]);
 	const material = useMemo(
-		() => ticketMaterial(texture, settings.finish, settings),
-		[texture, settings],
+		() => ticketMaterial(texture, settings.finish, settings.gloss),
+		[texture, settings.finish, settings.gloss],
 	);
 	useEffect(() => () => texture.dispose(), [texture]);
 	useEffect(() => () => material.dispose(), [material]);

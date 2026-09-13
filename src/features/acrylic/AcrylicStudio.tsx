@@ -37,6 +37,7 @@ export function AcrylicStudio<S extends AcrylicSheetSettings>({
 	opening,
 	productName,
 	variantControls,
+	variantContentClassName,
 	renderModel,
 }: {
 	product: ProductKind;
@@ -47,6 +48,7 @@ export function AcrylicStudio<S extends AcrylicSheetSettings>({
 	opening: Vector3Tuple;
 	productName: (settings: S) => string;
 	variantControls?: ReactNode;
+	variantContentClassName?: string;
 	renderModel: (
 		model: { artwork: KeychainArtwork; outline: Outline },
 		settings: S,
@@ -104,6 +106,7 @@ export function AcrylicStudio<S extends AcrylicSheetSettings>({
 				productName={name}
 				variantAriaLabel={variantControls ? `${name}，制品设置` : undefined}
 				variantControls={variantControls}
+				variantContentClassName={variantContentClassName}
 				renderSizeControl={(placement) => (
 					<PatternSizePopover
 						size={settings.size}

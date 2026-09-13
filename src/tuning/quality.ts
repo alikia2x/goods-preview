@@ -7,7 +7,7 @@ export const ADAPTIVE_RESOLUTION = {
 	// The pixel ratio never goes below the floor, nor above what the page opened
 	// with: adapting only trades detail away, it never sharpens past the default.
 	min: 0.75,
-	max: 3,
+	max: 2,
 	// The frame budget: 55fps. Windows are compared against this.
 	targetFrameMs: 1000 / 55,
 	downFactor: 1.15,

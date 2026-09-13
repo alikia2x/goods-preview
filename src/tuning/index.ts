@@ -13,6 +13,9 @@ export * from "@/tuning/lighting";
 export * from "@/tuning/quality";
 export * from "@/tuning/scenes";
 
+// Render parameters of the ticket coating, read by the ticket material.
+export { TICKET_COATING } from "@/tuning/products/ticket";
+
 // One complete, flat set of defaults per product. Key order is what the dev
 // panel copies back, so it mirrors the file above.
 export const PRODUCT_DEFAULTS = {

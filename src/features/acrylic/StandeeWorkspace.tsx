@@ -35,6 +35,7 @@ export default function StandeeWorkspace() {
 			opening={ACRYLIC_CAMERA.opening.standee}
 			productName={() => "亚克力立牌"}
 			variantControls={<StandeeProductControls />}
+			variantContentClassName="active:bg-popover/50 active:backdrop-blur-none"
 			renderModel={(model, settings) => (
 				<StandeeModel {...model} settings={settings} />
 			)}

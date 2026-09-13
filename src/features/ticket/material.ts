@@ -1,14 +1,19 @@
 import * as THREE from "three";
 import type { TicketSettings } from "@/features/ticket/settings";
+import { TICKET_COATING } from "@/tuning";
 
 // Coating contributions use the actual light rig and the camera of each render
 // pass, including the mirrored camera. The printed surface normal stays intact.
 export function ticketMaterial(
 	map: THREE.Texture,
 	finish: TicketSettings["finish"],
-	settings: TicketSettings,
+	gloss: number,
 ) {
-	const { gloss } = settings;
+	const {
+		foil,
+		glitter: glitterCoating,
+		silver: silverCoating,
+	} = TICKET_COATING;
 	const silver = finish === "silver";
 	const material = new THREE.MeshPhysicalMaterial({
 		map,
@@ -20,20 +25,46 @@ export function ticketMaterial(
 	});
 	material.onBeforeCompile = (shader) => {
 		shader.uniforms.ticketStrength = { value: gloss / 100 };
-		for (const key of [
-			"foilScale",
-			"foilThreshold",
-			"foilBrightness",
-			"foilDistortion",
-			"foilMotion",
-			"foilSpectrum",
-			"glitterDensity",
-			"glitterSize",
-			"glitterSharpness",
-			"glitterMotion",
-		] as const) {
-			shader.uniforms[key] = { value: settings[key] };
+		// Every number a person tunes lives in `TICKET_COATING` and reaches the
+		// shader as a uniform, so re-tuning never invalidates a compiled program.
+		const coating: Record<string, number | number[]> = {
+			foilScale: foil.scale,
+			foilThreshold: foil.threshold,
+			foilBrightness: foil.brightness,
+			foilDistortion: foil.distortion,
+			foilMotion: foil.motion,
+			foilSpectrum: foil.spectrum,
+			glitterDensity: glitterCoating.density,
+			glitterSize: glitterCoating.size,
+			glitterSharpness: glitterCoating.sharpness,
+			glitterMotion: glitterCoating.motion,
+		};
+		if (silver) {
+			coating.silverSubstrate = silverCoating.substrate;
+			coating.silverRoughness = silverCoating.roughness;
+			coating.silverReflection = silverCoating.reflection;
+			coating.silverTintBase = silverCoating.tintBase;
+			coating.silverColorMix = silverCoating.colorMix;
+			coating.silverColorRange = silverCoating.colorRange;
+			coating.silverColorAngle = silverCoating.colorAngle;
+			coating.silverColorField = silverCoating.colorField;
+			coating.silverFieldScale = silverCoating.fieldScale;
+			coating.silverFieldAngle = silverCoating.fieldAngle;
+			coating.silverFieldOffset = silverCoating.fieldOffset;
+			coating.silverPhaseField = silverCoating.phaseField;
+			coating.silverPhaseAngle = silverCoating.phaseAngle;
 		}
+		for (const [key, value] of Object.entries(coating))
+			shader.uniforms[key] = { value };
+		// The silver finish reads its own numbers, so only it declares them.
+		const silverUniforms = silver
+			? `uniform float silverSubstrate, silverRoughness, silverReflection;
+uniform float silverTintBase, silverColorMix, silverColorField;
+uniform vec2 silverColorRange, silverColorAngle;
+uniform float silverFieldScale, silverFieldAngle, silverFieldOffset, silverPhaseField;
+uniform vec2 silverPhaseAngle;
+`
+			: "";
 		const varyings = `varying vec3 ticketTangent; varying vec3 ticketBitangent;`;
 		shader.vertexShader = shader.vertexShader
 			.replace("#include <common>", `#include <common>\n${varyings}`)
@@ -50,7 +81,7 @@ ${varyings}
 uniform float ticketStrength;
 uniform float foilScale, foilThreshold, foilBrightness, foilDistortion, foilMotion, foilSpectrum;
 uniform float glitterDensity, glitterSize, glitterSharpness, glitterMotion;
-float ticketHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+${silverUniforms}float ticketHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 // Smooth, sheet-anchored variations in the embossed foil. Coarse structure
 // bends the diffraction field; fine structure breaks up the polished highlight.
 float ticketNoise(vec2 p) {
@@ -71,7 +102,7 @@ vec3 ticketSpectrum(float phase) {
 			"#include <map_fragment>",
 			`#include <map_fragment>
 float ticketInk = sampledDiffuseColor.a;
-diffuseColor.rgb = mix(vec3(${silver ? "0.72" : "1.0"}), sampledDiffuseColor.rgb, ticketInk);
+diffuseColor.rgb = mix(vec3(${silver ? "silverSubstrate" : "1.0"}), sampledDiffuseColor.rgb, ticketInk);
 diffuseColor.a = 1.0;
 `,
 		);
@@ -81,14 +112,14 @@ diffuseColor.a = 1.0;
 				`#include <lights_physical_fragment>
 vec2 silverUv = (vMapUv - 0.5) * vec2(textureSize(map, 0)) / float(max(textureSize(map, 0).x, textureSize(map, 0).y));
 vec2 silverAngle = vec2(ticketTangent.z, ticketBitangent.z);
-vec2 silverDomain = silverUv * 1.8 + silverAngle * 1.25;
-float silverField = ticketNoise(silverDomain + 13.7);
-float silverPhase = silverField * 9.0 + dot(silverAngle, vec2(6.0, 4.0));
-float silverColorAmount = smoothstep(-0.35, 0.55, sin(dot(silverAngle, vec2(5.5, 3.0)) + silverField * 1.8));
-vec3 silverTint = mix(vec3(0.85), ticketSpectrum(silverPhase), silverColorAmount * 0.92);
+vec2 silverDomain = silverUv * silverFieldScale + silverAngle * silverFieldAngle;
+float silverField = ticketNoise(silverDomain + silverFieldOffset);
+float silverPhase = silverField * silverPhaseField + dot(silverAngle, silverPhaseAngle);
+float silverColorAmount = smoothstep(silverColorRange.x, silverColorRange.y, sin(dot(silverAngle, silverColorAngle) + silverField * silverColorField));
+vec3 silverTint = mix(vec3(silverTintBase), ticketSpectrum(silverPhase), silverColorAmount * silverColorMix);
 material.diffuseColor *= ticketInk;
 material.specularColor = mix(silverTint, material.specularColor, ticketInk);
-material.roughness = mix(0.26, material.roughness, ticketInk);
+material.roughness = mix(silverRoughness, material.roughness, ticketInk);
 `,
 			);
 		const glitter = `
@@ -164,22 +195,21 @@ float grain = mix(ticketNoise(foilUv * vec2(550.0, 220.0)), 0.5, smoothstep(0.35
 vec3 foilLight = ticketSpectrum(phase) * mix(0.65, 1.6, grain);
 foilLight += vec3(envelope * envelope * grain * grain * 0.18);
 float incidence = max(dot(normal, foilDirection), 0.0);
-float exposed = ${silver ? "(1.0 - ticketInk)" : "1.0"};
-float reflection = envelope * incidence * foilEnergy * ticketStrength * exposed;
-outgoingLight += foilLight * reflection * (foilBrightness / 100.0) * ${silver ? "34.0" : "25.0"};
+float reflection = envelope * incidence * foilEnergy * ticketStrength;
+outgoingLight += foilLight * reflection * (foilBrightness / 100.0) * 25.0;
 
 `;
 		const silverReflection = `
 // Broad substrate reflection, independent of the laminate threshold and scale.
 // Alpha masks all of it, so opaque ink never receives the silver effect.
 vec3 silverReflected = reflectedLight.directSpecular + reflectedLight.indirectSpecular;
-outgoingLight += silverReflected * (1.0 - ticketInk) * ticketStrength * 2.5;
+outgoingLight += silverReflected * (1.0 - ticketInk) * ticketStrength * silverReflection;
 `;
 		shader.fragmentShader = shader.fragmentShader.replace(
 			"#include <opaque_fragment>",
 			`${finish === "glitter" ? glitter : silver ? silverReflection : laser}\n#include <opaque_fragment>`,
 		);
 	};
-	material.customProgramCacheKey = () => `ticket-v8-${finish}`;
+	material.customProgramCacheKey = () => `ticket-v9-${finish}`;
 	return material;
 }
