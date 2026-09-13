@@ -83,7 +83,9 @@ export default function TicketWorkspace() {
 				modelControls={
 					<TicketControls
 						thumbnail={workspace.thumbnail}
+						backThumbnail={workspace.backThumbnail}
 						onUpload={workspace.uploadArtwork}
+						onBackUpload={workspace.uploadBackArtwork}
 					/>
 				}
 				panelLabel="调整镭射票"
@@ -120,6 +122,7 @@ export default function TicketWorkspace() {
 							<TicketModel
 								settings={settings}
 								artwork={workspace.artwork}
+								backArtwork={workspace.backArtwork}
 								onPlaced={workspace.onPlaced}
 							/>
 						)}

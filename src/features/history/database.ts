@@ -9,6 +9,10 @@ export type WorkspaceHistoryEntry = {
 	artworkKey?: string;
 	artworkName: string;
 	artworkLastModified: number;
+	/** The optional image printed on the back of a ticket. */
+	backArtwork?: Blob;
+	backArtworkName?: string;
+	backArtworkLastModified?: number;
 	/** The 彩窗 image, when the entry was made on an acrylic product. */
 	windowArtwork?: Blob;
 	windowArtworkName?: string;
@@ -69,6 +73,7 @@ async function sameArtwork(stored: Blob | null, next: File | null | undefined) {
 export async function createHistoryEntry({
 	product,
 	artwork,
+	backArtwork,
 	windowArtwork,
 	baseArtwork,
 	settings,
@@ -76,6 +81,7 @@ export async function createHistoryEntry({
 }: {
 	product: ProductKind;
 	artwork: File;
+	backArtwork?: File | null;
 	windowArtwork?: File | null;
 	baseArtwork?: File | null;
 	settings: Record<string, unknown>;
@@ -96,6 +102,7 @@ export async function createHistoryEntry({
 		// the same entry, so restoring and re-uploading any image converges here.
 		if (!(await sameArtwork(entry.windowArtwork ?? null, windowArtwork)))
 			continue;
+		if (!(await sameArtwork(entry.backArtwork ?? null, backArtwork))) continue;
 		if (!(await sameArtwork(entry.baseArtwork ?? null, baseArtwork))) continue;
 		await database.history.update(entry.id, {
 			settings,
@@ -112,6 +119,9 @@ export async function createHistoryEntry({
 			artworkKey: key,
 			artworkName: artwork.name,
 			artworkLastModified: artwork.lastModified,
+			backArtwork: backArtwork ?? undefined,
+			backArtworkName: backArtwork?.name,
+			backArtworkLastModified: backArtwork?.lastModified,
 			windowArtwork: windowArtwork ?? undefined,
 			windowArtworkName: windowArtwork?.name,
 			baseArtwork: baseArtwork ?? undefined,

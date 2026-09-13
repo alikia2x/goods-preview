@@ -12,11 +12,14 @@ import { useWorkspaceHistory } from "@/features/history/WorkspaceHistory";
 type WorkspaceArtworkValue = {
 	artworkFile: File | null;
 	rememberArtwork: (file: File) => void;
+	backArtworkFile: File | null;
+	rememberBackArtwork: (file: File) => void;
 	windowFile: File | null;
 	rememberWindow: (file: File) => void;
 	clearWindow: () => void;
 	baseArtworkFile: File | null;
 	rememberBaseArtwork: (file: File) => void;
+	clearBaseArtwork: () => void;
 };
 
 const WorkspaceArtworkContext = createContext<WorkspaceArtworkValue | null>(
@@ -31,6 +34,7 @@ export function WorkspaceArtworkProvider({
 	children: ReactNode;
 }) {
 	const [artworkFile, setArtworkFile] = useState<File | null>(null);
+	const [backArtworkFile, setBackArtworkFile] = useState<File | null>(null);
 	const [windowFile, setWindowFile] = useState<File | null>(null);
 	const [baseArtworkFile, setBaseArtworkFile] = useState<File | null>(null);
 	const { startupEntry } = useWorkspaceHistory();
@@ -42,6 +46,18 @@ export function WorkspaceArtworkProvider({
 				type: startupEntry.artwork.type,
 				lastModified: startupEntry.artworkLastModified,
 			}),
+		);
+		setBackArtworkFile(
+			startupEntry.backArtwork
+				? new File(
+						[startupEntry.backArtwork],
+						startupEntry.backArtworkName ?? "背面",
+						{
+							type: startupEntry.backArtwork.type,
+							lastModified: startupEntry.backArtworkLastModified,
+						},
+					)
+				: null,
 		);
 		// A restored entry that predates the 彩窗 image clears whatever window
 		// the previous product was carrying.
@@ -69,30 +85,41 @@ export function WorkspaceArtworkProvider({
 	}, [startupEntry]);
 
 	const rememberArtwork = useCallback((file: File) => setArtworkFile(file), []);
+	const rememberBackArtwork = useCallback(
+		(file: File) => setBackArtworkFile(file),
+		[],
+	);
 	const rememberWindow = useCallback((file: File) => setWindowFile(file), []);
 	const clearWindow = useCallback(() => setWindowFile(null), []);
 	const rememberBaseArtwork = useCallback(
 		(file: File) => setBaseArtworkFile(file),
 		[],
 	);
+	const clearBaseArtwork = useCallback(() => setBaseArtworkFile(null), []);
 	const value = useMemo(
 		() => ({
 			artworkFile,
 			rememberArtwork,
+			backArtworkFile,
+			rememberBackArtwork,
 			windowFile,
 			rememberWindow,
 			clearWindow,
 			baseArtworkFile,
 			rememberBaseArtwork,
+			clearBaseArtwork,
 		}),
 		[
 			artworkFile,
 			rememberArtwork,
+			backArtworkFile,
+			rememberBackArtwork,
 			windowFile,
 			rememberWindow,
 			clearWindow,
 			baseArtworkFile,
 			rememberBaseArtwork,
+			clearBaseArtwork,
 		],
 	);
 	return (

@@ -17,6 +17,7 @@ const RESOLVE_DELAY = 2000;
 export function useWorkspaceHistorySession<S extends StudioSettings>({
 	product,
 	artworkFile,
+	backArtworkFile,
 	windowArtworkFile,
 	baseArtworkFile,
 	settings,
@@ -27,6 +28,7 @@ export function useWorkspaceHistorySession<S extends StudioSettings>({
 }: {
 	product: ProductKind;
 	artworkFile: File | null;
+	backArtworkFile?: File | null;
 	windowArtworkFile?: File | null;
 	baseArtworkFile?: File | null;
 	settings: S;
@@ -45,6 +47,7 @@ export function useWorkspaceHistorySession<S extends StudioSettings>({
 	const pendingCameraWriteRef = useRef<ViewPose | null>(null);
 	const handledStartupEntryRef = useRef<number | null>(null);
 	const observedArtworkFileRef = useRef<File | null>(null);
+	const observedBackArtworkFileRef = useRef<File | null>(null);
 	const observedWindowFileRef = useRef<File | null>(null);
 	const observedBaseArtworkFileRef = useRef<File | null>(null);
 	const restoredArtworkRef = useRef<{
@@ -52,6 +55,7 @@ export function useWorkspaceHistorySession<S extends StudioSettings>({
 		lastModified: number;
 		size: number;
 	} | null>(null);
+	const restoredBackArtworkRef = useRef<File | null>(null);
 	const restoredWindowRef = useRef<File | null>(null);
 	const restoredBaseArtworkRef = useRef<File | null>(null);
 	const [restorationKey, setRestorationKey] = useState(0);
@@ -102,6 +106,16 @@ export function useWorkspaceHistorySession<S extends StudioSettings>({
 			lastModified: restoredEntry.artworkLastModified,
 			size: restoredEntry.artwork.size,
 		};
+		restoredBackArtworkRef.current = restoredEntry.backArtwork
+			? new File(
+					[restoredEntry.backArtwork],
+					restoredEntry.backArtworkName ?? "背面",
+					{
+						type: restoredEntry.backArtwork.type,
+						lastModified: restoredEntry.backArtworkLastModified,
+					},
+				)
+			: null;
 		restoredWindowRef.current = restoredEntry.windowArtwork
 			? new File(
 					[restoredEntry.windowArtwork],
@@ -151,7 +165,11 @@ export function useWorkspaceHistorySession<S extends StudioSettings>({
 	);
 
 	const startEntry = useCallback(
-		async (artwork: File, windowArtwork: File | null) => {
+		async (
+			artwork: File,
+			backArtwork: File | null,
+			windowArtwork: File | null,
+		) => {
 			if (writeTimerRef.current !== null) {
 				window.clearTimeout(writeTimerRef.current);
 				writeTimerRef.current = null;
@@ -160,6 +178,7 @@ export function useWorkspaceHistorySession<S extends StudioSettings>({
 				const id = await createHistoryEntry({
 					product,
 					artwork,
+					backArtwork,
 					windowArtwork,
 					baseArtwork: baseArtworkFile ?? null,
 					settings: { ...settings },
@@ -193,14 +212,21 @@ export function useWorkspaceHistorySession<S extends StudioSettings>({
 		)
 			return;
 		restoredArtworkRef.current = null;
+		restoredBackArtworkRef.current = null;
 		restoredWindowRef.current = null;
 		restoredBaseArtworkRef.current = null;
+		observedBackArtworkFileRef.current = backArtworkFile ?? null;
 		observedWindowFileRef.current = windowArtworkFile ?? null;
 		observedBaseArtworkFileRef.current = baseArtworkFile ?? null;
-		void startEntry(artworkFile, windowArtworkFile ?? null);
+		void startEntry(
+			artworkFile,
+			backArtworkFile ?? null,
+			windowArtworkFile ?? null,
+		);
 	}, [
 		artworkFile,
 		baseArtworkFile,
+		backArtworkFile,
 		windowArtworkFile,
 		startEntry,
 		startupEntry,
@@ -223,12 +249,15 @@ export function useWorkspaceHistorySession<S extends StudioSettings>({
 			return;
 		if (!restoredWindow && !nextWindow) return;
 		if (!artworkFile) return;
+		restoredBackArtworkRef.current = null;
 		restoredWindowRef.current = null;
 		observedArtworkFileRef.current = artworkFile;
+		observedBackArtworkFileRef.current = backArtworkFile ?? null;
 		observedBaseArtworkFileRef.current = baseArtworkFile ?? null;
-		void startEntry(artworkFile, nextWindow);
+		void startEntry(artworkFile, backArtworkFile ?? null, nextWindow);
 	}, [
 		baseArtworkFile,
+		backArtworkFile,
 		windowArtworkFile,
 		artworkFile,
 		startEntry,
@@ -252,12 +281,50 @@ export function useWorkspaceHistorySession<S extends StudioSettings>({
 			return;
 		if (!restoredBase && !nextBase) return;
 		if (!artworkFile) return;
+		restoredBackArtworkRef.current = null;
 		restoredBaseArtworkRef.current = null;
 		observedArtworkFileRef.current = artworkFile;
+		observedBackArtworkFileRef.current = backArtworkFile ?? null;
 		observedWindowFileRef.current = windowArtworkFile ?? null;
-		void startEntry(artworkFile, windowArtworkFile ?? null);
+		void startEntry(
+			artworkFile,
+			backArtworkFile ?? null,
+			windowArtworkFile ?? null,
+		);
 	}, [
 		artworkFile,
+		baseArtworkFile,
+		backArtworkFile,
+		startEntry,
+		startupEntry,
+		windowArtworkFile,
+	]);
+
+	// Uploading a ticket's back image also describes a new combination of images,
+	// so it gets its own history row instead of quietly rewriting the ticket's.
+	useEffect(() => {
+		const nextBack = backArtworkFile ?? null;
+		if (observedBackArtworkFileRef.current === nextBack) return;
+		observedBackArtworkFileRef.current = nextBack;
+		if (startupEntry) return;
+		const restoredBack = restoredBackArtworkRef.current;
+		if (
+			restoredBack &&
+			nextBack &&
+			restoredBack.name === nextBack.name &&
+			restoredBack.size === nextBack.size
+		)
+			return;
+		if (!restoredBack && !nextBack) return;
+		if (!artworkFile) return;
+		restoredBackArtworkRef.current = null;
+		observedArtworkFileRef.current = artworkFile;
+		observedWindowFileRef.current = windowArtworkFile ?? null;
+		observedBaseArtworkFileRef.current = baseArtworkFile ?? null;
+		void startEntry(artworkFile, nextBack, windowArtworkFile ?? null);
+	}, [
+		artworkFile,
+		backArtworkFile,
 		baseArtworkFile,
 		startEntry,
 		startupEntry,

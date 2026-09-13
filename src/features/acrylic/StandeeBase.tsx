@@ -6,6 +6,11 @@ import { createBaseReflection } from "@/features/acrylic/base-reflection";
 import { createOpticalShadow } from "@/features/acrylic/optical-shadow";
 import { smoothExtrudeGeometry } from "@/features/acrylic/lib/geometry";
 
+const BASE_SEAT_OFFSET = 0.006;
+const BASE_BEVEL_THICKNESS = 0.006;
+const PATTERN_SURFACE_OFFSET = 0.0005;
+const REFLECTION_SURFACE_OFFSET = 0.001;
+
 // 立牌的底座：a disc with a slot the sheet stands in, plus a local reflection
 // that supplies the artwork an environment map cannot contain.
 export function StandeeBase({
@@ -33,6 +38,7 @@ export function StandeeBase({
 	const shadow = useMemo(createOpticalShadow, []);
 	useEffect(() => () => shadow.dispose(), [shadow]);
 	const depth = (connectorHeight / size) * 2;
+	const top = bottom + BASE_SEAT_OFFSET + depth + BASE_BEVEL_THICKNESS;
 	const { geometry, patternGeometry, reflection } = useMemo(() => {
 		const radius = baseDiameter / size;
 		const shape = new THREE.Shape();
@@ -51,14 +57,26 @@ export function StandeeBase({
 			steps: 1,
 			bevelEnabled: true,
 			bevelSize: 0.008,
-			bevelThickness: 0.006,
+			bevelThickness: BASE_BEVEL_THICKNESS,
 			bevelSegments: 4,
 			curveSegments: 96,
 		});
 		const geometry = smoothExtrudeGeometry(result);
+		const patternGeometry = new THREE.ShapeGeometry(shape, 96);
+		const positions = patternGeometry.getAttribute("position");
+		const uvs = patternGeometry.getAttribute("uv");
+		const diameter = radius * 2;
+		for (let index = 0; index < positions.count; index++) {
+			uvs.setXY(
+				index,
+				positions.getX(index) / diameter + 0.5,
+				positions.getY(index) / diameter + 0.5,
+			);
+		}
+		uvs.needsUpdate = true;
 		return {
 			geometry,
-			patternGeometry: new THREE.ShapeGeometry(shape, 96),
+			patternGeometry,
 			reflection: createBaseReflection(shape),
 		};
 	}, [baseDiameter, size, width, thickness, depth]);
@@ -98,14 +116,14 @@ export function StandeeBase({
 		<group>
 			<primitive
 				object={reflection}
-				position={[x, bottom + depth + 0.013, 0]}
+				position={[x, top + REFLECTION_SURFACE_OFFSET, 0]}
 				rotation={[-Math.PI / 2, 0, 0]}
 			/>
 			<mesh
 				castShadow
 				customDepthMaterial={shadow}
 				geometry={geometry}
-				position={[x, bottom + 0.006, 0]}
+				position={[x, bottom + BASE_SEAT_OFFSET, 0]}
 				rotation={[-Math.PI / 2, 0, 0]}
 				dispose={null}
 			>
@@ -121,14 +139,14 @@ export function StandeeBase({
 				<mesh
 					receiveShadow
 					geometry={patternGeometry}
-					position={[x, bottom + 0.006 + depth + 0.002, 0]}
+					position={[x, top + PATTERN_SURFACE_OFFSET, 0]}
 					rotation={[-Math.PI / 2, 0, 0]}
 					renderOrder={1}
 				>
 					<meshStandardMaterial
 						map={texture}
-						transparent
 						alphaTest={0.08}
+						alphaToCoverage
 						side={THREE.DoubleSide}
 						roughness={0.72}
 						metalness={0}

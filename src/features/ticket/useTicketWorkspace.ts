@@ -23,7 +23,8 @@ import { useSceneBackground } from "@/hooks/useSceneBackground";
 const UNMEASURED_FRAME: Frame = { center: [0, 0, 0], span: 2 };
 
 export function useTicketWorkspace() {
-	const { artworkFile, rememberArtwork } = useWorkspaceArtwork();
+	const { artworkFile, rememberArtwork, backArtworkFile, rememberBackArtwork } =
+		useWorkspaceArtwork();
 	const {
 		framingRef,
 		backgroundRef,
@@ -36,7 +37,9 @@ export function useTicketWorkspace() {
 		subscribePose,
 	} = useWorkspaceViewport();
 	const uploadSequenceRef = useRef(0);
+	const backUploadSequenceRef = useRef(0);
 	const appliedArtworkFileRef = useRef<File | null>(null);
+	const appliedBackArtworkFileRef = useRef<File | null>(null);
 	const restorePlacementRevisionRef = useRef<number | null>(null);
 	const handledRestorationKeyRef = useRef(0);
 	const [placement, setPlacement] = useState({
@@ -66,6 +69,7 @@ export function useTicketWorkspace() {
 	const history = useWorkspaceHistorySession({
 		product: "ticket",
 		artworkFile,
+		backArtworkFile,
 		settings,
 		replaceSettings,
 		ready,
@@ -75,7 +79,11 @@ export function useTicketWorkspace() {
 	const [artwork, setArtwork] = useState<
 		HTMLImageElement | HTMLCanvasElement | null
 	>(null);
+	const [backArtwork, setBackArtwork] = useState<
+		HTMLImageElement | HTMLCanvasElement | null
+	>(null);
 	const [thumbnail, setThumbnail] = useState("");
+	const [backThumbnail, setBackThumbnail] = useState("");
 
 	// Identify scenery separately from the product for export coverage passes.
 	const backgroundObjects = useCallback(() => {
@@ -154,6 +162,36 @@ export function useTicketWorkspace() {
 		};
 	}, [artworkFile, setError]);
 
+	useEffect(() => {
+		if (!backArtworkFile) {
+			appliedBackArtworkFileRef.current = null;
+			setBackArtwork(null);
+			setBackThumbnail("");
+			return;
+		}
+		if (appliedBackArtworkFileRef.current === backArtworkFile) return;
+		const sequence = ++backUploadSequenceRef.current;
+		void decodeImage(backArtworkFile).then(
+			(image) => {
+				if (sequence !== backUploadSequenceRef.current) return;
+				appliedBackArtworkFileRef.current = backArtworkFile;
+				setBackArtwork(image);
+				setBackThumbnail(imageThumbnail(image));
+				setError("");
+			},
+			(cause) => {
+				if (sequence !== backUploadSequenceRef.current) return;
+				setBackArtwork(null);
+				setBackThumbnail("");
+				setError(cause instanceof Error ? cause.message : "无法读取这张图片。");
+			},
+		);
+		return () => {
+			if (sequence === backUploadSequenceRef.current)
+				backUploadSequenceRef.current++;
+		};
+	}, [backArtworkFile, setError]);
+
 	const uploadArtwork = useCallback(
 		async (file?: File) => {
 			if (!file) return;
@@ -185,6 +223,36 @@ export function useTicketWorkspace() {
 		[rememberArtwork, setError, updateSetting],
 	);
 
+	const uploadBackArtwork = useCallback(
+		async (file?: File) => {
+			if (!file) return;
+			const sequence = ++backUploadSequenceRef.current;
+			const validationError = validateImageFile(file);
+			if (validationError) {
+				setError(validationError);
+				return;
+			}
+			try {
+				const image = await decodeImage(file);
+				if (sequence !== backUploadSequenceRef.current) return;
+				appliedBackArtworkFileRef.current = file;
+				setBackArtwork(image);
+				setBackThumbnail(imageThumbnail(image));
+				rememberBackArtwork(file);
+				setError("");
+			} catch (cause) {
+				if (sequence === backUploadSequenceRef.current) {
+					setError(
+						cause instanceof Error && cause.message.startsWith("图像像素")
+							? cause.message
+							: "无法读取这张图片，请重新选择。",
+					);
+				}
+			}
+		},
+		[rememberBackArtwork, setError],
+	);
+
 	return {
 		framingRef,
 		backgroundRef,
@@ -193,12 +261,15 @@ export function useTicketWorkspace() {
 		settings,
 		artwork,
 		thumbnail,
+		backArtwork,
+		backThumbnail,
 		frame: placement.frame,
 		placementRevision: placement.revision,
 		onPlaced,
 		exportState: workspaceExport,
 		updateSetting,
 		uploadArtwork,
+		uploadBackArtwork,
 		changeView,
 		readPose,
 		onViewportReady,

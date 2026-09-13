@@ -28,10 +28,14 @@ export function TicketFinishControls() {
 }
 export function TicketControls({
 	thumbnail,
+	backThumbnail,
 	onUpload,
+	onBackUpload,
 }: {
 	thumbnail: string;
+	backThumbnail: string;
 	onUpload: (file?: File) => Promise<void>;
+	onBackUpload: (file?: File) => Promise<void>;
 }) {
 	const { settings, updateSetting } = useWorkspace<TicketSettings>();
 	return (
@@ -69,6 +73,12 @@ export function TicketControls({
 								</PopoverContent>
 							</Popover>
 						),
+					},
+					{
+						thumbnail: backThumbnail,
+						label: "背面",
+						ariaLabel: "背面",
+						onUpload: (file) => void onBackUpload(file),
 					},
 				]}
 			/>

@@ -59,6 +59,7 @@ export function useAcrylicWorkspace<S extends AcrylicSheetSettings>({
 		clearWindow: forgetWindow,
 		baseArtworkFile,
 		rememberBaseArtwork,
+		clearBaseArtwork: forgetBaseArtwork,
 	} = useWorkspaceArtwork();
 	const activeBaseArtworkFile =
 		filePrefix === "standee" ? baseArtworkFile : null;
@@ -296,6 +297,15 @@ export function useAcrylicWorkspace<S extends AcrylicSheetSettings>({
 		[rememberBaseArtwork, setError],
 	);
 
+	const clearBaseArtwork = useCallback(() => {
+		baseArtworkSequence.current++;
+		appliedBaseArtworkFile.current = null;
+		setBaseArtwork(null);
+		setLoading(false);
+		setError("");
+		forgetBaseArtwork();
+	}, [forgetBaseArtwork, setError]);
+
 	// Restores arrive as the remembered base image, just like the sheet artwork
 	// and 彩窗 image. Only the standee route consumes this asset.
 	useEffect(() => {
@@ -400,6 +410,7 @@ export function useAcrylicWorkspace<S extends AcrylicSheetSettings>({
 		uploadWindow,
 		uploadBaseArtwork,
 		clearWindow,
+		clearBaseArtwork,
 		framingRef,
 		backgroundRef,
 		apiRef,

@@ -158,6 +158,9 @@ export function AcrylicStudio<S extends AcrylicSheetSettings>({
 						onBaseUpload={
 							product === "standee" ? workspace.uploadBaseArtwork : undefined
 						}
+						onBaseClear={
+							product === "standee" ? workspace.clearBaseArtwork : undefined
+						}
 						poseControls={poseControls}
 						product={product}
 					/>

@@ -26,6 +26,7 @@ export function AcrylicSheetControls({
 	onWindowUpload,
 	onWindowClear,
 	onBaseUpload,
+	onBaseClear,
 	poseControls,
 	product,
 }: {
@@ -38,6 +39,7 @@ export function AcrylicSheetControls({
 	onWindowUpload: (file?: File) => Promise<void>;
 	onWindowClear: () => void;
 	onBaseUpload?: (file?: File) => Promise<void>;
+	onBaseClear?: () => void;
 	/** The pose section, supplied only by products that expose one. */
 	poseControls?: ReactNode;
 }) {
@@ -59,6 +61,31 @@ export function AcrylicSheetControls({
 									label: "底座图案",
 									ariaLabel: "底座图案",
 									onUpload: (file: File) => void onBaseUpload(file),
+									overlay:
+										baseThumbnail && onBaseClear ? (
+											<Popover>
+												<PopoverTrigger asChild>
+													<Button
+														variant="ghost"
+														size="icon"
+														className="absolute right-1 bottom-1 z-10 rounded-[5px]! bg-panel! p-1.25 text-white! hover:bg-panel-hover! [&_svg]:size-4"
+														aria-label="调整底座图案"
+													>
+														<SlidersHorizontal />
+													</Button>
+												</PopoverTrigger>
+												<PopoverContent>
+													<p className="mb-4 text-sm">图像调整</p>
+													<Button
+														variant="destructive"
+														className="w-full"
+														onClick={onBaseClear}
+													>
+														删除底座图案
+													</Button>
+												</PopoverContent>
+											</Popover>
+										) : undefined,
 								},
 							]
 						: []),

@@ -8,10 +8,12 @@ import { STAGE_FLOOR_Y } from "@/tuning";
 
 export function TicketModel({
 	artwork,
+	backArtwork,
 	settings,
 	onPlaced,
 }: {
 	artwork: HTMLImageElement | HTMLCanvasElement;
+	backArtwork: HTMLImageElement | HTMLCanvasElement | null;
 	settings: TicketSettings;
 	onPlaced: (frame: Frame) => void;
 }) {
@@ -26,12 +28,30 @@ export function TicketModel({
 		texture.anisotropy = 8;
 		return texture;
 	}, [artwork, settings.bleed, settings.size]);
+	const backTexture = useMemo(() => {
+		if (!backArtwork) return null;
+		const texture = new THREE.CanvasTexture(
+			composeTicketTexture(backArtwork, settings.bleed, settings.size),
+		);
+		texture.colorSpace = THREE.SRGBColorSpace;
+		texture.anisotropy = 8;
+		return texture;
+	}, [backArtwork, settings.bleed, settings.size]);
 	const material = useMemo(
 		() => ticketMaterial(texture, settings.finish, settings.gloss),
 		[texture, settings.finish, settings.gloss],
 	);
+	const backMaterial = useMemo(
+		() =>
+			backTexture
+				? ticketMaterial(backTexture, settings.finish, settings.gloss)
+				: null,
+		[backTexture, settings.finish, settings.gloss],
+	);
 	useEffect(() => () => texture.dispose(), [texture]);
+	useEffect(() => () => backTexture?.dispose(), [backTexture]);
 	useEffect(() => () => material.dispose(), [material]);
+	useEffect(() => () => backMaterial?.dispose(), [backMaterial]);
 	useLayoutEffect(() => {
 		onPlaced({
 			center: [
@@ -58,6 +78,16 @@ export function TicketModel({
 			<mesh position={[0, 0, 0.0065]} receiveShadow material={material}>
 				<planeGeometry args={[width, height]} />
 			</mesh>
+			{backMaterial && (
+				<mesh
+					position={[0, 0, -0.0065]}
+					rotation={[0, Math.PI, 0]}
+					receiveShadow
+					material={backMaterial}
+				>
+					<planeGeometry args={[width, height]} />
+				</mesh>
+			)}
 		</group>
 	);
 }
