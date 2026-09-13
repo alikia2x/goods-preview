@@ -1,10 +1,12 @@
 import type { StudioSettings } from "@/features/studio/settings";
 
-// The sheet every acrylic product is cut from: how thick it is, and how much
-// clear margin is left around the artwork.
+// The sheet every acrylic product is cut from: how thick it is, how much clear
+// margin is left around the artwork, and how far the 彩窗 image may colour the
+// pixels the artwork leaves clear.
 export type AcrylicSheetSettings = StudioSettings & {
 	thickness: number;
 	border: number;
+	windowStrength: number;
 };
 
 // How the sheet sits on the set: standing on its cut edge, or lying face up.

@@ -96,7 +96,11 @@ export function captureTransparent(
 					false;
 			} else if (mesh.userData.exportRole === "shadow") {
 				mesh.visible = visible;
-			} else if (background.has(mesh) && mesh.receiveShadow) {
+			} else if (
+				background.has(mesh) &&
+				mesh.receiveShadow &&
+				mesh.userData.exportShadow !== false
+			) {
 				const catcher = new THREE.ShadowMaterial({
 					color: 0x000000,
 					depthWrite: false,

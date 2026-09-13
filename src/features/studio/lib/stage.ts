@@ -16,7 +16,10 @@ import {
 // surfaces: the output is the declared background colour carrying the shadow
 // mask. No environment preset or light level can tint or brighten the set, and
 // the backdrop matches the page colour exactly.
-function createBackdrop(background: THREE.Color) {
+function createBackdrop(
+	background: THREE.Color,
+	{ exportShadow = true }: { exportShadow?: boolean } = {},
+) {
 	const material = new THREE.ShadowMaterial({
 		color: background,
 		transparent: false,
@@ -26,6 +29,10 @@ function createBackdrop(background: THREE.Color) {
 	material.customProgramCacheKey = () => "studio-backdrop-v1";
 	const mesh = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), material);
 	mesh.receiveShadow = true;
+	// Transparent exports keep a product's grounding shadow, not shadows cast
+	// onto scenery that disappears with the background. The regular viewport
+	// still receives every shadow because `receiveShadow` remains enabled.
+	mesh.userData.exportShadow = exportShadow;
 	return mesh;
 }
 
@@ -69,6 +76,7 @@ export class SceneStage {
 			const wallZ = sceneWallZ(kind) ?? 0;
 			const wall = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), material);
 			wall.receiveShadow = true;
+			wall.userData.exportShadow = false;
 			wall.position.set(0, 0, wallZ);
 			this.group.add(wall);
 			// Depth-only window mullions project onto the bright wall. The bars stay
@@ -100,6 +108,7 @@ export class SceneStage {
 		if (wallZ !== null) {
 			const wall = createBackdrop(
 				new THREE.Color(sceneWallBackground(kind) ?? SCENES[kind].background),
+				{ exportShadow: false },
 			);
 			wall.position.z = wallZ;
 			this.group.add(wall);

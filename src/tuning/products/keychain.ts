@@ -13,6 +13,7 @@ export const KEYCHAIN_DEFAULTS = {
 	transparentBackground: false,
 	thickness: 3,
 	border: 2,
+	windowStrength: 100,
 	hardware: "ring",
 	hardwareColor: "silver",
 } satisfies KeychainSettings;

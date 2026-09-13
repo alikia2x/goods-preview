@@ -83,7 +83,6 @@ export default function TicketWorkspace() {
 				modelControls={
 					<TicketControls
 						thumbnail={workspace.thumbnail}
-						artworkName={workspace.artworkName}
 						onUpload={workspace.uploadArtwork}
 					/>
 				}

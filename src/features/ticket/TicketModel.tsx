@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo } from "react";
 import * as THREE from "three";
+import { composeTicketTexture } from "@/features/ticket/lib/artwork";
 import { ticketMaterial } from "@/features/ticket/material";
 import type { TicketSettings } from "@/features/ticket/settings";
 import type { Frame } from "@/features/studio/lib/framing";
@@ -18,17 +19,13 @@ export function TicketModel({
 	const width = ((settings.size / 30) * artwork.width) / longest;
 	const height = ((settings.size / 30) * artwork.height) / longest;
 	const texture = useMemo(() => {
-		const canvas = document.createElement("canvas");
-		canvas.width = artwork.width;
-		canvas.height = artwork.height;
-		const context = canvas.getContext("2d");
-		if (!context) throw new Error("无法创建票面图案。");
-		context.drawImage(artwork, 0, 0);
-		const texture = new THREE.CanvasTexture(canvas);
+		const texture = new THREE.CanvasTexture(
+			composeTicketTexture(artwork, settings.bleed, settings.size),
+		);
 		texture.colorSpace = THREE.SRGBColorSpace;
 		texture.anisotropy = 8;
 		return texture;
-	}, [artwork]);
+	}, [artwork, settings.bleed, settings.size]);
 	const material = useMemo(
 		() => ticketMaterial(texture, settings.finish, settings.gloss),
 		[texture, settings.finish, settings.gloss],

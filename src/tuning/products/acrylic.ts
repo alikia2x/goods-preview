@@ -13,5 +13,6 @@ export const ACRYLIC_DEFAULTS = {
 	transparentBackground: false,
 	thickness: 3,
 	border: 2,
+	windowStrength: 100,
 	pose: "standing",
 } satisfies AcrylicSettings;

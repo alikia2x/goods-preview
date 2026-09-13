@@ -78,7 +78,6 @@ export function useBadgeWorkspace() {
 		HTMLImageElement | HTMLCanvasElement | null
 	>(null);
 	const [thumbnail, setThumbnail] = useState("");
-	const [artworkName, setArtworkName] = useState("默认图案");
 
 	// Identify scenery separately from the product for export coverage passes.
 	const backgroundObjects = useCallback(() => {
@@ -140,7 +139,6 @@ export function useBadgeWorkspace() {
 			const fallback = defaultArtwork();
 			setArtwork(fallback);
 			setThumbnail(fallback.toDataURL());
-			setArtworkName("默认图案");
 			return;
 		}
 		if (appliedArtworkFileRef.current === artworkFile) return;
@@ -151,7 +149,6 @@ export function useBadgeWorkspace() {
 				appliedArtworkFileRef.current = artworkFile;
 				setArtwork(image);
 				setThumbnail(imageThumbnail(image));
-				setArtworkName(artworkFile.name);
 				setError("");
 			},
 			(cause) => {
@@ -159,7 +156,6 @@ export function useBadgeWorkspace() {
 				const fallback = defaultArtwork();
 				setArtwork(fallback);
 				setThumbnail(fallback.toDataURL());
-				setArtworkName("默认图案");
 				setError(cause instanceof Error ? cause.message : "无法读取这张图片。");
 			},
 		);
@@ -183,7 +179,6 @@ export function useBadgeWorkspace() {
 				appliedArtworkFileRef.current = file;
 				setArtwork(image);
 				setThumbnail(imageThumbnail(image));
-				setArtworkName(file.name);
 				updateSetting("bleed", PRODUCT_DEFAULTS.badge.bleed);
 				rememberArtwork(file);
 				setError("");
@@ -209,7 +204,6 @@ export function useBadgeWorkspace() {
 		settings,
 		artwork,
 		thumbnail,
-		artworkName,
 		frame: placement.frame,
 		placementRevision: placement.revision,
 		onPlaced,

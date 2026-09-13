@@ -4,7 +4,6 @@ import type { ArtworkMask } from "@/features/acrylic/lib/geometry";
 export type KeychainArtwork = {
 	canvas: HTMLCanvasElement;
 	mask: ArtworkMask;
-	name: string;
 	thumbnail: string;
 };
 
@@ -14,7 +13,6 @@ const OUTLINE_MASK_SIZE = 512;
 
 export function prepareArtwork(
 	source: HTMLCanvasElement | HTMLImageElement,
-	name: string,
 ): KeychainArtwork {
 	const sourceWidth =
 		source instanceof HTMLImageElement ? source.naturalWidth : source.width;
@@ -70,7 +68,6 @@ export function prepareArtwork(
 	return {
 		canvas,
 		mask: { width: scan.width, height: scan.height, alpha },
-		name,
 		thumbnail: scan.toDataURL(),
 	};
 }
@@ -79,7 +76,7 @@ export async function readKeychainArtwork(file: File) {
 	const validationError = validateImageFile(file);
 	if (validationError) throw new Error(validationError);
 	const image = await decodeImage(file);
-	return prepareArtwork(image, file.name);
+	return prepareArtwork(image);
 }
 
 export function defaultKeychainArtwork() {
@@ -114,5 +111,5 @@ export function defaultKeychainArtwork() {
 	ctx.textAlign = "center";
 	ctx.font = "bold 36px sans-serif";
 	ctx.fillText("GOOD DAY", 384, 510);
-	return prepareArtwork(canvas, "默认图案");
+	return prepareArtwork(canvas);
 }

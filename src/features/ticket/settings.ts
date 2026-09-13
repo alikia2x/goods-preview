@@ -3,6 +3,7 @@ import type { StudioSettings } from "@/features/studio/settings";
 // `@/tuning/products/ticket` and are read by the material instead.
 export type TicketSettings = StudioSettings & {
 	finish: "laser" | "glitter" | "silver";
+	bleed: number;
 	pose: "standing" | "flat";
 };
 export const TICKET_FINISHES = {

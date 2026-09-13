@@ -3,6 +3,7 @@ import { ProductWorkspace } from "@/components/workspace/ProductWorkspace";
 import { WorkspaceProvider } from "@/components/workspace/WorkspaceContext";
 import { AcrylicKeyLight } from "@/features/acrylic/AcrylicKeyLight";
 import { AcrylicSheetControls } from "@/features/acrylic/AcrylicSheetControls";
+import type { BaseArtwork } from "@/features/acrylic/lib/base-artwork";
 import type { Outline, OutlineMount } from "@/features/acrylic/lib/geometry";
 import { PatternSizePopover } from "@/features/acrylic/PatternSizePopover";
 import type {
@@ -57,7 +58,12 @@ export function AcrylicStudio<S extends AcrylicSheetSettings>({
 	variantControls?: ReactNode;
 	variantContentClassName?: string;
 	renderModel: (
-		model: { artwork: KeychainArtwork; outline: Outline },
+		model: {
+			artwork: KeychainArtwork;
+			window: HTMLImageElement | HTMLCanvasElement | null;
+			baseArtwork: BaseArtwork | null;
+			outline: Outline;
+		},
 		settings: S,
 	) => ReactNode;
 	/** Reads the product's pose; products without one stay upright. */
@@ -75,6 +81,7 @@ export function AcrylicStudio<S extends AcrylicSheetSettings>({
 	const {
 		settings,
 		model,
+		windowArtwork,
 		updateSetting,
 		exportState,
 		frame: measured,
@@ -138,9 +145,19 @@ export function AcrylicStudio<S extends AcrylicSheetSettings>({
 				modelControls={
 					<AcrylicSheetControls
 						thumbnail={model?.artwork.thumbnail ?? ""}
-						name={model?.artwork.name ?? ""}
+						windowThumbnail={windowArtwork?.artwork.thumbnail ?? ""}
+						baseThumbnail={
+							product === "standee"
+								? (workspace.baseArtwork?.thumbnail ?? "")
+								: ""
+						}
 						loading={workspace.loading}
 						onUpload={workspace.upload}
+						onWindowUpload={workspace.uploadWindow}
+						onWindowClear={workspace.clearWindow}
+						onBaseUpload={
+							product === "standee" ? workspace.uploadBaseArtwork : undefined
+						}
 						poseControls={poseControls}
 						product={product}
 					/>

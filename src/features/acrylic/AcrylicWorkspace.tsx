@@ -28,10 +28,12 @@ export default function AcrylicWorkspace() {
 			renderModel={(model, settings) => (
 				<AcrylicSheet
 					artwork={model.artwork}
+					window={model.window}
 					outline={model.outline}
 					size={settings.size}
 					thickness={settings.thickness}
 					gloss={settings.gloss}
+					windowStrength={settings.windowStrength}
 					scene={settings.scene}
 					pose={settings.pose}
 				/>

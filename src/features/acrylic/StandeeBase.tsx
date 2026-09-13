@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { AcrylicMaterial } from "@/features/acrylic/AcrylicMaterial";
+import type { BaseArtwork } from "@/features/acrylic/lib/base-artwork";
 import { createBaseReflection } from "@/features/acrylic/base-reflection";
 import { createOpticalShadow } from "@/features/acrylic/optical-shadow";
 import { smoothExtrudeGeometry } from "@/features/acrylic/lib/geometry";
@@ -9,6 +10,7 @@ import { smoothExtrudeGeometry } from "@/features/acrylic/lib/geometry";
 // that supplies the artwork an environment map cannot contain.
 export function StandeeBase({
 	baseDiameter,
+	artwork,
 	connectorHeight,
 	thickness,
 	gloss,
@@ -18,6 +20,7 @@ export function StandeeBase({
 	bottom,
 }: {
 	baseDiameter: number;
+	artwork?: BaseArtwork | null;
 	connectorHeight: number;
 	/** The sheet's thickness in millimetres, which sets the slot's width. */
 	thickness: number;
@@ -30,7 +33,7 @@ export function StandeeBase({
 	const shadow = useMemo(createOpticalShadow, []);
 	useEffect(() => () => shadow.dispose(), [shadow]);
 	const depth = (connectorHeight / size) * 2;
-	const { geometry, reflection } = useMemo(() => {
+	const { geometry, patternGeometry, reflection } = useMemo(() => {
 		const radius = baseDiameter / size;
 		const shape = new THREE.Shape();
 		shape.absarc(0, 0, radius, 0, Math.PI * 2, false);
@@ -53,8 +56,29 @@ export function StandeeBase({
 			curveSegments: 96,
 		});
 		const geometry = smoothExtrudeGeometry(result);
-		return { geometry, reflection: createBaseReflection(shape) };
+		return {
+			geometry,
+			patternGeometry: new THREE.ShapeGeometry(shape, 96),
+			reflection: createBaseReflection(shape),
+		};
 	}, [baseDiameter, size, width, thickness, depth]);
+	const texture = useMemo(() => {
+		if (!artwork) return null;
+		const value = new THREE.CanvasTexture(artwork.canvas);
+		value.colorSpace = THREE.SRGBColorSpace;
+		value.anisotropy = 8;
+		const aspect = artwork.canvas.width / artwork.canvas.height;
+		if (aspect > 1) {
+			const visibleWidth = 1 / aspect;
+			value.repeat.set(visibleWidth, 1);
+			value.offset.set((1 - visibleWidth) / 2, 0);
+		} else {
+			const visibleHeight = aspect;
+			value.repeat.set(1, visibleHeight);
+			value.offset.set(0, (1 - visibleHeight) / 2);
+		}
+		return value;
+	}, [artwork]);
 	useEffect(() => {
 		(
 			reflection.material as THREE.ShaderMaterial
@@ -63,10 +87,12 @@ export function StandeeBase({
 	useEffect(
 		() => () => {
 			geometry.dispose();
+			patternGeometry.dispose();
 			reflection.geometry.dispose();
 			reflection.dispose();
+			texture?.dispose();
 		},
-		[geometry, reflection],
+		[geometry, patternGeometry, reflection, texture],
 	);
 	return (
 		<group>
@@ -91,6 +117,24 @@ export function StandeeBase({
 					edge
 				/>
 			</mesh>
+			{texture && (
+				<mesh
+					receiveShadow
+					geometry={patternGeometry}
+					position={[x, bottom + 0.006 + depth + 0.002, 0]}
+					rotation={[-Math.PI / 2, 0, 0]}
+					renderOrder={1}
+				>
+					<meshStandardMaterial
+						map={texture}
+						transparent
+						alphaTest={0.08}
+						side={THREE.DoubleSide}
+						roughness={0.72}
+						metalness={0}
+					/>
+				</mesh>
+			)}
 		</group>
 	);
 }

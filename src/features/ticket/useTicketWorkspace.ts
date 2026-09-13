@@ -76,7 +76,6 @@ export function useTicketWorkspace() {
 		HTMLImageElement | HTMLCanvasElement | null
 	>(null);
 	const [thumbnail, setThumbnail] = useState("");
-	const [artworkName, setArtworkName] = useState("默认图案");
 
 	// Identify scenery separately from the product for export coverage passes.
 	const backgroundObjects = useCallback(() => {
@@ -130,7 +129,6 @@ export function useTicketWorkspace() {
 			const fallback = defaultArtwork();
 			setArtwork(fallback);
 			setThumbnail(fallback.toDataURL());
-			setArtworkName("默认图案");
 			return;
 		}
 		if (appliedArtworkFileRef.current === artworkFile) return;
@@ -141,7 +139,6 @@ export function useTicketWorkspace() {
 				appliedArtworkFileRef.current = artworkFile;
 				setArtwork(image);
 				setThumbnail(imageThumbnail(image));
-				setArtworkName(artworkFile.name);
 				setError("");
 			},
 			(cause) => {
@@ -149,7 +146,6 @@ export function useTicketWorkspace() {
 				const fallback = defaultArtwork();
 				setArtwork(fallback);
 				setThumbnail(fallback.toDataURL());
-				setArtworkName("默认图案");
 				setError(cause instanceof Error ? cause.message : "无法读取这张图片。");
 			},
 		);
@@ -173,7 +169,7 @@ export function useTicketWorkspace() {
 				appliedArtworkFileRef.current = file;
 				setArtwork(image);
 				setThumbnail(imageThumbnail(image));
-				setArtworkName(file.name);
+				updateSetting("bleed", PRODUCT_DEFAULTS.ticket.bleed);
 				rememberArtwork(file);
 				setError("");
 			} catch (cause) {
@@ -186,7 +182,7 @@ export function useTicketWorkspace() {
 				}
 			}
 		},
-		[rememberArtwork, setError],
+		[rememberArtwork, setError, updateSetting],
 	);
 
 	return {
@@ -197,7 +193,6 @@ export function useTicketWorkspace() {
 		settings,
 		artwork,
 		thumbnail,
-		artworkName,
 		frame: placement.frame,
 		placementRevision: placement.revision,
 		onPlaced,

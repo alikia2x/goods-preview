@@ -11,11 +11,17 @@ export function validateImageFile(file: File): string | null {
 
 // Bounded to a 160px square while keeping the source proportions, so the picker
 // preview shows the artwork the way the product renders it.
-export function imageThumbnail(image: HTMLImageElement): string {
-	const scale = 160 / Math.max(image.naturalWidth, image.naturalHeight);
+export function imageThumbnail(
+	image: HTMLImageElement | HTMLCanvasElement,
+): string {
+	const width =
+		image instanceof HTMLImageElement ? image.naturalWidth : image.width;
+	const height =
+		image instanceof HTMLImageElement ? image.naturalHeight : image.height;
+	const scale = 160 / Math.max(width, height);
 	const preview = document.createElement("canvas");
-	preview.width = Math.max(1, Math.round(image.naturalWidth * scale));
-	preview.height = Math.max(1, Math.round(image.naturalHeight * scale));
+	preview.width = Math.max(1, Math.round(width * scale));
+	preview.height = Math.max(1, Math.round(height * scale));
 	preview
 		.getContext("2d")
 		?.drawImage(image, 0, 0, preview.width, preview.height);

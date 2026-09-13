@@ -13,6 +13,7 @@ export const STANDEE_DEFAULTS = {
 	transparentBackground: false,
 	thickness: 3,
 	border: 2,
+	windowStrength: 100,
 	baseDiameter: 55,
 	connectorWidth: 18,
 	connectorHeight: 4,

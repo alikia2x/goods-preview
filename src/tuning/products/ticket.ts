@@ -10,6 +10,7 @@ export const TICKET_DEFAULTS: TicketSettings = {
 	size: 150,
 	transparentBackground: false,
 	finish: "laser",
+	bleed: 0,
 	pose: "flat",
 };
 
@@ -42,23 +43,23 @@ export const TICKET_COATING = {
 	silver: {
 		// Where no ink covers the sheet, the print gives way to this grey
 		// substrate; it reflects at `reflection` strength with `roughness`.
-		substrate: 0.72,
-		roughness: 0.26,
-		reflection: 2.5,
+		substrate: 0.75,
+		roughness: 0.4,
+		reflection: 1,
 		// Interference colour: the colourless coating, how far the spectrum
 		// replaces it, and the angle window and field strength that decide when
 		// colour shows at all.
-		tintBase: 0.85,
-		colorMix: 0.92,
-		colorRange: [-0.35, 0.55],
+		tintBase: 0.9,
+		colorMix: 0.85,
+		colorRange: [-1, 1],
 		colorAngle: [5.5, 3],
-		colorField: 1.8,
+		colorField: 0.8,
 		// The diffraction field: pattern scale, view-angle slide, noise offset,
 		// and the phase that the field strength and the view direction add.
-		fieldScale: 1.8,
+		fieldScale: 2,
 		fieldAngle: 1.25,
 		fieldOffset: 13.7,
-		phaseField: 9,
+		phaseField: 6,
 		phaseAngle: [6, 4],
 	},
 };

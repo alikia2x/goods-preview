@@ -9,6 +9,7 @@ export const ticketTutorial: ProductTutorial = {
 			<p>
 				「镭射银」工艺要求上传的图片包含透明部分。此时，对应的透明部分会呈现镭射效果。
 			</p>
+			<p>点击票面图像右下角的调整按钮，可以调整出血范围。</p>
 		</>
 	),
 };

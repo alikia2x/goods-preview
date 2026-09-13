@@ -9,6 +9,13 @@ export type WorkspaceHistoryEntry = {
 	artworkKey?: string;
 	artworkName: string;
 	artworkLastModified: number;
+	/** The 彩窗 image, when the entry was made on an acrylic product. */
+	windowArtwork?: Blob;
+	windowArtworkName?: string;
+	/** The optional image printed on a standee's base. */
+	baseArtwork?: Blob;
+	baseArtworkName?: string;
+	baseArtworkLastModified?: number;
 	settings: Record<string, unknown>;
 	camera: ViewPose | null;
 	resolved: boolean;
@@ -53,14 +60,24 @@ async function artworkKey(artwork: Blob) {
 	}
 }
 
+async function sameArtwork(stored: Blob | null, next: File | null | undefined) {
+	if (!stored && !next) return true;
+	if (!stored || !next) return false;
+	return (await artworkKey(stored)) === (await artworkKey(next));
+}
+
 export async function createHistoryEntry({
 	product,
 	artwork,
+	windowArtwork,
+	baseArtwork,
 	settings,
 	camera,
 }: {
 	product: ProductKind;
 	artwork: File;
+	windowArtwork?: File | null;
+	baseArtwork?: File | null;
 	settings: Record<string, unknown>;
 	camera: ViewPose | null;
 }) {
@@ -75,6 +92,11 @@ export async function createHistoryEntry({
 		if (entry.artworkKey !== existingKey && entry.id !== undefined)
 			await database.history.update(entry.id, { artworkKey: existingKey });
 		if (existingKey !== key || entry.id === undefined) continue;
+		// The optional images belong to the artwork: the same combination revisits
+		// the same entry, so restoring and re-uploading any image converges here.
+		if (!(await sameArtwork(entry.windowArtwork ?? null, windowArtwork)))
+			continue;
+		if (!(await sameArtwork(entry.baseArtwork ?? null, baseArtwork))) continue;
 		await database.history.update(entry.id, {
 			settings,
 			camera,
@@ -90,6 +112,11 @@ export async function createHistoryEntry({
 			artworkKey: key,
 			artworkName: artwork.name,
 			artworkLastModified: artwork.lastModified,
+			windowArtwork: windowArtwork ?? undefined,
+			windowArtworkName: windowArtwork?.name,
+			baseArtwork: baseArtwork ?? undefined,
+			baseArtworkName: baseArtwork?.name,
+			baseArtworkLastModified: baseArtwork?.lastModified,
 			settings,
 			camera,
 			resolved: false,

@@ -85,7 +85,6 @@ export default function BadgeWorkspace() {
 				modelControls={
 					<BadgeControls
 						thumbnail={workspace.thumbnail}
-						artworkName={workspace.artworkName}
 						onUpload={workspace.uploadArtwork}
 					/>
 				}

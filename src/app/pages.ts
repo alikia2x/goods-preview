@@ -29,7 +29,7 @@ export const PAGE_METADATA: Record<string, PageMetadata> = {
 	"/workspace/standee": {
 		title: "亚克力立牌 3D 预览 — Goods Preview",
 		description:
-			"上传图案自动生成切边，预览亚克力立牌的底座直径、连接件尺寸与位置、板材厚度，并导出高分辨率 PNG。",
+			"上传图案自动生成切边并定制底座图案，预览亚克力立牌的底座直径、连接件尺寸与位置、板材厚度，并导出高分辨率 PNG。",
 	},
 };
 

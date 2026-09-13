@@ -3,49 +3,39 @@ import { type ReactNode, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { AdjustmentSection } from "@/components/workspace/AdjustmentSection";
 
-// The artwork picker both products share: thumbnail, upload tile, hidden file
-// input and a status row. Products vary only the labels, the status content and
-// an optional overlay on the thumbnail (the badge's bleed popover).
-export function ArtworkUploadSection({
-	thumbnail,
-	name,
-	status,
-	overlay,
-	changeLabel,
-	uploadLabel,
-	onUpload,
-}: {
+// One tile per image a product prints. Which images those are is the product's
+// business: a label says what an image feeds, and the row scrolls sideways when
+// the panel is too narrow to hold every tile at once.
+export type UploadItem = {
+	/** The current image's preview, or an empty string to show the upload tile. */
 	thumbnail: string;
-	name: string;
-	status: ReactNode;
+	/** Identifies the image in the row, below its tile. */
+	label: string;
+	/** Names the image for assistive technology. */
+	ariaLabel: string;
+	onUpload: (file: File) => void;
+	/** Rendered over the thumbnail, for controls that adjust that image. */
 	overlay?: ReactNode;
-	changeLabel: string;
-	uploadLabel: string;
-	onUpload: (file?: File) => void;
-}) {
+};
+
+function UploadTile({ item }: { item: UploadItem }) {
 	const input = useRef<HTMLInputElement>(null);
 	return (
-		<AdjustmentSection title="图像">
-			<div className="flex gap-4">
-				<div className="relative h-[100px] w-[100px] max-mobile:size-20">
-					<Button
-						variant="ghost"
-						className="relative h-[100px] w-[100px] overflow-hidden rounded-[10px]! bg-placeholder! p-0 max-mobile:size-20! [&_img]:size-full [&_img]:object-contain"
-						aria-label={changeLabel}
-						onClick={() => input.current?.click()}
-					>
-						{thumbnail && <img src={thumbnail} alt={name} />}
-					</Button>
-					{overlay}
-				</div>
+		<div className="flex w-25 shrink-0 flex-col gap-2 max-mobile:w-20">
+			<div className="relative h-25 w-25 max-mobile:size-20">
 				<Button
 					variant="ghost"
-					className="relative h-[100px] w-[100px] overflow-hidden rounded-[10px]! border-0! bg-placeholder! p-0 text-placeholder-foreground! hover:bg-panel-soft! max-mobile:size-20! [&_svg]:size-[25px]"
-					aria-label={uploadLabel}
+					className="relative h-25 w-25 overflow-hidden rounded-[10px]! bg-placeholder! p-0 max-mobile:size-20! [&_img]:size-full [&_img]:object-contain"
+					aria-label={item.ariaLabel}
 					onClick={() => input.current?.click()}
 				>
-					<Plus />
+					{item.thumbnail ? (
+						<img src={item.thumbnail} alt={item.label} />
+					) : (
+						<Plus className="size-6.25 text-placeholder-foreground" />
+					)}
 				</Button>
+				{item.overlay}
 				<input
 					ref={input}
 					type="file"
@@ -54,16 +44,38 @@ export function ArtworkUploadSection({
 					onChange={(event) => {
 						const file = event.target.files?.[0];
 						event.currentTarget.value = "";
-						onUpload(file);
+						if (file) item.onUpload(file);
 					}}
 				/>
 			</div>
-			<div
-				className="mt-2.5 flex items-center gap-1.5 text-[11px] text-panel-subtle [&_svg]:size-3 [&_span]:max-w-[240px] [&_span]:overflow-hidden [&_span]:text-ellipsis [&_span]:whitespace-nowrap"
-				role="status"
-			>
-				{status}
+			<span className="text-[11px] text-panel-subtle">{item.label}</span>
+		</div>
+	);
+}
+
+export function ArtworkUploadSection({
+	items,
+	status,
+}: {
+	items: UploadItem[];
+	status?: ReactNode;
+}) {
+	return (
+		<AdjustmentSection title="图像">
+			<div className="-mx-2 flex gap-4 overflow-x-auto px-2 pb-1">
+				{items.map((item) => (
+					<UploadTile item={item} key={item.label} />
+				))}
 			</div>
+			{status && (
+				<div
+					className="mt-2.5 flex items-center gap-1.5 text-[11px] text-panel-subtle [&_svg]:size-3、
+					 [&_span]:max-w-60 [&_span]:overflow-hidden [&_span]:text-ellipsis [&_span]:whitespace-nowrap"
+					role="status"
+				>
+					{status}
+				</div>
+			)}
 		</AdjustmentSection>
 	);
 }

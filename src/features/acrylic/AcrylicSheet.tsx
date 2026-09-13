@@ -7,29 +7,42 @@ import {
 	sheetThickness,
 } from "@/features/acrylic/lib/geometry";
 import { createOpticalShadow } from "@/features/acrylic/optical-shadow";
+import {
+	buildWindowGeometry,
+	buildWindowTint,
+} from "@/features/acrylic/lib/window";
 import type { AcrylicPose } from "@/features/acrylic/settings";
 import type { KeychainArtwork } from "@/features/keychain/lib/artwork";
 import { sampledDiffuseLighting } from "@/features/studio/lib/indirect-light";
 import { ambientIblShare } from "@/features/studio/lib/light-budget";
 import { MODEL_SCALE, STAGE_FLOOR_Y, type SceneKind } from "@/tuning";
 
+// 彩窗 is a colour filter over clear acrylic, not another printed surface. The
+// cap keeps at least 45% of the scene visible even for an opaque source pixel.
+const MAX_WINDOW_OPACITY = 0.55;
+
 // The cut sheet and the artwork printed behind it. Every acrylic product is this
 // plus its own parts, which arrive as children and are seated with it.
 export function AcrylicSheet({
 	artwork,
+	window,
 	outline,
 	size,
 	thickness,
 	gloss,
+	windowStrength,
 	scene,
 	pose = "standing",
 	children,
 }: {
 	artwork: KeychainArtwork;
+	/** The 彩窗 image, if the product carries one. */
+	window?: HTMLImageElement | HTMLCanvasElement | null;
 	outline: Outline;
 	size: number;
 	thickness: number;
 	gloss: number;
+	windowStrength: number;
 	scene: SceneKind;
 	pose?: AcrylicPose;
 	children?: ReactNode;
@@ -48,6 +61,25 @@ export function AcrylicSheet({
 		value.anisotropy = 8;
 		return value;
 	}, [artwork]);
+	// The 彩窗 image, coloured onto the pixels the print leaves clear. It is a
+	// separate translucent surface rather than part of the printed texture: the
+	// two alphas mean different things, so the print keeps its cut-out while the
+	// window keeps its own translucency.
+	const windowTint = useMemo(
+		() => (window ? buildWindowTint(artwork.canvas, outline, window) : null),
+		[artwork, outline, window],
+	);
+	const windowTexture = useMemo(() => {
+		if (!windowTint) return null;
+		const value = new THREE.CanvasTexture(windowTint);
+		value.colorSpace = THREE.SRGBColorSpace;
+		value.anisotropy = 8;
+		return value;
+	}, [windowTint]);
+	const windowGeometry = useMemo(
+		() => (window ? buildWindowGeometry(outline) : null),
+		[outline, window],
+	);
 	const depthMaterial = useMemo(
 		() =>
 			new THREE.MeshDepthMaterial({
@@ -63,9 +95,11 @@ export function AcrylicSheet({
 	useEffect(
 		() => () => {
 			texture.dispose();
+			windowTexture?.dispose();
+			windowGeometry?.dispose();
 			depthMaterial.dispose();
 		},
-		[texture, depthMaterial],
+		[texture, windowTexture, windowGeometry, depthMaterial],
 	);
 	// The printed surface is the one the key light also strikes, so it carries the
 	// ambient share. Held in a uniform: the scene can change its split without
@@ -87,6 +121,7 @@ export function AcrylicSheet({
 	const seatY = flat
 		? STAGE_FLOOR_Y + (depth * scale) / 2
 		: STAGE_FLOOR_Y - bottom * scale;
+	const windowSurfaceZ = depth / 2 + 0.001;
 	return (
 		<group position={[0, seatY, 0]} scale={scale}>
 			<group rotation={flat ? [-Math.PI / 2, 0, 0] : [0, 0, 0]}>
@@ -120,6 +155,38 @@ export function AcrylicSheet({
 						metalness={0}
 					/>
 				</mesh>
+				{windowTexture && windowGeometry && (
+					<>
+						{/* Keep the colour filter just outside each acrylic face. A layer at
+						    the sheet centre is hidden by the transmissive shell's depth. */}
+						<mesh
+							geometry={windowGeometry}
+							position={[0, 0, windowSurfaceZ]}
+							renderOrder={1}
+						>
+							<meshBasicMaterial
+								map={windowTexture}
+								transparent
+								opacity={(windowStrength / 100) * MAX_WINDOW_OPACITY}
+								side={THREE.FrontSide}
+								depthWrite={false}
+							/>
+						</mesh>
+						<mesh
+							geometry={windowGeometry}
+							position={[0, 0, -windowSurfaceZ]}
+							renderOrder={1}
+						>
+							<meshBasicMaterial
+								map={windowTexture}
+								transparent
+								opacity={(windowStrength / 100) * MAX_WINDOW_OPACITY}
+								side={THREE.BackSide}
+								depthWrite={false}
+							/>
+						</mesh>
+					</>
+				)}
 				{children}
 			</group>
 		</group>

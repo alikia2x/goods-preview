@@ -1,4 +1,11 @@
+import { SlidersHorizontal } from "lucide-react";
 import type { ReactNode } from "react";
+import { Button } from "@/components/ui/button";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
 import { AdjustmentSection } from "@/components/workspace/AdjustmentSection";
 import { ArtworkUploadSection } from "@/components/workspace/ArtworkUploadSection";
 import { RangeControl } from "@/components/workspace/RangeControl";
@@ -7,22 +14,30 @@ import { useWorkspace } from "@/components/workspace/WorkspaceContext";
 import type { AcrylicSheetSettings } from "@/features/acrylic/settings";
 import type { ProductKind } from "@/tuning";
 
-// What every acrylic product configures: the artwork, the sheet it is cut from,
-// and the shared studio. Settings come from WorkspaceContext; only the artwork
-// metadata is passed in.
+// What every acrylic product configures: the images on the sheet, the sheet it
+// is cut from, and the shared studio. Settings come from WorkspaceContext; only
+// the image metadata is passed in.
 export function AcrylicSheetControls({
 	thumbnail,
-	name,
+	windowThumbnail,
+	baseThumbnail,
 	loading,
 	onUpload,
+	onWindowUpload,
+	onWindowClear,
+	onBaseUpload,
 	poseControls,
-	product
+	product,
 }: {
 	thumbnail: string;
-	name: string;
+	windowThumbnail: string;
+	baseThumbnail: string;
 	loading: boolean;
 	product: ProductKind;
 	onUpload: (file?: File) => Promise<void>;
+	onWindowUpload: (file?: File) => Promise<void>;
+	onWindowClear: () => void;
+	onBaseUpload?: (file?: File) => Promise<void>;
 	/** The pose section, supplied only by products that expose one. */
 	poseControls?: ReactNode;
 }) {
@@ -30,12 +45,64 @@ export function AcrylicSheetControls({
 	return (
 		<>
 			<ArtworkUploadSection
-				thumbnail={thumbnail}
-				name={name}
-				changeLabel="更换图案"
-				uploadLabel="上传图案"
-				onUpload={(file) => void onUpload(file)}
-				status={<span title={name}>{loading ? "正在生成切边…" : name}</span>}
+				items={[
+					{
+						thumbnail,
+						label: "图案",
+						ariaLabel: "图案",
+						onUpload: (file) => void onUpload(file),
+					},
+					...(product === "standee" && onBaseUpload
+						? [
+								{
+									thumbnail: baseThumbnail,
+									label: "底座图案",
+									ariaLabel: "底座图案",
+									onUpload: (file: File) => void onBaseUpload(file),
+								},
+							]
+						: []),
+					{
+						thumbnail: windowThumbnail,
+						label: "彩窗",
+						ariaLabel: "彩窗",
+						onUpload: (file) => void onWindowUpload(file),
+						overlay: windowThumbnail ? (
+							<Popover>
+								<PopoverTrigger asChild>
+									<Button
+										variant="ghost"
+										size="icon"
+										className="absolute right-1 bottom-1 z-10 rounded-[5px]! bg-panel! p-1.25 text-white! hover:bg-panel-hover! [&_svg]:size-4"
+										aria-label="调整彩窗浓度"
+									>
+										<SlidersHorizontal />
+									</Button>
+								</PopoverTrigger>
+								<PopoverContent>
+									<p className="mb-4 text-sm">图像调整</p>
+									<RangeControl
+										label="彩窗浓度"
+										value={settings.windowStrength}
+										display={`${settings.windowStrength}%`}
+										min={0}
+										max={100}
+										step={5}
+										onChange={(value) => updateSetting("windowStrength", value)}
+									/>
+									<Button
+										variant="destructive"
+										className="mt-4 w-full"
+										onClick={onWindowClear}
+									>
+										清除彩窗
+									</Button>
+								</PopoverContent>
+							</Popover>
+						) : undefined,
+					},
+				]}
+				status={loading ? <span>正在处理图像…</span> : undefined}
 			/>
 			{poseControls}
 			<AdjustmentSection title="亚克力">

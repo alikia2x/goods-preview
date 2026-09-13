@@ -1,6 +1,14 @@
+import { SlidersHorizontal } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
 import { AdjustmentSection } from "@/components/workspace/AdjustmentSection";
 import { ArtworkUploadSection } from "@/components/workspace/ArtworkUploadSection";
 import { OptionButtonGroup } from "@/components/workspace/OptionButtonGroup";
+import { RangeControl } from "@/components/workspace/RangeControl";
 import { StudioControls } from "@/components/workspace/StudioControls";
 import { useWorkspace } from "@/components/workspace/WorkspaceContext";
 import {
@@ -20,23 +28,49 @@ export function TicketFinishControls() {
 }
 export function TicketControls({
 	thumbnail,
-	artworkName,
 	onUpload,
 }: {
 	thumbnail: string;
-	artworkName: string;
 	onUpload: (file?: File) => Promise<void>;
 }) {
 	const { settings, updateSetting } = useWorkspace<TicketSettings>();
 	return (
 		<>
 			<ArtworkUploadSection
-				thumbnail={thumbnail}
-				name={artworkName}
-				status={<span>{artworkName}</span>}
-				changeLabel="更换票面图案"
-				uploadLabel="上传票面图案"
-				onUpload={onUpload}
+				items={[
+					{
+						thumbnail,
+						label: "票面",
+						ariaLabel: "票面",
+						onUpload: (file) => void onUpload(file),
+						overlay: (
+							<Popover>
+								<PopoverTrigger asChild>
+									<Button
+										variant="ghost"
+										size="icon"
+										className="absolute right-1 bottom-1 z-10 rounded-[5px]! bg-panel! p-1.25 text-white! hover:bg-panel-hover! [&_svg]:size-4"
+										aria-label="调整出血"
+									>
+										<SlidersHorizontal />
+									</Button>
+								</PopoverTrigger>
+								<PopoverContent>
+									<p className="mb-4 text-sm">图像调整</p>
+									<RangeControl
+										label="出血"
+										value={settings.bleed}
+										display={`${settings.bleed} mm`}
+										min={0}
+										max={5}
+										step={0.5}
+										onChange={(value) => updateSetting("bleed", value)}
+									/>
+								</PopoverContent>
+							</Popover>
+						),
+					},
+				]}
 			/>
 			{settings.scene !== "standing" && (
 				<AdjustmentSection title="姿态">

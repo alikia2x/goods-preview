@@ -9,21 +9,15 @@ import type { BadgeSettings } from "@/features/badge/settings";
 // come from WorkspaceContext; only the artwork metadata is passed in.
 export function BadgeControls({
 	thumbnail,
-	artworkName,
 	onUpload,
 }: {
 	thumbnail: string;
-	artworkName: string;
 	onUpload: (file?: File) => Promise<void>;
 }) {
 	const { settings } = useWorkspace<BadgeSettings>();
 	return (
 		<>
-			<ArtworkControls
-				thumbnail={thumbnail}
-				artworkName={artworkName}
-				onUpload={onUpload}
-			/>
+			<ArtworkControls thumbnail={thumbnail} onUpload={onUpload} />
 			{settings.scene !== "standing" && (
 				<AdjustmentSection title="姿态">
 					<PoseControls />

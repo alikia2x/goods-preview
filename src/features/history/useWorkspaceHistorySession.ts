@@ -17,6 +17,8 @@ const RESOLVE_DELAY = 2000;
 export function useWorkspaceHistorySession<S extends StudioSettings>({
 	product,
 	artworkFile,
+	windowArtworkFile,
+	baseArtworkFile,
 	settings,
 	replaceSettings,
 	ready,
@@ -25,6 +27,8 @@ export function useWorkspaceHistorySession<S extends StudioSettings>({
 }: {
 	product: ProductKind;
 	artworkFile: File | null;
+	windowArtworkFile?: File | null;
+	baseArtworkFile?: File | null;
 	settings: S;
 	replaceSettings: (next: S) => void;
 	ready: boolean;
@@ -41,11 +45,15 @@ export function useWorkspaceHistorySession<S extends StudioSettings>({
 	const pendingCameraWriteRef = useRef<ViewPose | null>(null);
 	const handledStartupEntryRef = useRef<number | null>(null);
 	const observedArtworkFileRef = useRef<File | null>(null);
+	const observedWindowFileRef = useRef<File | null>(null);
+	const observedBaseArtworkFileRef = useRef<File | null>(null);
 	const restoredArtworkRef = useRef<{
 		name: string;
 		lastModified: number;
 		size: number;
 	} | null>(null);
+	const restoredWindowRef = useRef<File | null>(null);
+	const restoredBaseArtworkRef = useRef<File | null>(null);
 	const [restorationKey, setRestorationKey] = useState(0);
 	const restoredEntry = startupEntry?.product === product ? startupEntry : null;
 
@@ -94,6 +102,23 @@ export function useWorkspaceHistorySession<S extends StudioSettings>({
 			lastModified: restoredEntry.artworkLastModified,
 			size: restoredEntry.artwork.size,
 		};
+		restoredWindowRef.current = restoredEntry.windowArtwork
+			? new File(
+					[restoredEntry.windowArtwork],
+					restoredEntry.windowArtworkName ?? "彩窗",
+					{ type: restoredEntry.windowArtwork.type },
+				)
+			: null;
+		restoredBaseArtworkRef.current = restoredEntry.baseArtwork
+			? new File(
+					[restoredEntry.baseArtwork],
+					restoredEntry.baseArtworkName ?? "底座图案",
+					{
+						type: restoredEntry.baseArtwork.type,
+						lastModified: restoredEntry.baseArtworkLastModified,
+					},
+				)
+			: null;
 		skipNextSettingsWriteRef.current = true;
 		replaceSettings(restoredEntry.settings as S);
 		setRestorationKey((current) => current + 1);
@@ -126,7 +151,7 @@ export function useWorkspaceHistorySession<S extends StudioSettings>({
 	);
 
 	const startEntry = useCallback(
-		async (artwork: File) => {
+		async (artwork: File, windowArtwork: File | null) => {
 			if (writeTimerRef.current !== null) {
 				window.clearTimeout(writeTimerRef.current);
 				writeTimerRef.current = null;
@@ -135,6 +160,8 @@ export function useWorkspaceHistorySession<S extends StudioSettings>({
 				const id = await createHistoryEntry({
 					product,
 					artwork,
+					windowArtwork,
+					baseArtwork: baseArtworkFile ?? null,
 					settings: { ...settings },
 					camera: readPose(),
 				});
@@ -144,7 +171,7 @@ export function useWorkspaceHistorySession<S extends StudioSettings>({
 				// upload appear to fail.
 			}
 		},
-		[product, readPose, settings],
+		[baseArtworkFile, product, readPose, settings],
 	);
 
 	useEffect(() => {
@@ -166,8 +193,76 @@ export function useWorkspaceHistorySession<S extends StudioSettings>({
 		)
 			return;
 		restoredArtworkRef.current = null;
-		void startEntry(artworkFile);
-	}, [artworkFile, startEntry, startupEntry]);
+		restoredWindowRef.current = null;
+		restoredBaseArtworkRef.current = null;
+		observedWindowFileRef.current = windowArtworkFile ?? null;
+		observedBaseArtworkFileRef.current = baseArtworkFile ?? null;
+		void startEntry(artworkFile, windowArtworkFile ?? null);
+	}, [
+		artworkFile,
+		baseArtworkFile,
+		windowArtworkFile,
+		startEntry,
+		startupEntry,
+	]);
+
+	// Uploading a window alone also describes a new combination of images, so it
+	// gets its own row instead of quietly rewriting the artwork's.
+	useEffect(() => {
+		const nextWindow = windowArtworkFile ?? null;
+		if (observedWindowFileRef.current === nextWindow) return;
+		observedWindowFileRef.current = nextWindow;
+		if (startupEntry) return;
+		const restoredWindow = restoredWindowRef.current;
+		if (
+			restoredWindow &&
+			nextWindow &&
+			restoredWindow.name === nextWindow.name &&
+			restoredWindow.size === nextWindow.size
+		)
+			return;
+		if (!restoredWindow && !nextWindow) return;
+		if (!artworkFile) return;
+		restoredWindowRef.current = null;
+		observedArtworkFileRef.current = artworkFile;
+		observedBaseArtworkFileRef.current = baseArtworkFile ?? null;
+		void startEntry(artworkFile, nextWindow);
+	}, [
+		baseArtworkFile,
+		windowArtworkFile,
+		artworkFile,
+		startEntry,
+		startupEntry,
+	]);
+
+	// Uploading a base image also describes a new combination of images, so it
+	// gets its own history row instead of quietly rewriting the artwork's.
+	useEffect(() => {
+		const nextBase = baseArtworkFile ?? null;
+		if (observedBaseArtworkFileRef.current === nextBase) return;
+		observedBaseArtworkFileRef.current = nextBase;
+		if (startupEntry) return;
+		const restoredBase = restoredBaseArtworkRef.current;
+		if (
+			restoredBase &&
+			nextBase &&
+			restoredBase.name === nextBase.name &&
+			restoredBase.size === nextBase.size
+		)
+			return;
+		if (!restoredBase && !nextBase) return;
+		if (!artworkFile) return;
+		restoredBaseArtworkRef.current = null;
+		observedArtworkFileRef.current = artworkFile;
+		observedWindowFileRef.current = windowArtworkFile ?? null;
+		void startEntry(artworkFile, windowArtworkFile ?? null);
+	}, [
+		artworkFile,
+		baseArtworkFile,
+		startEntry,
+		startupEntry,
+		windowArtworkFile,
+	]);
 
 	const takeRestoredCamera = useCallback(() => {
 		const camera = pendingCameraRef.current;
