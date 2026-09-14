@@ -44,14 +44,14 @@ export const TICKET_COATING = {
 	silver: {
 		// Where no ink covers the sheet, the print gives way to this grey
 		// substrate; it reflects at `reflection` strength with `roughness`.
-		substrate: 0.75,
-		roughness: 0.4,
+		substrate: 2,
+		roughness: 0.5,
 		reflection: 1,
 		// Interference colour: the colourless coating, how far the spectrum
 		// replaces it, and the angle window and field strength that decide when
 		// colour shows at all.
 		tintBase: 0.9,
-		colorMix: 0.85,
+		colorMix: 0.6,
 		colorRange: [-1, 1],
 		colorAngle: [5.5, 3],
 		colorField: 0.8,
