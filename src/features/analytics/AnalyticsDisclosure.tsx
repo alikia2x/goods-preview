@@ -1,10 +1,10 @@
-import { useState } from "react";
-import { Switch } from "@/components/ui/switch";
-import {
-	analyticsAllowed,
-	setAnalyticsOptOut,
-} from "@/features/analytics/consent";
-import { trackAnalyticsOptOut } from "@/features/analytics/events";
+// import { useState } from "react";
+// import { Switch } from "@/components/ui/switch";
+// import {
+// 	analyticsAllowed,
+// 	setAnalyticsOptOut,
+// } from "@/features/analytics/consent";
+// import { trackAnalyticsOptOut } from "@/features/analytics/events";
 
 // Shown inside the About dialog. One line says the tool measures usage, one
 // line says it can be turned off, one sentence says what is never uploaded —
