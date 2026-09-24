@@ -11,6 +11,10 @@ import {
 } from "react";
 import { Button } from "@/components/ui/button";
 import {
+	trackHistoryDelete,
+	trackHistoryOpen,
+} from "@/features/analytics/events";
+import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
@@ -141,7 +145,7 @@ function HistoryCard({
 	return (
 		<Button
 			variant="ghost"
-			className="absolute flex h-auto flex-col items-stretch gap-2 rounded-none border-0 bg-transparent p-0 text-left hover:bg-transparent hover:text-white"
+			className="absolute flex h-auto flex-col items-stretch gap-2 rounded-none border-0 bg-transparent p-0 text-left hover:bg-transparent hover:text-white [-webkit-touch-callout:none]"
 			style={
 				{
 					width: layout.width,
@@ -153,9 +157,13 @@ function HistoryCard({
 			onPointerCancel={cancelPress}
 			onPointerLeave={cancelPress}
 			onContextMenu={(event) => {
+				// Long press raises the native menu on some browsers even though the
+				// card owns the gesture; suppress it and keep the timer from firing twice.
 				event.preventDefault();
+				cancelPress();
 				onDelete();
 			}}
+			onDragStart={(event) => event.preventDefault()}
 			onClick={() => {
 				if (ignoreClickRef.current) {
 					ignoreClickRef.current = false;
@@ -171,7 +179,8 @@ function HistoryCard({
 				<img
 					src={entry.thumbnailUrl}
 					alt=""
-					className="size-full object-cover transition-opacity group-hover/button:opacity-85"
+					draggable={false}
+					className="size-full object-cover transition-opacity [-webkit-touch-callout:none] group-hover/button:opacity-85"
 					onLoad={(event) => {
 						const { naturalHeight, naturalWidth } = event.currentTarget;
 						if (!naturalHeight || !naturalWidth) return;
@@ -223,6 +232,7 @@ export function HistoryDialog({
 		const entry = entryToDelete;
 		if (entry?.id === undefined) return;
 		await deleteHistoryEntry(entry.id);
+		trackHistoryDelete(entry.product);
 		setEntries((current) => {
 			const removed = current.find((item) => item.id === entry.id);
 			if (removed) URL.revokeObjectURL(removed.thumbnailUrl);
@@ -285,8 +295,10 @@ export function HistoryDialog({
 				urls.push(thumbnailUrl);
 				return { ...entry, thumbnailUrl };
 			});
-			if (active) setEntries(entriesWithThumbnails);
-			else
+			if (active) {
+				trackHistoryOpen(entriesWithThumbnails.length);
+				setEntries(entriesWithThumbnails);
+			} else
 				urls.forEach((url) => {
 					URL.revokeObjectURL(url);
 				});

@@ -5,6 +5,8 @@ import { useWorkspaceExportState } from "@/components/workspace/WorkspaceContext
 import { PRODUCT_DEFAULTS } from "@/tuning";
 import type { BadgeShadowHandle } from "@/features/badge/model/BadgeModel";
 import { defaultArtwork } from "@/features/badge/model/artwork";
+import { trackArtworkFailure } from "@/features/analytics/events";
+import { useSettingsObjectTelemetry } from "@/features/analytics/settings-telemetry";
 import { useWorkspaceHistorySession } from "@/features/history/useWorkspaceHistorySession";
 import { deriveBadgeSettings } from "@/features/badge/settings";
 import type { Frame } from "@/features/studio/lib/framing";
@@ -64,7 +66,9 @@ export function useBadgeWorkspace() {
 	const { settings, updateSetting, replaceSettings } = useSettings(
 		PRODUCT_DEFAULTS.badge,
 		deriveBadgeSettings,
+		"badge",
 	);
+	useSettingsObjectTelemetry("badge", settings);
 	const history = useWorkspaceHistorySession({
 		product: "badge",
 		artworkFile,
@@ -170,6 +174,7 @@ export function useBadgeWorkspace() {
 			const sequence = ++uploadSequenceRef.current;
 			const validationError = validateImageFile(file);
 			if (validationError) {
+				trackArtworkFailure("artwork", "user", "validation");
 				setError(validationError);
 				return;
 			}
@@ -184,6 +189,7 @@ export function useBadgeWorkspace() {
 				setError("");
 			} catch (cause) {
 				if (sequence === uploadSequenceRef.current) {
+					trackArtworkFailure("artwork", "user", "decode");
 					setError(
 						cause instanceof Error && cause.message.startsWith("图像像素")
 							? cause.message

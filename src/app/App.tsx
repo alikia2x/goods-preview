@@ -9,6 +9,8 @@ import {
 import { LoadingOverlay } from "@/components/workspace/LoadingOverlay";
 import { WorkspaceArtworkProvider } from "@/components/workspace/WorkspaceArtwork";
 import { WorkspaceSupportProvider } from "@/components/workspace/WorkspaceSupport";
+import { AnalyticsProvider } from "@/features/analytics/AnalyticsProvider";
+import { RouteErrorBoundary } from "@/features/analytics/RouteErrorBoundary";
 import {
 	WorkspaceHistoryProvider,
 	useWorkspaceHistory,
@@ -63,65 +65,52 @@ function RestoredWorkspaceRedirect() {
 	return location.pathname === target ? null : <Navigate to={target} replace />;
 }
 
+// A failure while a workspace renders leaves the shell usable: the boundary is
+// keyed on the route, so switching products clears the message instead of
+// pinning it for the rest of the session.
+function RoutedWorkspaces() {
+	const { pathname } = useLocation();
+	const workspace = (node: React.ReactNode) => (
+		<RouteErrorBoundary key={pathname}>
+			<Suspense fallback={WORKSPACE_FALLBACK}>{node}</Suspense>
+		</RouteErrorBoundary>
+	);
+	return (
+		<Routes>
+			<Route
+				path="/workspace/ticket"
+				element={workspace(<TicketWorkspace />)}
+			/>
+			<Route path="/" element={<Navigate to="/workspace/badge" replace />} />
+			<Route path="/workspace/badge" element={workspace(<BadgeWorkspace />)} />
+			<Route
+				path="/workspace/keychain"
+				element={workspace(<KeychainWorkspace />)}
+			/>
+			<Route
+				path="/workspace/acrylic"
+				element={workspace(<AcrylicWorkspace />)}
+			/>
+			<Route
+				path="/workspace/standee"
+				element={workspace(<StandeeWorkspace />)}
+			/>
+			<Route path="*" element={<Navigate to="/workspace/badge" replace />} />
+		</Routes>
+	);
+}
+
 export default function App() {
 	useWorkspacePrefetch();
 	return (
 		<WorkspaceHistoryProvider>
 			<BrowserRouter>
+				<AnalyticsProvider />
 				<DocumentMetadata />
 				<RestoredWorkspaceRedirect />
 				<WorkspaceArtworkProvider>
 					<WorkspaceSupportProvider>
-						<Routes>
-							<Route
-								path="/workspace/ticket"
-								element={
-									<Suspense fallback={WORKSPACE_FALLBACK}>
-										<TicketWorkspace />
-									</Suspense>
-								}
-							/>
-							<Route
-								path="/"
-								element={<Navigate to="/workspace/badge" replace />}
-							/>
-							<Route
-								path="/workspace/badge"
-								element={
-									<Suspense fallback={WORKSPACE_FALLBACK}>
-										<BadgeWorkspace />
-									</Suspense>
-								}
-							/>
-							<Route
-								path="/workspace/keychain"
-								element={
-									<Suspense fallback={WORKSPACE_FALLBACK}>
-										<KeychainWorkspace />
-									</Suspense>
-								}
-							/>
-							<Route
-								path="/workspace/acrylic"
-								element={
-									<Suspense fallback={WORKSPACE_FALLBACK}>
-										<AcrylicWorkspace />
-									</Suspense>
-								}
-							/>
-							<Route
-								path="/workspace/standee"
-								element={
-									<Suspense fallback={WORKSPACE_FALLBACK}>
-										<StandeeWorkspace />
-									</Suspense>
-								}
-							/>
-							<Route
-								path="*"
-								element={<Navigate to="/workspace/badge" replace />}
-							/>
-						</Routes>
+						<RoutedWorkspaces />
 					</WorkspaceSupportProvider>
 				</WorkspaceArtworkProvider>
 			</BrowserRouter>

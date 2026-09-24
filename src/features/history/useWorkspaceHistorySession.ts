@@ -1,4 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+	suppressSettingTelemetry,
+	trackHistoryRestore,
+} from "@/features/analytics/events";
 import type { ViewPose } from "@/features/studio/components/StudioViewport";
 import {
 	createHistoryEntry,
@@ -134,10 +138,15 @@ export function useWorkspaceHistorySession<S extends StudioSettings>({
 				)
 			: null;
 		skipNextSettingsWriteRef.current = true;
+		// The settings object is about to be replaced wholesale. Its own restore
+		// event describes that, so the replacement is excluded from the settings
+		// report rather than looking like a person retuning every control.
+		suppressSettingTelemetry();
+		trackHistoryRestore(product);
 		replaceSettings(restoredEntry.settings as S);
 		setRestorationKey((current) => current + 1);
 		consumeStartupEntry();
-	}, [restoredEntry, replaceSettings, consumeStartupEntry]);
+	}, [restoredEntry, replaceSettings, consumeStartupEntry, product]);
 
 	useEffect(() => {
 		if (skipNextSettingsWriteRef.current) {

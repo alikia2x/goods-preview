@@ -1,5 +1,6 @@
 import { Canvas } from "@react-three/fiber";
 import { type ReactNode, type RefObject, useState } from "react";
+import { useLocation } from "react-router";
 import * as THREE from "three";
 import { AdaptiveResolution } from "@/features/studio/components/AdaptiveResolution";
 import { DebugCollector } from "@/features/studio/components/DebugPanel";
@@ -64,10 +65,13 @@ export function StudioCanvas({
 	// The opening ratio is the ceiling: adapting only trades detail away. The
 	// value lives here rather than in r3f's store because `configure` re-asserts
 	// the `dpr` prop on every render of this component.
+	const { pathname } = useLocation();
 	const [opening] = useState(() => openingPixelRatio(ADAPTIVE_RESOLUTION));
 	const [dpr, setDpr] = useState(opening);
 	return (
-		<PreviewErrorBoundary>
+		// Keyed on the route so the failure message belongs to the product that
+		// raised it and clears when another one is opened.
+		<PreviewErrorBoundary key={pathname}>
 			<Canvas
 				shadows={{ type: THREE.PCFShadowMap }}
 				dpr={dpr}

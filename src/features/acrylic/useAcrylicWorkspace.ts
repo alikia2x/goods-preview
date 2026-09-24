@@ -21,12 +21,15 @@ import {
 	type KeychainArtwork,
 	readKeychainArtwork,
 } from "@/features/keychain/lib/artwork";
+import { useSettingsObjectTelemetry } from "@/features/analytics/settings-telemetry";
+import { trackArtworkFailure } from "@/features/analytics/events";
 import { useWorkspaceHistorySession } from "@/features/history/useWorkspaceHistorySession";
 import { type SettingChange, useSettings } from "@/features/studio/settings";
 import { decodeImage } from "@/features/studio/lib/image";
 import { useExportController } from "@/features/studio/useExportController";
 import { useWorkspaceViewport } from "@/features/studio/useWorkspaceViewport";
 import { useSceneBackground } from "@/hooks/useSceneBackground";
+import type { ProductKind } from "@/tuning";
 
 // Framing before the artwork has been measured, so the opening camera has
 // somewhere to look.
@@ -41,14 +44,14 @@ export function useAcrylicWorkspace<S extends AcrylicSheetSettings>({
 	derive,
 	mount,
 	frame,
-	filePrefix,
+	product,
 	poseOf,
 }: {
 	defaults: S;
 	derive?: (next: S, key: keyof S) => S;
 	mount: (settings: S) => "keychain" | OutlineMount | null;
 	frame: (outline: Outline, settings: S) => Frame;
-	filePrefix: string;
+	product: ProductKind;
 	poseOf?: (settings: S) => AcrylicPose;
 }) {
 	const {
@@ -61,8 +64,7 @@ export function useAcrylicWorkspace<S extends AcrylicSheetSettings>({
 		rememberBaseArtwork,
 		clearBaseArtwork: forgetBaseArtwork,
 	} = useWorkspaceArtwork();
-	const activeBaseArtworkFile =
-		filePrefix === "standee" ? baseArtworkFile : null;
+	const activeBaseArtworkFile = product === "standee" ? baseArtworkFile : null;
 	const {
 		framingRef,
 		backgroundRef,
@@ -78,9 +80,10 @@ export function useAcrylicWorkspace<S extends AcrylicSheetSettings>({
 		settings,
 		updateSetting: applySetting,
 		replaceSettings,
-	} = useSettings(defaults, derive);
+	} = useSettings(defaults, derive, product);
+	useSettingsObjectTelemetry(product, settings);
 	const history = useWorkspaceHistorySession({
-		product: filePrefix as "keychain" | "acrylic" | "standee",
+		product,
 		artworkFile,
 		windowArtworkFile: windowFile,
 		baseArtworkFile: activeBaseArtworkFile,
@@ -114,8 +117,8 @@ export function useAcrylicWorkspace<S extends AcrylicSheetSettings>({
 
 	const fileName = useCallback(
 		(resolution: number, transparent: boolean) =>
-			`${filePrefix}-${settings.scene}${transparent ? "-transparent" : ""}-${resolution}x${resolution}.png`,
-		[settings.scene, filePrefix],
+			`${product}-${settings.scene}${transparent ? "-transparent" : ""}-${resolution}x${resolution}.png`,
+		[settings.scene, product],
 	);
 
 	const exportState = useExportController({
@@ -214,6 +217,7 @@ export function useAcrylicWorkspace<S extends AcrylicSheetSettings>({
 			setOutline(traceOutline(artwork.mask, borderRatio, mountSpec));
 			setError("");
 		} catch (cause) {
+			trackArtworkFailure("artwork", "user", "outline");
 			setError(cause instanceof Error ? cause.message : "无法生成切边。");
 		}
 	}, [artwork, borderRatio, mountKey, setError]);
@@ -231,8 +235,10 @@ export function useAcrylicWorkspace<S extends AcrylicSheetSettings>({
 				setArtwork(next);
 				rememberArtwork(file);
 			} catch (cause) {
-				if (token === sequence.current)
+				if (token === sequence.current) {
+					trackArtworkFailure("artwork", "user", "decode");
 					setError(cause instanceof Error ? cause.message : "无法读取图片。");
+				}
 			} finally {
 				if (token === sequence.current) setLoading(false);
 			}
@@ -257,8 +263,10 @@ export function useAcrylicWorkspace<S extends AcrylicSheetSettings>({
 				updateSetting("windowStrength", defaults.windowStrength);
 				rememberWindow(file);
 			} catch (cause) {
-				if (token === windowSequence.current)
+				if (token === windowSequence.current) {
+					trackArtworkFailure("window", "user", "decode");
 					setError(cause instanceof Error ? cause.message : "无法读取图片。");
+				}
 			} finally {
 				if (token === windowSequence.current) setLoading(false);
 			}
@@ -288,8 +296,10 @@ export function useAcrylicWorkspace<S extends AcrylicSheetSettings>({
 				setBaseArtwork(next);
 				rememberBaseArtwork(file);
 			} catch (cause) {
-				if (token === baseArtworkSequence.current)
+				if (token === baseArtworkSequence.current) {
+					trackArtworkFailure("base", "user", "decode");
 					setError(cause instanceof Error ? cause.message : "无法读取图片。");
+				}
 			} finally {
 				if (token === baseArtworkSequence.current) setLoading(false);
 			}

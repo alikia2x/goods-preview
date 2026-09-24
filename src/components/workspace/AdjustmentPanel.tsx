@@ -3,6 +3,7 @@ import { type ReactNode, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ExportControls } from "@/components/workspace/ExportControls";
 import { useWorkspace } from "@/components/workspace/WorkspaceContext";
+import { trackPanelToggle } from "@/features/analytics/events";
 import { useMobile } from "@/hooks/useMobile";
 import panelStyles from "@/styles/adjustment-panel.module.css";
 
@@ -73,7 +74,12 @@ export function AdjustmentPanel({
 							aria-label={expanded ? "收起调整面板" : "展开调整面板"}
 							aria-expanded={expanded}
 							aria-controls={id}
-							onClick={() => setExpanded((value) => !value)}
+							onClick={() =>
+								setExpanded((value) => {
+									trackPanelToggle(!value);
+									return !value;
+								})
+							}
 						>
 							{expanded ? <ChevronDown /> : <ChevronUp />}
 						</Button>

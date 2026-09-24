@@ -8,6 +8,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { trackExportSettingChange } from "@/features/analytics/events";
 import { EXPORT_RESOLUTIONS } from "@/features/badge/constants";
 
 export type ExportControlsProps = {
@@ -49,12 +50,21 @@ export function ExportControls({
 				<Switch
 					id="transparent-background"
 					checked={transparentBackground}
-					onCheckedChange={onTransparentBackgroundChange}
+					onCheckedChange={(value) => {
+						trackExportSettingChange(Number(resolution), value);
+						onTransparentBackgroundChange(value);
+					}}
 				/>
 			</div>
 			<div className="mb-3.5 flex items-center justify-between text-xs text-panel-subtle tabular-nums max-mobile:mb-1.5">
 				<label htmlFor="resolution">导出尺寸</label>
-				<Select value={resolution} onValueChange={onResolutionChange}>
+				<Select
+					value={resolution}
+					onValueChange={(value) => {
+						trackExportSettingChange(Number(value), transparentBackground);
+						onResolutionChange(value);
+					}}
+				>
 					<SelectTrigger
 						id="resolution"
 						className="w-auto border-0 bg-transparent text-panel-value shadow-none tabular-nums"

@@ -17,6 +17,7 @@ import {
 	ACRYLIC_MIN_DISTANCE,
 	ACRYLIC_MAX_DISTANCE,
 } from "@/features/acrylic/views";
+import { usePreviewTelemetry } from "@/features/analytics/preview-telemetry";
 import { StudioCanvas } from "@/features/studio/components/StudioCanvas";
 import { StudioStatus } from "@/features/studio/components/StudioStatus";
 import { studioDistance } from "@/features/studio/lib/framing";
@@ -32,6 +33,9 @@ export default function TicketWorkspace() {
 		onEnvironmentReady,
 		onEnvironmentError,
 	} = useStudioEnvironment(settings.lighting);
+	// One report per mount: the time to the first lit frame, or the lighting
+	// failure that replaced it.
+	usePreviewTelemetry("ticket", environment !== null, environmentError);
 
 	// Frame the camera around the measured ticket dimensions.
 	const { frame, placementRevision } = workspace;

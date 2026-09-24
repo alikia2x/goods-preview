@@ -41,3 +41,23 @@ export async function decodeImage(file: File): Promise<HTMLImageElement> {
 		URL.revokeObjectURL(url);
 	}
 }
+
+/**
+ * Reads an image's pixel size without keeping it. Telemetry describes an upload
+ * by its order of magnitude, so the bitmap is closed as soon as it is measured
+ * and never reaches a renderer. Returns null where the browser cannot decode
+ * the file, which is not an error here: the product's own reader reports that.
+ */
+export async function measureImage(
+	file: File,
+): Promise<{ width: number; height: number } | null> {
+	if (typeof createImageBitmap !== "function") return null;
+	try {
+		const bitmap = await createImageBitmap(file);
+		const size = { width: bitmap.width, height: bitmap.height };
+		bitmap.close();
+		return size;
+	} catch {
+		return null;
+	}
+}

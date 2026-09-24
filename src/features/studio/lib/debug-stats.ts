@@ -1,4 +1,4 @@
-import type * as THREE from "three";
+import * as THREE from "three";
 
 // The imperative badge loop and the R3F loop both call tickDebug, so one
 // dev-only panel can read FPS, renderer info and WebGL context health.
@@ -7,6 +7,9 @@ export type DebugSnapshot = {
 	frameMs: number;
 	/** The live renderer pixel ratio, which adaptive resolution moves. */
 	dpr: number;
+	/** Drawing buffer size in device pixels: the canvas box times the DPR. */
+	renderWidth: number;
+	renderHeight: number;
 	drawCalls: number;
 	triangles: number;
 	geometries: number;
@@ -19,6 +22,8 @@ export const debugSnapshot: DebugSnapshot = {
 	fps: 0,
 	frameMs: 0,
 	dpr: 0,
+	renderWidth: 0,
+	renderHeight: 0,
 	drawCalls: 0,
 	triangles: 0,
 	geometries: 0,
@@ -30,6 +35,7 @@ export const debugSnapshot: DebugSnapshot = {
 const INTERVAL_MS = 500;
 let frames = 0,
 	lastUpdate = performance.now(),
+	drawingBuffer = new THREE.Vector2(),
 	hooked: THREE.WebGLRenderer | null = null,
 	unhook: (() => void) | null = null;
 
@@ -66,6 +72,9 @@ export function tickDebug(renderer: THREE.WebGLRenderer) {
 	debugSnapshot.fps = (frames / elapsed) * 1000;
 	debugSnapshot.frameMs = elapsed / frames;
 	debugSnapshot.dpr = renderer.getPixelRatio();
+	renderer.getDrawingBufferSize(drawingBuffer);
+	debugSnapshot.renderWidth = drawingBuffer.x;
+	debugSnapshot.renderHeight = drawingBuffer.y;
 	frames = 0;
 	lastUpdate = now;
 	const info = renderer.info;

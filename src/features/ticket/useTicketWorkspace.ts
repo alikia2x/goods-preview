@@ -12,6 +12,8 @@ import {
 	imageThumbnail,
 	validateImageFile,
 } from "@/features/studio/lib/image";
+import { useSettingsObjectTelemetry } from "@/features/analytics/settings-telemetry";
+import { trackArtworkFailure } from "@/features/analytics/events";
 import { useSettings } from "@/features/studio/settings";
 import { useExportController } from "@/features/studio/useExportController";
 import { useWorkspaceViewport } from "@/features/studio/useWorkspaceViewport";
@@ -65,7 +67,9 @@ export function useTicketWorkspace() {
 	const { settings, updateSetting, replaceSettings } = useSettings(
 		PRODUCT_DEFAULTS.ticket,
 		deriveTicketSettings,
+		"ticket",
 	);
+	useSettingsObjectTelemetry("ticket", settings);
 	const history = useWorkspaceHistorySession({
 		product: "ticket",
 		artworkFile,
@@ -195,9 +199,11 @@ export function useTicketWorkspace() {
 	const uploadArtwork = useCallback(
 		async (file?: File) => {
 			if (!file) return;
+			const slot = "artwork";
 			const sequence = ++uploadSequenceRef.current;
 			const validationError = validateImageFile(file);
 			if (validationError) {
+				trackArtworkFailure(slot, "user", "validation");
 				setError(validationError);
 				return;
 			}
@@ -212,6 +218,7 @@ export function useTicketWorkspace() {
 				setError("");
 			} catch (cause) {
 				if (sequence === uploadSequenceRef.current) {
+					trackArtworkFailure(slot, "user", "decode");
 					setError(
 						cause instanceof Error && cause.message.startsWith("图像像素")
 							? cause.message
@@ -226,9 +233,11 @@ export function useTicketWorkspace() {
 	const uploadBackArtwork = useCallback(
 		async (file?: File) => {
 			if (!file) return;
+			const slot = "back";
 			const sequence = ++backUploadSequenceRef.current;
 			const validationError = validateImageFile(file);
 			if (validationError) {
+				trackArtworkFailure(slot, "user", "validation");
 				setError(validationError);
 				return;
 			}
@@ -242,6 +251,7 @@ export function useTicketWorkspace() {
 				setError("");
 			} catch (cause) {
 				if (sequence === backUploadSequenceRef.current) {
+					trackArtworkFailure(slot, "user", "decode");
 					setError(
 						cause instanceof Error && cause.message.startsWith("图像像素")
 							? cause.message

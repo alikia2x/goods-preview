@@ -6,6 +6,7 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
+import { trackViewModeChange } from "@/features/analytics/events";
 import { VIEW_OPTIONS } from "@/features/badge/constants";
 import type { BadgeView } from "@/features/badge/settings";
 import { OptionButtonGroup } from "@/components/workspace/OptionButtonGroup";
@@ -41,7 +42,10 @@ export function PreviewToolbar({
 					<p className="mb-4 text-sm">视角</p>
 					<OptionButtonGroup
 						options={VIEW_VALUES}
-						onChange={onViewChange}
+						onChange={(view) => {
+							trackViewModeChange(view);
+							onViewChange(view);
+						}}
 						renderLabel={(value) => VIEW_LABELS.get(value)}
 					/>
 					<Button

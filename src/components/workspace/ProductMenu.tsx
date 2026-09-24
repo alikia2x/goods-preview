@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/popover";
 import { PillButton } from "@/components/workspace/PillButton";
 import { useWorkspaceSupport } from "@/components/workspace/WorkspaceSupport";
+import { trackTutorialView } from "@/features/analytics/events";
 import { PRODUCT_TUTORIALS } from "@/features/tutorial";
 import { ProductTutorialDialog } from "@/features/tutorial/ProductTutorialDialog";
 import type { ProductKind } from "@/tuning";
@@ -75,13 +76,19 @@ export function ProductMenu({ product }: { product: ProductKind }) {
 					id: "basic-tutorial",
 					label: "基础教程",
 					icon: BookOpen,
-					onSelect: openTutorial,
+					onSelect: () => {
+						trackTutorialView("basic", product);
+						openTutorial();
+					},
 				},
 				{
 					id: "product-tutorial",
 					label: `${tutorial.title}教程`,
 					icon: GraduationCap,
-					onSelect: () => setTutorialOpen(true),
+					onSelect: () => {
+						trackTutorialView("product", product);
+						setTutorialOpen(true);
+					},
 				},
 			],
 		},

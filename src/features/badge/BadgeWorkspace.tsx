@@ -13,6 +13,7 @@ import {
 	badgeViews,
 } from "@/features/badge/model/views";
 import { useBadgeWorkspace } from "@/features/badge/useBadgeWorkspace";
+import { usePreviewTelemetry } from "@/features/analytics/preview-telemetry";
 import { StudioCanvas } from "@/features/studio/components/StudioCanvas";
 import { StudioStatus } from "@/features/studio/components/StudioStatus";
 import { studioDistance } from "@/features/studio/lib/framing";
@@ -28,6 +29,9 @@ export default function BadgeWorkspace() {
 		onEnvironmentReady,
 		onEnvironmentError,
 	} = useStudioEnvironment(settings.lighting);
+	// One report per mount: the time to the first lit frame, or the lighting
+	// failure that replaced it.
+	usePreviewTelemetry("badge", environment !== null, environmentError);
 
 	// The badge reports what it occupies, so the camera is framed on it rather
 	// than on the set's origin — it can be resting against the backdrop. The

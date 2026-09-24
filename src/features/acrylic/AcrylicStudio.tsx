@@ -19,6 +19,7 @@ import {
 	acrylicViews,
 } from "@/features/acrylic/views";
 import type { KeychainArtwork } from "@/features/keychain/lib/artwork";
+import { usePreviewTelemetry } from "@/features/analytics/preview-telemetry";
 import { StudioCanvas } from "@/features/studio/components/StudioCanvas";
 import { StudioStatus } from "@/features/studio/components/StudioStatus";
 import { studioDistance, type Frame } from "@/features/studio/lib/framing";
@@ -75,7 +76,7 @@ export function AcrylicStudio<S extends AcrylicSheetSettings>({
 		derive,
 		mount,
 		frame,
-		filePrefix: product,
+		product,
 		poseOf,
 	});
 	const {
@@ -92,6 +93,9 @@ export function AcrylicStudio<S extends AcrylicSheetSettings>({
 		onEnvironmentReady,
 		onEnvironmentError,
 	} = useStudioEnvironment(settings.lighting);
+	// One report per mount: the time to the first lit frame, or the lighting
+	// failure that replaced it.
+	usePreviewTelemetry(product, environment !== null, environmentError);
 
 	const distance = studioDistance(
 		measured.span,

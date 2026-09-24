@@ -9,6 +9,9 @@ import {
 	useSyncExternalStore,
 } from "react";
 import { SupportDialog } from "@/components/workspace/SupportDialog";
+import { AnalyticsDisclosure } from "@/features/analytics/AnalyticsDisclosure";
+import { trackAboutView, trackTutorialView } from "@/features/analytics/events";
+import { productFromPathname } from "@/app/routes";
 import { PRODUCT_VERSION } from "@/features/badge/constants";
 import { TutorialStep, TutorialSteps } from "@/features/tutorial";
 
@@ -46,12 +49,18 @@ export function WorkspaceSupportProvider({
 	);
 
 	useEffect(() => {
-		try {
-			if (!window.localStorage.getItem(TUTORIAL_STORAGE_KEY))
-				setTutorialOpen(true);
-		} catch {
-			setTutorialOpen(true);
-		}
+		const firstVisit = (() => {
+			try {
+				return !window.localStorage.getItem(TUTORIAL_STORAGE_KEY);
+			} catch {
+				return true;
+			}
+		})();
+		if (!firstVisit) return;
+		// A tutorial nobody opened is not readership, so the automatic showing is
+		// reported separately from the menu entry.
+		trackTutorialView("auto", productFromPathname(window.location.pathname));
+		setTutorialOpen(true);
 	}, []);
 
 	const setTutorialVisibility = useCallback((open: boolean) => {
@@ -65,7 +74,10 @@ export function WorkspaceSupportProvider({
 	}, []);
 
 	const openTutorial = useCallback(() => setTutorialOpen(true), []);
-	const openAbout = useCallback(() => setAboutOpen(true), []);
+	const openAbout = useCallback(() => {
+		trackAboutView();
+		setAboutOpen(true);
+	}, []);
 	const support = useMemo(
 		() => ({ openTutorial, openAbout }),
 		[openTutorial, openAbout],
@@ -130,6 +142,7 @@ export function WorkspaceSupportProvider({
 						</dd>
 					</div>
 				</dl>
+				<AnalyticsDisclosure />
 			</SupportDialog>
 		</WorkspaceSupportContext.Provider>
 	);

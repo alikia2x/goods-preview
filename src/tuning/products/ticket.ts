@@ -22,15 +22,15 @@ export const TICKET_COATING = {
 	foil: {
 		// Pattern scale of the diffraction field, and how far a change of view
 		// angle slides it across the sheet.
-		scale: 10,
-		motion: 240,
+		scale: 8,
+		motion: 200,
 		// How much noise warps the field before it is thresholded.
-		distortion: 40,
+		distortion: 10,
 		// Coverage of the exposed foil, its brightness, and the frequency of the
 		// interference colour across it.
-		threshold: 89,
-		brightness: 90,
-		spectrum: 50,
+		threshold: 84,
+		brightness: 86,
+		spectrum: 70,
 	},
 	glitter: {
 		// Grains per sheet and how large each one is.
@@ -45,7 +45,7 @@ export const TICKET_COATING = {
 		// Where no ink covers the sheet, the print gives way to this grey
 		// substrate; it reflects at `reflection` strength with `roughness`.
 		substrate: 2,
-		roughness: 0.5,
+		roughness: 0.4,
 		reflection: 1,
 		// Interference colour: the colourless coating, how far the spectrum
 		// replaces it, and the angle window and field strength that decide when

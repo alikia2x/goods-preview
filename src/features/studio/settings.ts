@@ -1,6 +1,10 @@
 import { useCallback, useReducer } from "react";
+import {
+	settingTelemetrySuppressed,
+	trackSettingChange,
+} from "@/features/analytics/events";
 import type { LightingPreset } from "@/features/studio/lib/lighting-presets";
-import type { SceneKind } from "@/tuning";
+import type { ProductKind, SceneKind } from "@/tuning";
 
 // The settings every product workspace shares. Products extend this with their
 // own knobs; the shared studio controls and the export pipeline operate on this
@@ -34,12 +38,18 @@ type SettingAction<S> = {
 
 type ReplaceSettingsAction<S> = { type: "replace"; settings: S };
 
+// Reported by its own export event, so the generic settings report skips it.
+export const SETTINGS_TELEMETRY_EXCLUDED_KEYS: ReadonlySet<string> = new Set([
+	"transparentBackground",
+]);
+
 // One settings reducer for every product. `derive` is an optional pure rule that
 // reacts to a change (for example the badge's finish also selects a lighting
 // preset and gloss) and must be a stable module-level function.
 export function useSettings<S extends StudioSettings>(
 	defaults: S,
-	derive?: (next: S, key: keyof S) => S,
+	derive: ((next: S, key: keyof S) => S) | undefined,
+	product: ProductKind,
 ) {
 	const reducer = useCallback(
 		(state: S, action: SettingAction<S> | ReplaceSettingsAction<S>) => {
@@ -53,8 +63,17 @@ export function useSettings<S extends StudioSettings>(
 		...initial,
 	}));
 	const updateSetting = useCallback<SettingChange<S>>(
-		(key, value) => dispatch({ key, value } as SettingAction<S>),
-		[],
+		(key, value) => {
+			// The key is known here, so one deliberate change is one event: the
+			// derived values `derive` adds are not reported as separate changes.
+			if (
+				!settingTelemetrySuppressed() &&
+				!SETTINGS_TELEMETRY_EXCLUDED_KEYS.has(key as string)
+			)
+				trackSettingChange(product, key as string, value);
+			dispatch({ key, value } as SettingAction<S>);
+		},
+		[product],
 	);
 	const replaceSettings = useCallback(
 		(next: S) =>

@@ -41,6 +41,12 @@ export function DebugPanel() {
 				<strong>{format(snapshot.dpr, 2)}</strong>
 			</p>
 			<p className={styles.debugRow}>
+				<span>渲染分辨率</span>
+				<strong>
+					{snapshot.renderWidth} × {snapshot.renderHeight}
+				</strong>
+			</p>
+			<p className={styles.debugRow}>
 				<span>Draw calls</span>
 				<strong>{snapshot.drawCalls}</strong>
 			</p>

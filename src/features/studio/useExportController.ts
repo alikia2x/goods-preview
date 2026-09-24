@@ -1,4 +1,11 @@
 import { type RefObject, useCallback } from "react";
+import { normalizeError } from "@/features/analytics/errors";
+import {
+	trackExportFailure,
+	trackExportStart,
+	trackExportSuccess,
+} from "@/features/analytics/events";
+import { productFromPathname } from "@/app/routes";
 import type { StudioHandle } from "@/features/studio/components/StudioViewport";
 import { downloadPng } from "@/features/studio/lib/capture";
 import { useExportState } from "@/hooks/useExportState";
@@ -25,10 +32,33 @@ export function useExportController({
 		async (resolution: number, transparent: boolean) => {
 			const api = apiRef.current;
 			if (!api) return;
-			beforeCapture?.();
-			const blob = await api.capture(resolution, transparent);
-			downloadPng(blob, fileName(resolution, transparent));
-			onComplete?.();
+			const product = productFromPathname(window.location.pathname);
+			const startedAt = performance.now();
+			trackExportStart(resolution, transparent);
+			try {
+				beforeCapture?.();
+				const blob = await api.capture(resolution, transparent);
+				downloadPng(blob, fileName(resolution, transparent));
+				trackExportSuccess({
+					product,
+					resolution,
+					transparent,
+					durationMs: performance.now() - startedAt,
+				});
+				onComplete?.();
+			} catch (cause) {
+				// The failing step is named because a capture that dies in WebGL and a
+				// download the browser refuses need different fixes.
+				trackExportFailure({
+					product,
+					resolution,
+					transparent,
+					durationMs: performance.now() - startedAt,
+					stage: "capture",
+					error: normalizeError(cause, "ExportError"),
+				});
+				throw cause;
+			}
 		},
 		[apiRef, fileName, beforeCapture, onComplete],
 	);

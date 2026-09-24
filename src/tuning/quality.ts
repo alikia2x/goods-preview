@@ -18,13 +18,13 @@ export const ADAPTIVE_RESOLUTION = {
 	// Dropping is quicker than climbing back, which keeps a heavy scene from
 	// flapping up into a stutter.
 	downWindows: 2,
-	upWindows: 4,
+	upWindows: 10,
 	// Shortest gap between two adjustments; also the settle time that keeps a
 	// rebuilt drawing buffer out of the next window.
-	cooldownMs: 1000,
+	cooldownMs: 5000,
 	// A single frame longer than this multiple of the budget is a hitch — an
 	// export, a background tab, a texture upload — not a frame rate.
 	hitchFactor: 6,
 	// Shader compiles and environment generation never decide anything.
-	warmupMs: 2000,
+	warmupMs: 5000,
 };
