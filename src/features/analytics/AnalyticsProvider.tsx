@@ -18,14 +18,16 @@ function useRouteTelemetry() {
 	const { pathname } = useLocation();
 	const previous = useRef<string | null>(null);
 	useEffect(() => {
+		if (previous.current === pathname) return;
+		const previousPathname = previous.current;
 		const product = productFromPathname(pathname);
 		trackPageView(pathname, product);
 		if (product !== "unknown") {
 			trackProductView(product);
-			const from = previous.current
-				? productFromPathname(previous.current)
+			const from = previousPathname
+				? productFromPathname(previousPathname)
 				: "unknown";
-			if (previous.current !== null && from !== product)
+			if (previousPathname !== null && from !== product)
 				trackProductSelect(from, product);
 		}
 		previous.current = pathname;
@@ -50,11 +52,11 @@ function useGlobalErrorTelemetry() {
 }
 
 export function AnalyticsProvider() {
-	useRouteTelemetry();
-	useGlobalErrorTelemetry();
 	useEffect(() => {
 		if (!ANALYTICS_ENABLED) return;
-		void setupAnalytics();
+		setupAnalytics();
 	}, []);
+	useRouteTelemetry();
+	useGlobalErrorTelemetry();
 	return null;
 }

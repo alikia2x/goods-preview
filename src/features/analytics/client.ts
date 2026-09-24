@@ -62,17 +62,24 @@ function loadLoader() {
 }
 
 function gtag(...args: unknown[]) {
+	window.gtag?.(...args);
+}
+
+function initializeGtagQueue() {
 	window.dataLayer = window.dataLayer ?? [];
-	// The queue form is what the loader drains. It also means an event sent
-	// before the script arrives is not lost.
-	window.dataLayer.push(args);
+	// Match Google's standard gtag.js bootstrap: preserve the original
+	// arguments object so the loader can consume commands in order.
+	window.gtag ??= function () {
+		// biome-ignore lint/complexity/noArguments: gtag.js queues the standard arguments object.
+		window.dataLayer?.push(arguments);
+	};
 }
 
 /**
- * Turns tracking on for this session: loads the tag, declares Consent Mode, and
- * records the first page view. Safe to call more than once.
+ * Turns tracking on for this session and queues configuration before loading
+ * the tag. Safe to call more than once.
  */
-export async function setupAnalytics() {
+export function setupAnalytics() {
 	if (!ANALYTICS_ENABLED) return;
 	if (!analyticsAllowed()) {
 		if (import.meta.env.DEV)
@@ -82,11 +89,11 @@ export async function setupAnalytics() {
 	if (enabled) return;
 	enabled = true;
 
-	await loadLoader();
+	initializeGtagQueue();
 	gtag("js", new Date());
-	// Consent Mode is declared before `config`, so the very first ping already
-	// reflects the choice instead of being corrected after the fact.
-	gtag("consent", {
+	// Set the default before config or events so the first measurement uses the
+	// current choice. The second argument is required by the Consent Mode API.
+	gtag("consent", "default", {
 		analytics_storage: "granted",
 		ad_storage: "denied",
 		ad_user_data: "denied",
@@ -101,9 +108,12 @@ export async function setupAnalytics() {
 		allow_ad_personalization_signals: false,
 		anonymize_ip: true,
 	});
+	// Queue the commands before requesting gtag.js. This preserves their order
+	// and ensures events fired while the async script loads are not lost.
+	void loadLoader();
 
 	subscribeToAnalyticsConsent((granted) => {
-		gtag("consent", {
+		gtag("consent", "update", {
 			analytics_storage: granted ? "granted" : "denied",
 			ad_storage: "denied",
 			ad_user_data: "denied",
